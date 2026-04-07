@@ -174,7 +174,16 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
       .replace(/from\s+['"]react\/jsx-runtime['"]/g, `from '${CDN.jsxRuntime}'`)
       .replace(/from\s+['"]react['"]/g,              `from '${CDN.react}'`)
       .replace(/from\s+['"]react-dom\/client['"]/g,  `from '${CDN.reactDom}'`)
-      .replace(/from\s+['"]lucide-react['"]/g,       `from '${CDN.lucideReact}'`)
+      // Lucide: convert named imports → namespace import + Proxy destructuring.
+      // Named imports fail at module-link time if the icon doesn't exist in the
+      // CDN version (e.g. "Instagram" was removed/renamed). Proxy returns () => null
+      // for any missing key so the rest of the site still renders.
+      .replace(
+        /^import\s+\{([^}]+)\}\s+from\s+['"]lucide-react['"];?\s*$/gm,
+        (_: string, names: string) =>
+          `import * as _LucideAll from '${CDN.lucideReact}';\n` +
+          `const { ${names.trim()} } = new Proxy(_LucideAll, { get: (t, k) => t[k] || (() => null) });`
+      )
       // Drop any other bare imports that would fail (no bundler available)
       .replace(/^import\s+.*?from\s+['"][^h][^t][^t].*?['"];?\s*$/gm, '')
 
