@@ -100,15 +100,17 @@ export default function EditorTopBar({
           <span>{versionCount} version{versionCount !== 1 ? 's' : ''}</span>
         </button>
 
-        {/* Copy public URL */}
-        <button
-          onClick={copyPublicUrl}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-          title="Copier le lien public"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Link2 className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{copied ? 'Copié !' : 'Lien public'}</span>
-        </button>
+        {/* Copy public URL — only when deployed */}
+        {deployedUrl && (
+          <button
+            onClick={copyPublicUrl}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            title="Copier le lien public"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Link2 className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copied ? 'Copié !' : 'Lien public'}</span>
+          </button>
+        )}
 
         {/* Deployed link */}
         {deployedUrl && (
