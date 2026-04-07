@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v8_'
+const LS_PREFIX  = 'sb_prev_v9_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -187,14 +187,15 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
   }
 
   const moduleScript = `
-// Catch ALL uncaught errors (incl. async useEffect throws) and show them on screen
+// Relay ALL errors to the parent frame as toasts instead of replacing the preview
+function _reportError(type, detail) {
+  try { window.parent.postMessage({ type: 'preview-error', kind: type, detail: String(detail).slice(0, 400) }, '*'); } catch(e) {}
+}
 window.onerror = function(msg, src, line, col, err) {
-  document.body.style.cssText = 'margin:0;background:#0f0f13';
-  document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur JS :\\n' + (err ? err.stack || err.message : msg) + '</pre>';
+  _reportError('JS', err ? (err.stack || err.message) : msg);
 };
 window.addEventListener('unhandledrejection', function(e) {
-  document.body.style.cssText = 'margin:0;background:#0f0f13';
-  document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur async :\\n' + (e.reason ? (e.reason.stack || e.reason.message || e.reason) : 'Unknown') + '</pre>';
+  _reportError('async', e.reason ? (e.reason.stack || e.reason.message || String(e.reason)) : 'Unhandled rejection');
 });
 
 import React from '${CDN.react}';
@@ -217,8 +218,7 @@ class _EB extends React.Component {
     return this.props.children;
   }
   componentDidCatch(e) {
-    document.body.style.cssText = 'margin:0;background:#0f0f13';
-    document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur de rendu :\\n' + (e.message||e) + '</pre>';
+    _reportError('React render', e.message || String(e));
   }
 }
 
@@ -316,12 +316,14 @@ interface CodePreviewProps {
   isWaitingForGeneration?: boolean
   streamingCode?: string
   mode?: 'desktop' | 'mobile'
+  onError?: (msg: string) => void
 }
 
-export default function CodePreview({ code, isGenerating, isWaitingForGeneration, streamingCode, mode = 'desktop' }: CodePreviewProps) {
+export default function CodePreview({ code, isGenerating, isWaitingForGeneration, streamingCode, mode = 'desktop', onError }: CodePreviewProps) {
   const iframeRef    = useRef<HTMLIFrameElement>(null)
-  // Track what srcdoc is currently loaded in the iframe — avoid redundant reloads
   const loadedDocRef = useRef<string>('')
+  const onErrorRef   = useRef(onError)
+  useEffect(() => { onErrorRef.current = onError }, [onError])
 
   // Imperatively write srcdoc — bypasses React reconciliation so the iframe
   // is never touched unless we explicitly need to change its content.
@@ -329,6 +331,18 @@ export default function CodePreview({ code, isGenerating, isWaitingForGeneration
     if (doc === loadedDocRef.current) return
     loadedDocRef.current = doc
     if (iframeRef.current) iframeRef.current.srcdoc = doc
+  }, [])
+
+  // Listen for errors relayed from inside the sandboxed iframe
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'preview-error') {
+        const label = e.data.kind ? `[${e.data.kind}] ` : ''
+        onErrorRef.current?.(`Preview: ${label}${e.data.detail}`)
+      }
+    }
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
   }, [])
 
   // Eagerly preload Babel as soon as this component mounts — don't wait for
@@ -353,7 +367,15 @@ export default function CodePreview({ code, isGenerating, isWaitingForGeneration
     const cached = _memCache.get(key) ?? lsGet(key)
     if (cached) { applyDoc(cached); return }
     let cancelled = false
-    codeToSrcdoc(code).then(doc => { if (!cancelled) applyDoc(doc) })
+    codeToSrcdoc(code).then(doc => {
+      if (cancelled) return
+      applyDoc(doc)
+      if (doc.includes('Erreur de compilation')) {
+        // Extract first line of the error message for the toast
+        const match = doc.match(/Erreur de compilation\s*:\n?([^\n<]{0,200})/)
+        onErrorRef.current?.(`Compilation: ${match?.[1] ?? 'Babel error'}`)
+      }
+    })
     return () => { cancelled = true }
   }, [code]) // eslint-disable-line react-hooks/exhaustive-deps
 

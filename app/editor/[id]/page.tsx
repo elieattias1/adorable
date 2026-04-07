@@ -369,6 +369,7 @@ function EditorPage() {
             isWaitingForGeneration={isGenerating && !siteCode}
             streamingCode={streamingCode}
             mode={previewMode}
+            onError={msg => showToast(msg, 'error')}
           />
         </div>
 
