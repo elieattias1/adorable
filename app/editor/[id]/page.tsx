@@ -184,12 +184,22 @@ function EditorPage() {
               setCurrentSteps([...accumulatedSteps])
             }
 
+            // Sequential generation: a new section is starting
+            if (data.section_start) {
+              accumulatedSteps = [...accumulatedSteps, {
+                name:  'write_section',
+                icon:  '🔨',
+                label: `${data.section_start.component} — ${data.section_start.label}`,
+              }]
+              setCurrentSteps([...accumulatedSteps])
+            }
+
             // Live streaming: code being written token by token
             if (data.code_stream) {
               setStreamingCode(data.code_stream)
             }
 
-            // Tool finished → clear overlay, update Sandpack
+            // Tool / section finished → clear overlay, update preview
             if (data.code_update) {
               setStreamingCode('')
               setSiteCode(data.code_update)
