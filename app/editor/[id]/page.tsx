@@ -189,8 +189,17 @@ function EditorPage() {
               accumulatedSteps = [...accumulatedSteps, {
                 name:  'write_section',
                 icon:  '🔨',
-                label: `${data.section_start.component} — ${data.section_start.label}`,
+                label: data.section_start.label,
+                done:  false,
               }]
+              setCurrentSteps([...accumulatedSteps])
+            }
+
+            // Section finished — mark the last step as done
+            if (data.section_done !== undefined) {
+              accumulatedSteps = accumulatedSteps.map((s, i) =>
+                i === accumulatedSteps.length - 1 ? { ...s, done: true, icon: data.section_skipped ? '⚠️' : '✓' } : s
+              )
               setCurrentSteps([...accumulatedSteps])
             }
 

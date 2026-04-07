@@ -9,6 +9,7 @@ export interface AgentStep {
   name: string
   icon: string
   label: string
+  done?: boolean
 }
 
 export interface ChatMessage {
@@ -142,10 +143,16 @@ function ThinkingBubble({ text, steps }: { text: string; steps: AgentStep[] }) {
         )}
         {/* Tool steps */}
         {steps.map((step, i) => (
-          <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-950/40 border border-violet-800/30 text-xs text-violet-300">
+          <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${
+            step.done
+              ? 'bg-white/5 border border-white/8 text-gray-500'
+              : 'bg-violet-950/40 border border-violet-800/30 text-violet-300'
+          }`}>
             <span>{step.icon}</span>
             <span className="flex-1">{step.label}</span>
-            <div className="w-3 h-3 border border-violet-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            {!step.done && (
+              <div className="w-3 h-3 border border-violet-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            )}
           </div>
         ))}
         {/* Dots if no text yet */}

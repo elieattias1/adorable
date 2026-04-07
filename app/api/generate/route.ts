@@ -100,51 +100,59 @@ async function runSequentialGeneration(opts: {
     console.log(`${tag} 🔨 section ${section.id} (${section.component})`)
     safeSend({ section_start: { id: section.id, component: section.component, label: section.spec.split('.')[0] } })
 
-    const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint)
+    try {
+      const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint)
 
-    // Stream the section code token by token
-    const sectionStream = anthropic.messages.stream({
-      model:       'claude-sonnet-4-6',
-      max_tokens:  3000,
-      system:      sectionPrompt,
-      tools:       [SECTION_TOOL],
-      tool_choice: { type: 'tool', name: 'write_section' },
-      messages:    [{ role: 'user', content: `Écris le composant ${section.component} maintenant.` }],
-    })
+      const sectionStream = anthropic.messages.stream({
+        model:       'claude-sonnet-4-6',
+        max_tokens:  3000,
+        system:      sectionPrompt,
+        tools:       [SECTION_TOOL],
+        tool_choice: { type: 'tool', name: 'write_section' },
+        messages:    [{ role: 'user', content: `Écris le composant ${section.component} maintenant.` }],
+      })
 
-    let sectionPartialJson = ''
-    let lastStreamedLen = 0
+      let sectionPartialJson = ''
+      let lastStreamedLen = 0
 
-    sectionStream.on('streamEvent', (event: any) => {
-      if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
-        sectionPartialJson += event.delta.partial_json ?? ''
-        const partial = extractPartialCode(sectionPartialJson)
-        if (partial && partial.length - lastStreamedLen > 200) {
-          lastStreamedLen = partial.length
-          safeSend({ code_stream: partial })
+      sectionStream.on('streamEvent', (event: any) => {
+        if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
+          sectionPartialJson += event.delta.partial_json ?? ''
+          const partial = extractPartialCode(sectionPartialJson)
+          if (partial && partial.length - lastStreamedLen > 200) {
+            lastStreamedLen = partial.length
+            safeSend({ code_stream: partial })
+          }
         }
+      })
+
+      const sectionResponse = await sectionStream.finalMessage()
+      const sectionBlock = sectionResponse.content.find(
+        b => b.type === 'tool_use' && b.name === 'write_section'
+      )
+
+      if (sectionBlock && sectionBlock.type === 'tool_use') {
+        const input = sectionBlock.input as { code?: string }
+        const code  = (input.code ?? '').trim()
+        if (code) {
+          completed.push({ component: section.component, code })
+          previousCode = completed.map(s => s.code).join('\n\n')
+          const partialAssembled = assembleSections(completed)
+          safeSend({ code_update: partialAssembled, section_done: section.id })
+          console.log(`${tag}   ✅ ${section.id}  lines=${code.split('\n').length}`)
+        } else {
+          console.warn(`${tag}   ⚠️  ${section.id} returned empty code — skipping`)
+          safeSend({ section_done: section.id, section_skipped: true })
+        }
+      } else {
+        console.warn(`${tag}   ⚠️  ${section.id} returned no tool block — skipping`)
+        safeSend({ section_done: section.id, section_skipped: true })
       }
-    })
-
-    const sectionResponse = await sectionStream.finalMessage()
-    const sectionBlock = sectionResponse.content.find(
-      b => b.type === 'tool_use' && b.name === 'write_section'
-    )
-
-    if (sectionBlock && sectionBlock.type === 'tool_use') {
-      const input = sectionBlock.input as { code?: string }
-      const code  = (input.code ?? '').trim()
-      if (code) {
-        completed.push({ component: section.component, code })
-        previousCode = completed.map(s => s.code).join('\n\n')
-
-        // Assemble and send partial site so client can render progressively
-        const partialAssembled = assembleSections(completed)
-        safeSend({ code_update: partialAssembled, section_done: section.id })
-        console.log(`${tag}   ✅ ${section.id}  lines=${code.split('\n').length}`)
-      }
-    } else {
-      console.warn(`${tag}   ⚠️  ${section.id} returned no code — skipping`)
+    } catch (sectionErr) {
+      // One section failing must NOT abort the whole generation
+      console.error(`${tag}   ❌ ${section.id} error:`, sectionErr)
+      safeSend({ section_done: section.id, section_skipped: true })
+      // Continue to next section with whatever context we have
     }
   }
 
