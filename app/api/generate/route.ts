@@ -52,6 +52,9 @@ export async function POST(req: NextRequest) {
       }
 
       try {
+        // Signal immediately so the client shows "thinking" right away
+        safeSend({ thinking: true })
+
         // ── Auth ────────────────────────────────────────────────────────────
         const supabase = await createServerSupabaseClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()

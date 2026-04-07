@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v6_'
+const LS_PREFIX  = 'sb_prev_v7_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -124,7 +124,7 @@ const BASE_HEAD = `
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; }
+  body { margin: 0; background: #0f0f13; }
   /* Offset anchor targets so they're not hidden under a fixed navbar */
   [id] { scroll-margin-top: 80px; }
   ::-webkit-scrollbar { width: 6px; }
@@ -187,6 +187,16 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
   }
 
   const moduleScript = `
+// Catch ALL uncaught errors (incl. async useEffect throws) and show them on screen
+window.onerror = function(msg, src, line, col, err) {
+  document.body.style.cssText = 'margin:0;background:#0f0f13';
+  document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur JS :\\n' + (err ? err.stack || err.message : msg) + '</pre>';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  document.body.style.cssText = 'margin:0;background:#0f0f13';
+  document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur async :\\n' + (e.reason ? (e.reason.stack || e.reason.message || e.reason) : 'Unknown') + '</pre>';
+});
+
 import React from '${CDN.react}';
 import { createRoot } from '${CDN.reactDom}';
 ${js}
