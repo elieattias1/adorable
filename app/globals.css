@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Dark mode (default) */
+  :root, .dark {
+    --background:    0 0% 3%;
+    --foreground:    0 0% 98%;
+    --card:          0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --border:        0 0% 12%;
+    --input:         0 0% 12%;
+    --ring:          263 70% 60%;
+    --primary:       263 70% 60%;
+    --primary-foreground: 0 0% 100%;
+    --muted:         0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+    --accent:        0 0% 10%;
+    --accent-foreground: 0 0% 98%;
+    --destructive:   0 62% 40%;
+    --radius:        0.5rem;
+  }
+
+  /* Light mode */
+  .light {
+    --background:    0 0% 98%;
+    --foreground:    0 0% 8%;
+    --card:          0 0% 100%;
+    --card-foreground: 0 0% 8%;
+    --border:        0 0% 88%;
+    --input:         0 0% 88%;
+    --ring:          263 70% 55%;
+    --primary:       263 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --muted:         0 0% 94%;
+    --muted-foreground: 0 0% 40%;
+    --accent:        0 0% 94%;
+    --accent-foreground: 0 0% 8%;
+    --destructive:   0 62% 50%;
+    --radius:        0.5rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-700 rounded-full; }
+}
+
+/* Light mode surface overrides — swap dark grays to light equivalents */
+.light body { background: #f8f8fc; color: #111; }
+.light .bg-gray-950 { background-color: #f0f0f8 !important; }
+.light .bg-gray-900 { background-color: #f7f7fc !important; }
+.light .bg-gray-800 { background-color: #eeeef6 !important; }
+.light .border-white\/5  { border-color: rgba(0,0,0,0.07) !important; }
+.light .border-white\/6  { border-color: rgba(0,0,0,0.08) !important; }
+.light .border-white\/8  { border-color: rgba(0,0,0,0.10) !important; }
+.light .border-white\/10 { border-color: rgba(0,0,0,0.12) !important; }
+.light .border-white\/20 { border-color: rgba(0,0,0,0.18) !important; }
+.light .text-white  { color: #111 !important; }
+.light .text-gray-400 { color: #555 !important; }
+.light .text-gray-500 { color: #666 !important; }
+.light .text-gray-600 { color: #777 !important; }
+.light .bg-white\/3  { background-color: rgba(0,0,0,0.03) !important; }
+.light .bg-white\/5  { background-color: rgba(0,0,0,0.04) !important; }
+.light .bg-white\/8  { background-color: rgba(0,0,0,0.06) !important; }
+.light .bg-white\/10 { background-color: rgba(0,0,0,0.08) !important; }
+.light .hover\:bg-white\/3:hover  { background-color: rgba(0,0,0,0.04) !important; }
+.light .hover\:bg-white\/5:hover  { background-color: rgba(0,0,0,0.05) !important; }
+.light .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.07) !important; }
+.light .bg-gray-950\/95 { background-color: rgba(240,240,248,0.95) !important; }
+
+/* Chat panel light mode fixes */
+.light .text-gray-200 { color: #222 !important; }
+.light .text-gray-300 { color: #333 !important; }
+.light .text-gray-700 { color: #888 !important; }
+.light .placeholder-gray-600::placeholder { color: #999 !important; }
+.light .border-white\/6 { border-color: rgba(0,0,0,0.08) !important; }
+.light textarea { color: #111 !important; }
+.light textarea::placeholder { color: #999 !important; }
+
+@layer utilities {
+  .gradient-text {
+    @apply bg-gradient-to-r from-violet-400 via-pink-400 to-blue-400 bg-clip-text text-transparent;
+  }
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/8;
+  }
+  .glow {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.25);
+  }
+}
+
+/* Marquee animations */
+@keyframes marquee  { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes marqueeR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+/* Chat bubble animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chat-bubble { animation: fadeUp 0.2s ease; }
+
+/* Typing indicator */
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; }
+  40%           { opacity: 1; }
+}
+.typing-dot {
+  @apply w-1.5 h-1.5 rounded-full bg-gray-400;
+  animation: blink 1.2s infinite both;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
