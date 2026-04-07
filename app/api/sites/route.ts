@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerSupabaseClient, supabaseAdmin, canCreateSite } from '@/lib/supabase'
-import { generateInitialSite } from '@/lib/anthropic'
 
 const CreateSiteSchema = z.object({
   name:        z.string().min(1).max(80),
@@ -69,19 +68,6 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (createError) return NextResponse.json({ error: createError.message }, { status: 500 })
-
-  // Generate initial HTML asynchronously (non-blocking for fast response)
-  // In production: use a background job (Vercel cron, Supabase edge function, etc.)
-  generateInitialSite({ name: input.name, type: input.type, description: input.description, siteId: site.id })
-    .then(async html => {
-      await Promise.all([
-        supabaseAdmin.from('sites').update({ html }).eq('id', site.id),
-        supabaseAdmin.from('versions').insert({
-          site_id: site.id, user_id: user.id, html, note: 'Version initiale',
-        }),
-      ])
-    })
-    .catch(err => console.error('[sites] Initial generation failed:', err))
 
   return NextResponse.json({ site }, { status: 201 })
 }

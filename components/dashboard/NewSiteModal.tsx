@@ -82,9 +82,14 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
             templateSchema: JSON.stringify(tpl.schema),
           }),
         }).catch(console.error)
+        router.push(`/editor/${site.id}`)
+      } else {
+        const desc = description.trim()
+        const initMsg = desc
+          ? desc
+          : `Crée un site web complet et professionnel pour "${name.trim()}".`
+        router.push(`/editor/${site.id}?init=${encodeURIComponent(initMsg)}`)
       }
-
-      router.push(`/editor/${site.id}`)
     } catch (err: any) {
       if (err.code === 'PLAN_LIMIT') {
         onClose()

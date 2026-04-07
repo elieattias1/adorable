@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useEffect, useRef, useState, Suspense } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import CodePreview from '@/components/editor/CodePreview'
@@ -39,10 +39,12 @@ function isReactCode(content: string): boolean {
 }
 
 // ─── Editor page ───────────────────────────────────────────────────────────────
-export default function EditorPage() {
-  const params   = useParams()
-  const siteId   = params.id as string
-  const supabase = createClient()
+function EditorPage() {
+  const params       = useParams()
+  const searchParams = useSearchParams()
+  const siteId       = params.id as string
+  const supabase     = createClient()
+  const autoStartRef = useRef(false)
 
   const [site,          setSite]          = useState<Site | null>(null)
   const [siteCode,      setSiteCode]      = useState<string>('')
@@ -94,25 +96,16 @@ export default function EditorPage() {
 
     setLoading(false)
 
-    // If no code yet (initial generation in progress), poll for it
-    if (!siteRes.data?.html) {
-      pollForInitialCode()
+    // Auto-trigger first generation for brand-new sites
+    const hasCode     = !!(siteRes.data?.html && isReactCode(siteRes.data.html))
+    const hasMessages = (msgsRes.data?.length ?? 0) > 0
+    if (!hasCode && !hasMessages && !autoStartRef.current) {
+      autoStartRef.current = true
+      const initMsg = searchParams.get('init')
+        || `Crée un site web complet et professionnel pour "${siteRes.data?.name ?? 'ce site'}".`
+      // Small delay so the editor renders first
+      setTimeout(() => handleSend(initMsg), 300)
     }
-  }
-
-  const pollForInitialCode = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    let attempts = 0
-    const interval = setInterval(async () => {
-      attempts++
-      const { data } = await supabase.from('sites').select('html').eq('id', siteId).eq('user_id', user.id).single()
-      if (data?.html && isReactCode(data.html)) {
-        setSiteCode(data.html)
-        clearInterval(interval)
-      }
-      if (attempts >= 20) clearInterval(interval)
-    }, 3000)
   }
 
   // ─── Upload image ─────────────────────────────────────────────────────────
@@ -386,7 +379,7 @@ export default function EditorPage() {
           <CodePreview
             code={siteCode}
             isGenerating={isGenerating}
-            isWaitingForGeneration={!siteCode && !isGenerating}
+            isWaitingForGeneration={isGenerating && !siteCode}
             streamingCode={streamingCode}
             mode={previewMode}
           />
@@ -437,5 +430,13 @@ export default function EditorPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function EditorPageWrapper() {
+  return (
+    <Suspense>
+      <EditorPage />
+    </Suspense>
   )
 }
