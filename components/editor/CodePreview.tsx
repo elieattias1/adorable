@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v7_'
+const LS_PREFIX  = 'sb_prev_v8_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -230,6 +230,20 @@ try {
   document.body.style.cssText = 'margin:0;background:#0f0f13';
   document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur de rendu :\\n' + err.message + '</pre>';
 }
+
+// Fallback: IntersectionObserver doesn't fire reliably in sandboxed iframes.
+// After 1.2s, force any elements still at opacity:0 to become visible.
+setTimeout(function() {
+  document.querySelectorAll('*').forEach(function(el) {
+    try {
+      var s = window.getComputedStyle(el);
+      if (s.opacity === '0' && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      }
+    } catch(e) {}
+  });
+}, 1200);
 `
   const srcdoc = `<!DOCTYPE html>
 <html lang="fr">

@@ -344,7 +344,7 @@ QUALITÉ VISUELLE — PAR ORDRE DE PRIORITÉ :
 2. Contenu 100% spécifique — invente de vrais noms, adresses, prix, témoignages (prénom + ville)
 3. Respecte STRICTEMENT le design system — jamais de violet par défaut sur un restaurant
 4. Sections spacieuses : py-20 à py-32 minimum
-5. Animations scroll : IntersectionObserver, opacity 0→1 + translateY 20px→0, transition 600ms
+5. Animations scroll : utilise IntersectionObserver UNIQUEMENT avec un fallback immédiat si l'observer ne répond pas dans 800ms — ou mieux, utilise des animations CSS @keyframes avec animation-delay pour simuler l'entrée progressive sans dépendre de JS
 6. Nav fixe : backdrop-blur-md, fond semi-transparent du preset, logo + liens + CTA bouton
 7. Footer complet : navigation, réseaux sociaux, contact, copyright
 8. Responsive mobile-first — 1 colonne mobile, 2-3 colonnes desktop
