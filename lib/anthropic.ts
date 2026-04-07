@@ -289,7 +289,7 @@ Tu reçois un premier message décrivant le site à créer.
 
 ÉTAPE 1 — ÉVALUE le contexte :
 → Si le message contient un nom de business + une description métier (même courte) : va à l'ÉTAPE 2.
-→ Si le message est trop vague (ex : "mon site", "un restaurant" sans nom ni détail) : utilise ask_user avec UNE question précise et 2-3 options. Exemple : "Comment s'appelle ton restaurant et quel est son positionnement — gastronomique, bistrot convivial, ou cuisine du monde ?"
+→ Si le message est trop vague (pas de nom de business, pas de contexte métier) : utilise ask_user avec UNE question ciblée qui débloque tout — adapte la question au type de site. Propose 2-3 options concrètes.
 
 ÉTAPE 2 — ANNONCE ton plan en texte (avant d'écrire le code) :
 Écris ce texte mot pour mot (adapté au contexte) :
