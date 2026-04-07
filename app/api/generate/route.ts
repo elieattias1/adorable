@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
           const claudeStream = anthropic.messages.stream({
             model:       'claude-sonnet-4-6',
-            max_tokens:  8000,
+            max_tokens:  16000,
             system:      buildAgentSystemPrompt(currentCode, site.type, site.id),
             tools:       AGENT_TOOLS,
             tool_choice: { type: 'auto' },
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
             } else {
               agentMessages.push({
                 role: 'user',
-                content: 'Tu as atteint la limite de tokens. Réécris le code en moins de 250 lignes — garde toutes les sections mais code plus compact. Appelle write_code.',
+                content: 'Tu as atteint la limite de tokens. Continue en appelant write_code avec une version plus compacte (max 800 lignes) — garde toutes les sections mais optimise la répétition avec des tableaux.',
               })
             }
             continue
