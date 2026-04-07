@@ -1115,11 +1115,11 @@ export const SECTION_TOOL: Anthropic.Tool = {
 
 // ─── Manifest system prompt ───────────────────────────────────────────────────
 
-export function buildManifestPrompt(designPreset: string): string {
+export function buildManifestPrompt(designPreset: string, templateContext = ''): string {
   return `Tu es un expert en design de sites web. Tu analyses une demande et produis un manifest complet.
 
 ${designPreset}
-
+${templateContext}
 RÈGLES :
 - businessName : extrait ou déduis le nom exact du business depuis la demande
 - industry : catégorie courte en anglais (restaurant, saas, medical, etc.)

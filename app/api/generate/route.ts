@@ -11,6 +11,7 @@ import {
 } from '@/lib/anthropic'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { scrapeUrl, extractUrl } from '@/lib/scrape-url'
+import { getRelevantTemplates, getTemplateScreenshot, buildTemplateContext } from '@/lib/scraped-templates'
 import type Anthropic from '@anthropic-ai/sdk'
 
 export const maxDuration = 120
@@ -65,17 +66,47 @@ async function runSequentialGeneration(opts: {
 
   const designPreset = getDesignPresetForManifest(siteType, message)
 
+  // ── Reference templates (Supabase) ────────────────────────────────────────
+  type ImageBlock = { type: 'image'; source: { type: 'base64'; media_type: 'image/png'; data: string } }
+  let refTemplates:  Awaited<ReturnType<typeof getRelevantTemplates>> = []
+  let templateCtx    = ''
+  let visionBlocks:  ImageBlock[] = []
+
+  try {
+    refTemplates = await getRelevantTemplates(siteType, message, 3)
+    templateCtx  = buildTemplateContext(refTemplates)
+
+    // Fetch up to 2 screenshots from Supabase Storage for vision context
+    const screenshots = await Promise.all(
+      refTemplates.slice(0, 2).map(t => getTemplateScreenshot(t))
+    )
+    visionBlocks = screenshots
+      .filter((img): img is NonNullable<typeof img> => img !== null)
+      .map(img => ({ type: 'image', source: { type: 'base64', media_type: img.mimeType, data: img.base64 } }))
+
+    if (refTemplates.length > 0) {
+      console.log(`${tag} 📚 templates=[${refTemplates.map(t => t.name).join(', ')}] screenshots=${visionBlocks.length}`)
+    }
+  } catch (err) {
+    console.warn(`${tag} ⚠️  template lookup failed (non-blocking):`, err)
+  }
+
   // ── Phase 1: Manifest ──────────────────────────────────────────────────────
   console.log(`${tag} 📋 manifest phase`)
   safeSend({ chunk: `Analyse de ta demande pour **${siteName}**…\n` })
 
+  const userContent: Anthropic.MessageParam['content'] = [
+    ...visionBlocks,
+    { type: 'text', text: `Business : ${siteName}\nType : ${siteType}\nDemande : ${message}` },
+  ]
+
   const manifestRes = await anthropic.messages.create({
     model:       'claude-sonnet-4-6',
     max_tokens:  1500,
-    system:      buildManifestPrompt(designPreset),
+    system:      buildManifestPrompt(designPreset, templateCtx),
     tools:       [MANIFEST_TOOL],
     tool_choice: { type: 'tool', name: 'create_manifest' },
-    messages:    [{ role: 'user', content: `Business : ${siteName}\nType : ${siteType}\nDemande : ${message}` }],
+    messages:    [{ role: 'user', content: userContent }],
   })
 
   const manifestBlock = manifestRes.content.find(b => b.type === 'tool_use' && b.name === 'create_manifest')
@@ -160,6 +191,14 @@ async function runSequentialGeneration(opts: {
 
   const finalCode = assembleSections(completed)
   console.log(`${tag} ✅ all sections done  totalLines=${finalCode.split('\n').length}`)
+
+  // ── Fire-and-forget screenshot (background, non-blocking) ─────────────────
+  fetch(`${appUrl}/api/screenshot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ siteId }),
+  }).catch(err => console.warn(`${tag} ⚠️  screenshot skipped:`, err?.message))
+
   return finalCode
 }
 

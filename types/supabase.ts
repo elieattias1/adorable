@@ -49,40 +49,87 @@ export interface Database {
       }
       sites: {
         Row: {
-          id:            string
-          user_id:       string
-          name:          string
-          type:          string
-          html:          string | null
-          deployed_url:  string | null
-          custom_domain: string | null
-          is_published:  boolean
-          created_at:    string
-          updated_at:    string
+          id:              string
+          user_id:         string
+          name:            string
+          type:            string
+          html:            string | null
+          deployed_url:    string | null
+          custom_domain:   string | null
+          is_published:    boolean
+          screenshot_url:  string | null
+          created_at:      string
+          updated_at:      string
         }
         Insert: {
-          id?:           string
-          user_id:       string
-          name:          string
-          type:          string
-          html?:         string | null
-          deployed_url?: string | null
-          custom_domain?: string | null
-          is_published?: boolean
-          created_at?:   string
-          updated_at?:   string
+          id?:             string
+          user_id:         string
+          name:            string
+          type:            string
+          html?:           string | null
+          deployed_url?:   string | null
+          custom_domain?:  string | null
+          is_published?:   boolean
+          screenshot_url?: string | null
+          created_at?:     string
+          updated_at?:     string
         }
         Update: {
-          id?:           string
-          user_id?:      string
-          name?:         string
-          type?:         string
-          html?:         string | null
-          deployed_url?: string | null
-          custom_domain?: string | null
-          is_published?: boolean
-          created_at?:   string
-          updated_at?:   string
+          id?:             string
+          user_id?:        string
+          name?:           string
+          type?:           string
+          html?:           string | null
+          deployed_url?:   string | null
+          custom_domain?:  string | null
+          is_published?:   boolean
+          screenshot_url?: string | null
+          created_at?:     string
+          updated_at?:     string
+        }
+      }
+      templates: {
+        Row: {
+          id:             number
+          slug:           string
+          name:           string
+          url:            string
+          industry:       string
+          site_type:      string
+          tags:           string[]
+          priority:       string
+          fonts:          string[]
+          has_dark_bg:    boolean
+          cta_texts:      string[]
+          screenshot_url: string | null
+          created_at:     string
+        }
+        Insert: {
+          slug:            string
+          name:            string
+          url:             string
+          industry:        string
+          site_type:       string
+          tags?:           string[]
+          priority?:       string
+          fonts?:          string[]
+          has_dark_bg?:    boolean
+          cta_texts?:      string[]
+          screenshot_url?: string | null
+          created_at?:     string
+        }
+        Update: {
+          slug?:           string
+          name?:           string
+          url?:            string
+          industry?:       string
+          site_type?:      string
+          tags?:           string[]
+          priority?:       string
+          fonts?:          string[]
+          has_dark_bg?:    boolean
+          cta_texts?:      string[]
+          screenshot_url?: string | null
         }
       }
       messages: {
