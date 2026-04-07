@@ -70,7 +70,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body { margin: 0; }
+    body { margin: 0; background: #0f0f13; }
     [id] { scroll-margin-top: 80px; }
     ${isPreview ? 'html, body { overflow: hidden; }' : '::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #7c3aed60; border-radius: 99px; }'}
     @keyframes spin { to { transform: rotate(360deg) } }
@@ -127,6 +127,16 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
         .replace(/from\\s+['"]react-dom\\/client['"]/g, "from '" + REACT_DOM + "'")
         .replace(/from\\s+['"]lucide-react['"]/g, "from '" + LUCIDE + "'")
         .replace(/^import\\s+.*?from\\s+['"][^h][^t][^t].*?['"];?\\s*$/gm, '');
+
+      // Named lucide imports fail at module-link time if the icon doesn't exist
+      // in the CDN version. Convert to namespace import + Proxy so missing icons
+      // fall back to () => null instead of crashing the whole module.
+      js = js.replace(
+        /^import\\s+\\{([^}]+)\\}\\s+from\\s+'https:\\/\\/esm\\.sh\\/lucide-react[^']*';?\\s*$/gm,
+        function(_, names) {
+          return "import * as _LucideAll from '" + LUCIDE + "';\\nconst { " + names.trim() + " } = new Proxy(_LucideAll, { get: function(t,k){ return t[k] || function(){ return null; }; } });";
+        }
+      );
 
       // Build the module source and load it via a Blob URL
       // (avoids any string-nesting escaping issues)
