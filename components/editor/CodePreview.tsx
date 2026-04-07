@@ -265,11 +265,12 @@ function StreamingOverlay({ code }: { code: string }) {
 interface CodePreviewProps {
   code: string
   isGenerating: boolean
+  isWaitingForGeneration?: boolean
   streamingCode?: string
   mode?: 'desktop' | 'mobile'
 }
 
-export default function CodePreview({ code, isGenerating, streamingCode, mode = 'desktop' }: CodePreviewProps) {
+export default function CodePreview({ code, isGenerating, isWaitingForGeneration, streamingCode, mode = 'desktop' }: CodePreviewProps) {
   const iframeRef    = useRef<HTMLIFrameElement>(null)
   // Track what srcdoc is currently loaded in the iframe — avoid redundant reloads
   const loadedDocRef = useRef<string>('')
@@ -316,6 +317,28 @@ export default function CodePreview({ code, isGenerating, streamingCode, mode = 
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-violet-900/80 backdrop-blur-sm border border-violet-700/50 px-3 py-1.5 rounded-full text-xs text-violet-200 pointer-events-none">
           <div className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full animate-spin" />
           L'agent modifie le site…
+        </div>
+      )}
+
+      {/* Initial generation in progress — full overlay with animated state */}
+      {isWaitingForGeneration && !code && (
+        <div className="absolute inset-0 z-10 bg-gray-950 flex items-center justify-center">
+          <div className="text-center max-w-sm px-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-violet-500/30">
+              <span className="text-2xl">⚡</span>
+            </div>
+            <h2 className="text-white font-black text-lg mb-2">Génération en cours…</h2>
+            <p className="text-gray-500 text-sm leading-relaxed mb-6">Adorable construit ton site.<br/>Ça prend environ 30 secondes.</p>
+            <div className="flex items-center justify-center gap-1.5">
+              {[0, 1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-violet-500"
+                  style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

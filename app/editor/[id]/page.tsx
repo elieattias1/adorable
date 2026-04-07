@@ -386,6 +386,7 @@ export default function EditorPage() {
           <CodePreview
             code={siteCode}
             isGenerating={isGenerating}
+            isWaitingForGeneration={!siteCode && !isGenerating}
             streamingCode={streamingCode}
             mode={previewMode}
           />
