@@ -190,8 +190,32 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
 import React from '${CDN.react}';
 import { createRoot } from '${CDN.reactDom}';
 ${js}
+
+// Error boundary — catches React render errors that would otherwise leave a blank white page
+class _EB extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(e) { return { err: e }; }
+  render() {
+    if (this.state.err) {
+      const msg = (this.state.err.message || String(this.state.err)).replace(/</g,'&lt;');
+      const el = document.createElement('div');
+      el.style.cssText = 'min-height:100vh;margin:0;background:#0f0f13;display:flex;align-items:flex-start;padding:24px';
+      el.innerHTML = '<pre style="color:#f87171;font-size:12px;font-family:monospace;white-space:pre-wrap;margin:0">Erreur de rendu :\\n' + msg + '</pre>';
+      document.body.style.cssText = 'margin:0;background:#0f0f13';
+      return null;
+    }
+    return this.props.children;
+  }
+  componentDidCatch(e) {
+    document.body.style.cssText = 'margin:0;background:#0f0f13';
+    document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur de rendu :\\n' + (e.message||e) + '</pre>';
+  }
+}
+
 try {
-  createRoot(document.getElementById('root')).render(React.createElement(App));
+  createRoot(document.getElementById('root')).render(
+    React.createElement(_EB, null, React.createElement(App))
+  );
 } catch (err) {
   document.body.style.cssText = 'margin:0;background:#0f0f13';
   document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur de rendu :\\n' + err.message + '</pre>';

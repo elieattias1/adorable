@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, Suspense } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import CodePreview from '@/components/editor/CodePreview'
@@ -40,11 +40,9 @@ function isReactCode(content: string): boolean {
 
 // ─── Editor page ───────────────────────────────────────────────────────────────
 function EditorPage() {
-  const params       = useParams()
-  const searchParams = useSearchParams()
-  const siteId       = params.id as string
-  const supabase     = createClient()
-  const autoStartRef = useRef(false)
+  const params   = useParams()
+  const siteId   = params.id as string
+  const supabase = createClient()
 
   const [site,          setSite]          = useState<Site | null>(null)
   const [siteCode,      setSiteCode]      = useState<string>('')
@@ -95,17 +93,6 @@ function EditorPage() {
     if (profileRes.data) setIsPro(profileRes.data.plan !== 'free')
 
     setLoading(false)
-
-    // Auto-trigger first generation for brand-new sites
-    const hasCode     = !!(siteRes.data?.html && isReactCode(siteRes.data.html))
-    const hasMessages = (msgsRes.data?.length ?? 0) > 0
-    if (!hasCode && !hasMessages && !autoStartRef.current) {
-      autoStartRef.current = true
-      const initMsg = searchParams.get('init')
-        || `Crée un site web complet et professionnel pour "${siteRes.data?.name ?? 'ce site'}".`
-      // Small delay so the editor renders first
-      setTimeout(() => handleSend(initMsg), 300)
-    }
   }
 
   // ─── Upload image ─────────────────────────────────────────────────────────
