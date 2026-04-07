@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v9_'
+const LS_PREFIX  = 'sb_prev_v10_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -186,40 +186,50 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
 </body></html>`
   }
 
-  const moduleScript = `
-// Relay ALL errors to the parent frame as toasts instead of replacing the preview
-function _reportError(type, detail) {
-  try { window.parent.postMessage({ type: 'preview-error', kind: type, detail: String(detail).slice(0, 400) }, '*'); } catch(e) {}
-}
+  // This MUST be a regular script (not type=module) so it runs before ES module
+  // imports are resolved. Module import failures abort the module before any
+  // code executes — so putting onerror inside the module never catches them.
+  const errorScript = `
+window._re = function(kind, detail) {
+  try { window.parent.postMessage({ type: 'preview-error', kind: kind, detail: String(detail).slice(0,400) }, '*'); } catch(e) {}
+};
 window.onerror = function(msg, src, line, col, err) {
-  _reportError('JS', err ? (err.stack || err.message) : msg);
+  window._re('JS', err ? (err.stack || err.message) : msg);
+  return true;
 };
 window.addEventListener('unhandledrejection', function(e) {
-  _reportError('async', e.reason ? (e.reason.stack || e.reason.message || String(e.reason)) : 'Unhandled rejection');
+  window._re('Async', e.reason ? (e.reason.stack || e.reason.message || String(e.reason)) : 'Unhandled rejection');
 });
+// ES module load errors fire on the document in capture phase
+window.addEventListener('error', function(e) {
+  if (e.target && e.target.tagName === 'SCRIPT') {
+    window._re('Import', 'Impossible de charger un module CDN. Vérifie ta connexion.');
+  }
+}, true);
+// Fallback: IntersectionObserver unreliable in sandboxed iframes — force visible after 2s
+setTimeout(function() {
+  try {
+    document.querySelectorAll('*').forEach(function(el) {
+      try {
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return;
+        var s = window.getComputedStyle(el);
+        if (s.opacity === '0') { el.style.cssText += ';opacity:1!important;transform:none!important;transition:opacity 0.4s'; }
+      } catch(e2) {}
+    });
+  } catch(e) {}
+}, 2000);
+`
 
+  const moduleScript = `
 import React from '${CDN.react}';
 import { createRoot } from '${CDN.reactDom}';
 ${js}
 
-// Error boundary — catches React render errors that would otherwise leave a blank white page
 class _EB extends React.Component {
   constructor(p) { super(p); this.state = { err: null }; }
   static getDerivedStateFromError(e) { return { err: e }; }
-  render() {
-    if (this.state.err) {
-      const msg = (this.state.err.message || String(this.state.err)).replace(/</g,'&lt;');
-      const el = document.createElement('div');
-      el.style.cssText = 'min-height:100vh;margin:0;background:#0f0f13;display:flex;align-items:flex-start;padding:24px';
-      el.innerHTML = '<pre style="color:#f87171;font-size:12px;font-family:monospace;white-space:pre-wrap;margin:0">Erreur de rendu :\\n' + msg + '</pre>';
-      document.body.style.cssText = 'margin:0;background:#0f0f13';
-      return null;
-    }
-    return this.props.children;
-  }
-  componentDidCatch(e) {
-    _reportError('React render', e.message || String(e));
-  }
+  render() { return this.state.err ? null : this.props.children; }
+  componentDidCatch(e) { window._re('React', e.message || String(e)); }
 }
 
 try {
@@ -227,29 +237,15 @@ try {
     React.createElement(_EB, null, React.createElement(App))
   );
 } catch (err) {
-  document.body.style.cssText = 'margin:0;background:#0f0f13';
-  document.body.innerHTML = '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">Erreur de rendu :\\n' + err.message + '</pre>';
+  window._re('Render', err.message || String(err));
 }
-
-// Fallback: IntersectionObserver doesn't fire reliably in sandboxed iframes.
-// After 1.2s, force any elements still at opacity:0 to become visible.
-setTimeout(function() {
-  document.querySelectorAll('*').forEach(function(el) {
-    try {
-      var s = window.getComputedStyle(el);
-      if (s.opacity === '0' && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') {
-        el.style.opacity = '1';
-        el.style.transform = 'none';
-      }
-    } catch(e) {}
-  });
-}, 1200);
 `
   const srcdoc = `<!DOCTYPE html>
 <html lang="fr">
 <head>${NAV_LOCK}${BASE_HEAD}</head>
 <body>
 <div id="root"></div>
+<script>${errorScript}</script>
 <script type="module">${moduleScript}</script>
 </body>
 </html>`
