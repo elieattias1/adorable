@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { Zap } from 'lucide-react'
 
 // ─── Auth form ─────────────────────────────────────────────────────────────────
-type Mode = 'login' | 'signup'
+type Mode = 'login' | 'signup' | 'forgot'
 
 export default function LoginPage() {
   const [mode,     setMode]     = useState<Mode>('login')
@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState<string | null>(null)
-  const [sent,     setSent]     = useState(false)   // for magic link
+  const [sent,     setSent]     = useState(false)
 
   const supabase = createClient()
   const router   = useRouter()
@@ -27,12 +27,17 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email, password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` }
+      if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
         })
         if (error) throw error
-        // Fire welcome email (non-blocking)
+        setSent(true)
+      } else if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({ email, password,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+        })
+        if (error) throw error
         fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {})
         setSent(true)
       } else {
@@ -73,12 +78,14 @@ export default function LoginPage() {
           <div className="max-w-sm mx-auto w-full">
             <div className="mb-8">
               <h1 className="text-3xl font-black mb-2">
-                {mode === 'login' ? 'Bienvenue 👋' : 'Crée ton compte'}
+                {mode === 'login' ? 'Bienvenue 👋' : mode === 'signup' ? 'Crée ton compte' : 'Mot de passe oublié'}
               </h1>
               <p className="text-gray-400 text-sm">
                 {mode === 'login'
                   ? 'Connecte-toi pour accéder à tes sites.'
-                  : 'Un site offert, sans CB.'}
+                  : mode === 'signup'
+                  ? 'Un site offert, sans CB.'
+                  : 'On t\'envoie un lien pour réinitialiser ton mot de passe.'}
               </p>
             </div>
 
@@ -86,14 +93,24 @@ export default function LoginPage() {
               <div className="bg-green-950/50 border border-green-700 rounded-2xl p-6 text-center">
                 <div className="text-2xl mb-2">📬</div>
                 <h3 className="font-bold mb-1">Vérifie tes emails !</h3>
-                <p className="text-sm text-gray-400">Un lien de confirmation t'a été envoyé à <strong>{email}</strong>.</p>
+                <p className="text-sm text-gray-400">
+                  {mode === 'forgot'
+                    ? <>Un lien de réinitialisation a été envoyé à <strong>{email}</strong>.</>
+                    : <>Un lien de confirmation t'a été envoyé à <strong>{email}</strong>.</>}
+                </p>
+                {mode === 'forgot' && (
+                  <button onClick={() => { setSent(false); setMode('login') }} className="mt-4 text-xs text-violet-400 hover:underline">
+                    Retour à la connexion
+                  </button>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Google SSO */}
+                {/* Google SSO — hidden in forgot mode */}
                 <button
                   type="button"
                   onClick={handleGoogle}
+                  style={{ display: mode === 'forgot' ? 'none' : undefined }}
                   className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium"
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
@@ -123,18 +140,20 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs text-gray-400 mb-1.5 block">Mot de passe</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                    placeholder="••••••••"
-                    className="w-full bg-white/5 border border-white/10 focus:border-violet-500 rounded-xl px-4 py-3 text-white outline-none transition-colors text-sm"
-                  />
-                </div>
+                {mode !== 'forgot' && (
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1.5 block">Mot de passe</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      placeholder="••••••••"
+                      className="w-full bg-white/5 border border-white/10 focus:border-violet-500 rounded-xl px-4 py-3 text-white outline-none transition-colors text-sm"
+                    />
+                  </div>
+                )}
 
                 {error && (
                   <div className="bg-red-950/60 border border-red-800 rounded-xl px-4 py-3 text-red-300 text-sm">
@@ -149,12 +168,12 @@ export default function LoginPage() {
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+                  ) : mode === 'forgot' ? 'Envoyer le lien' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
                 </button>
 
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   {mode === 'login' ? (
-                    <button type="button" className="hover:text-white transition-colors">
+                    <button type="button" onClick={() => { setError(null); setSent(false); setMode('forgot') }} className="hover:text-white transition-colors">
                       Mot de passe oublié ?
                     </button>
                   ) : <span />}
