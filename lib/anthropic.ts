@@ -18,7 +18,13 @@ DESIGN SYSTEM — Restaurant / Gastronomie :
 • Texte : text-[#f5e6c8] (crème) pour les titres, text-[#a89070] pour le corps
 • Typographie : Playfair Display pour TOUS les titres, Inter pour le corps
 • Images : hero plein écran (h-screen, object-cover), galerie des plats en grille 2×2 ou 3×3
-• Style : Gastronomique, chaleureux, luxueux. Textures sombres, accents dorés, ambiance Michelin.`,
+• Style : Gastronomique, chaleureux, luxueux. Textures sombres, accents dorés, ambiance Michelin.
+• Photos Unsplash validées :
+  - Hero salle : https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&h=1080&fit=crop
+  - Plat gastronomique : https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop
+  - Intérieur chaleureux : https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop
+  - Chef en cuisine : https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=800&h=600&fit=crop
+  - Table dressée : https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&h=600&fit=crop`,
 
   bakery: `
 DESIGN SYSTEM — Boulangerie / Pâtisserie :
@@ -29,7 +35,12 @@ DESIGN SYSTEM — Boulangerie / Pâtisserie :
 • Texte : text-[#f9efd7] (ivoire) titres, text-[#c4a882] corps
 • Typographie : Playfair Display italique pour les noms de produits, Inter pour descriptions
 • Images : photos de produits en aspect-[4/3], hero avec image panoramique du fournil
-• Style : Artisanal, authentique, appétissant. Chaud comme un four, élégant comme une vitrine parisienne.`,
+• Style : Artisanal, authentique, appétissant. Chaud comme un four, élégant comme une vitrine parisienne.
+• Photos Unsplash validées :
+  - Hero boulangerie : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
+  - Pains artisanaux : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop
+  - Viennoiseries : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop
+  - Fournil : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop`,
 
   saas: `
 DESIGN SYSTEM — SaaS / Tech :
@@ -40,18 +51,28 @@ DESIGN SYSTEM — SaaS / Tech :
 • Texte : text-white titres, text-slate-400 corps
 • Typographie : Inter 800 pour les titres hero (pas de Playfair), Inter régulier corps
 • Badges : rounded-full bg-indigo-500/20 text-indigo-300 text-xs
-• Style : Moderne, épuré, efficace. Grid techniques, métriques en avant, sensation d'ingénierie.`,
+• Style : Moderne, épuré, efficace. Grid techniques, métriques en avant, sensation d'ingénierie.
+• Photos Unsplash validées :
+  - Dashboard/app : https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=800&fit=crop
+  - Équipe tech : https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop
+  - Code/terminal : https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=600&fit=crop
+  - Bureau moderne : https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop`,
 
   portfolio: `
 DESIGN SYSTEM — Portfolio / Créatif :
 • Mode : Dark neutre absolu — fond #080808 (noir pur)
-• Accent principal : #ffffff — typographie bold massive (text-7xl+), cursor effects
+• Accent principal : #ffffff — typographie bold massive (text-7xl+)
 • Accent secondaire : #666666 (gris moyen)
 • Surfaces : border border-white/10, hover:border-white/40 transition
 • Texte : text-white titres en gras extrême, text-gray-400 corps
 • Typographie : Playfair Display pour le nom/headline, Inter 900 pour les titres de section
-• Grid : projets en grille masonry asymétrique, plein écran avec overlay au hover
-• Style : Épuré, fort contraste, chaque pixel compte. Minimalisme radical mais impactant.`,
+• Grid : projets en grille asymétrique, overlay au hover avec titre + catégorie
+• Style : Épuré, fort contraste, chaque pixel compte. Minimalisme radical mais impactant.
+• Photos Unsplash validées :
+  - Projet design : https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop
+  - Workspace créatif : https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop
+  - Portrait pro : https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&face
+  - Projet web : https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop`,
 
   shop: `
 DESIGN SYSTEM — E-commerce / Boutique :
@@ -62,7 +83,12 @@ DESIGN SYSTEM — E-commerce / Boutique :
 • Texte : text-gray-900 titres, text-gray-600 descriptions, text-gray-400 métadonnées
 • Typographie : Inter 700 titres, Inter 400 corps — police propre et lisible
 • Images : produits en aspect-square, fond blanc, galerie en grille 4 colonnes sur desktop
-• Style : Commercial, propre, confiance. Priorité aux produits. Inspire Zara ou SSENSE.`,
+• Style : Commercial, propre, confiance. Priorité aux produits. Inspire Zara ou SSENSE.
+• Photos Unsplash validées :
+  - Hero mode : https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=1080&fit=crop
+  - Produit lifestyle : https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop
+  - Boutique intérieur : https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=600&fit=crop
+  - Packaging : https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop`,
 
   business: `
 DESIGN SYSTEM — Business / Corporate :
@@ -73,7 +99,12 @@ DESIGN SYSTEM — Business / Corporate :
 • Texte : text-white titres, text-blue-100 corps, text-blue-400 highlights
 • Typographie : Inter 800 pour les titres (autorité), Inter régulier corps
 • Stats : grands chiffres en text-5xl font-black text-blue-400
-• Style : Fiable, solide, professionnel. Sentiment de stabilité et d'expertise.`,
+• Style : Fiable, solide, professionnel. Sentiment de stabilité et d'expertise.
+• Photos Unsplash validées :
+  - Hero bureau : https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=1080&fit=crop
+  - Équipe pro : https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=600&fit=crop
+  - Réunion : https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop
+  - Handshake : https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&h=600&fit=crop`,
 
   landing: `
 DESIGN SYSTEM — Landing Page / Startup :
@@ -84,7 +115,11 @@ DESIGN SYSTEM — Landing Page / Startup :
 • Texte : text-white titres, text-gray-300 corps
 • Hero : titre en gradient text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-pink-400
 • Bouton CTA : bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500
-• Style : Énergique, ambitieux, conversion-first. Chaque section pousse vers le CTA.`,
+• Style : Énergique, ambitieux, conversion-first. Chaque section pousse vers le CTA.
+• Photos Unsplash validées :
+  - Hero tech : https://images.unsplash.com/photo-1551434678-e076c223a692?w=1920&h=1080&fit=crop
+  - Dashboard : https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=800&fit=crop
+  - Équipe startup : https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop`,
 
   wellness: `
 DESIGN SYSTEM — Bien-être / Spa / Santé :
@@ -95,7 +130,12 @@ DESIGN SYSTEM — Bien-être / Spa / Santé :
 • Texte : text-stone-800 titres, text-stone-600 corps
 • Typographie : Playfair Display italique pour les slogans zen, Inter léger pour le corps
 • Images : espaces épurés, nature, corps en repos — lumière naturelle, tons chauds
-• Style : Apaisant, ancré, naturel. Chaque élément respire. Pas de couleurs criardes.`,
+• Style : Apaisant, ancré, naturel. Chaque élément respire. Pas de couleurs criardes.
+• Photos Unsplash validées :
+  - Hero spa : https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1920&h=1080&fit=crop
+  - Massage/soin : https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop
+  - Nature zen : https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=600&fit=crop
+  - Intérieur minimaliste : https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&h=600&fit=crop`,
 
   blog: `
 DESIGN SYSTEM — Blog / Édito / Média :
@@ -106,7 +146,11 @@ DESIGN SYSTEM — Blog / Édito / Média :
 • Texte : text-stone-900 titres en Playfair Display, text-stone-700 corps en Inter, leading-relaxed
 • Typographie : Playfair Display 700 pour les titres d'articles, Inter 400 pour la lecture
 • Layout : colonnes éditoriales, large text-column centrée, sidebar pour catégories
-• Style : Propre, lisible, focus sur le contenu. Typographie serrée comme un journal de qualité.`,
+• Style : Propre, lisible, focus sur le contenu. Typographie serrée comme un journal de qualité.
+• Photos Unsplash validées :
+  - Hero édito : https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1920&h=1080&fit=crop
+  - Article cover : https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop
+  - Portrait auteur : https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&face`,
 }
 
 function getDesignPreset(siteType?: string): string {
@@ -249,30 +293,38 @@ CHOIX D'OUTIL :
 → ask_user : seulement si vraiment impossible de deviner — préfère prendre une décision créative
 
 CONTRAINTE DE CODE :
-⚠️ Max 600 lignes. Respecte cette limite :
+⚠️ Max 800 lignes. Optimise avec :
 - Données en tableaux inline : const items = [{ title, desc, img }]
 - Pas de répétition JSX : map() sur les tableaux
 - Un seul fichier — toutes les fonctions/composants dans App.tsx
-- Tailwind uniquement, pas de styles inline sauf couleurs arbitraires
+- Tailwind uniquement, pas de styles inline sauf couleurs arbitraires hex
 
-QUALITÉ VISUELLE OBLIGATOIRE :
-1. Contenu 100% réaliste et spécifique au business — invente des détails crédibles
-2. Respecte STRICTEMENT le design system défini ci-dessus (couleurs, typo, mode clair/sombre)
-3. Images Unsplash contextuelles dans chaque section visuelle (hero, produits, galerie, équipe)
-4. Sections spacieuses : py-20 à py-32, titres ambitieux text-4xl à text-7xl
-5. Animations d'entrée au scroll avec IntersectionObserver + useEffect (opacity + translateY)
-6. Nav fixe : backdrop-blur-md avec fond semi-transparent de la couleur du preset
-7. Footer complet : liens, réseaux sociaux, adresse, copyright
-8. Responsive mobile-first — tester mentalement chaque section en 375px
+IMAGES :
+- Utilise UNIQUEMENT les URLs Unsplash validées listées dans le design system ci-dessus
+- Ne jamais inventer un ID de photo — utilise les URLs exactes fournies
+- Pour les avatars témoignages : https://i.pravatar.cc/80?img=[1-70] (fiable, toujours disponible)
+
+QUALITÉ VISUELLE — PAR ORDRE DE PRIORITÉ :
+1. LE HERO EST TOUT — première impression = tout. Il doit être spectaculaire :
+   - Titre : bold, grand (text-5xl à text-8xl), spécifique au business (jamais générique)
+   - Sous-titre : 1-2 phrases sur la valeur unique, pas juste la catégorie
+   - CTA : verbe d'action fort ("Réserver une table", "Voir mes projets", "Démarrer gratuitement")
+   - Visuel : image plein écran h-screen avec overlay, OU gradient fort avec formes décoratives
+2. Contenu 100% spécifique — invente de vrais noms, adresses, prix, témoignages (prénom + ville)
+3. Respecte STRICTEMENT le design system — jamais de violet par défaut sur un restaurant
+4. Sections spacieuses : py-20 à py-32 minimum
+5. Animations scroll : IntersectionObserver, opacity 0→1 + translateY 20px→0, transition 600ms
+6. Nav fixe : backdrop-blur-md, fond semi-transparent du preset, logo + liens + CTA bouton
+7. Footer complet : navigation, réseaux sociaux, contact, copyright
+8. Responsive mobile-first — 1 colonne mobile, 2-3 colonnes desktop
 
 NAVIGATION :
-- Chaque section : <section id="features">, <section id="contact">, etc.
-- Liens nav : href="#features" uniquement — jamais de /about ou /contact
+- Chaque section : <section id="services">, <section id="contact">, etc.
+- Liens nav : href="#services" uniquement — jamais de /about ou /contact
 - Scroll fluide déjà géré par le CSS global
 
-STRUCTURE RECOMMANDÉE :
-nav fixe → hero (image plein écran ou gradient fort) → section sociale/stats → produits/services →
-témoignages → galerie ou vidéo (optionnel) → contact/CTA → footer
+STRUCTURE OBLIGATOIRE :
+nav fixe → hero (SPECTACULAIRE) → stats/social proof → produits/services → témoignages → CTA final → footer
 
 ${formEndpoint ? `
 FORMULAIRES DE CONTACT — OBLIGATOIRE :
@@ -399,27 +451,26 @@ export async function generateInitialSite({
   name, type, description, siteId,
 }: { name: string; type: string; description?: string; siteId?: string }): Promise<string> {
   const typeDesc = SITE_TYPE_DESCRIPTIONS[type] || type
-  const designPreset = getDesignPreset(type)
 
   const prompt = `Crée un ${typeDesc} EXCEPTIONNEL pour "${name}".
-${description ? `Contexte fourni par le client : ${description}` : ''}
+${description ? `Contexte client : ${description}` : ''}
 
-${designPreset}
+MISSION : Le client doit voir ce site et dire "Wow, c'est exactement ce que je voulais." Pas un template générique — un site qui semble fait sur mesure pour CE business.
 
-EXIGENCES :
-- Design de niveau agence : le client doit être impressionné dès le premier rendu
-- Images Unsplash réalistes et contextuelles : hero plein écran (h-screen), galerie de produits, photos d'équipe ou d'espace
-- Contenu 100% spécifique et crédible : invente des noms, dates, produits, prix, témoignages réalistes
-- Minimum 6 sections complètes : nav + hero + [2-3 sections de contenu] + témoignages + contact/CTA + footer
-- Animations d'entrée au scroll (IntersectionObserver, translateY + opacity)
-- Footer riche : réseaux sociaux, horaires ou contact, liens de navigation, copyright
-- Code compact et lisible : tableaux de données, map(), max 600 lignes
+PRIORITÉS ABSOLUES :
+1. Hero spectaculaire — titre accrocheur et spécifique à "${name}", pas une phrase générique. CTA avec verbe d'action fort.
+2. Contenu inventé mais ultra-crédible : noms de produits réels, vrais prix, témoignages avec prénom + ville + étoiles, vraie adresse
+3. Images des URLs validées du design system uniquement — pas d'URL inventée
+4. Design system appliqué à 100% — couleurs, typographie, espacements du preset ci-dessus
+
+STRUCTURE (7 sections minimum) :
+nav fixe → hero plein écran → stats/chiffres clés → services/produits (grille) → témoignages (3 minimum) → galerie ou section unique → CTA final → footer complet
 
 Appelle write_code avec le composant React complet.`
 
   const response = await anthropic.messages.create({
     model:       'claude-sonnet-4-6',
-    max_tokens:  8000,
+    max_tokens:  12000,
     system:      buildAgentSystemPrompt('', type, siteId),
     tools:       AGENT_TOOLS,
     tool_choice: { type: 'tool', name: 'write_code' },
