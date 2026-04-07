@@ -2,15 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
   // ── Block iframe navigation ──────────────────────────────────────────────────
-  // When the srcdoc preview iframe navigates away to a URL on our origin, the
-  // browser sets Sec-Fetch-Dest: iframe. Block these unwanted navigations, but
-  // allow /s/* (public site preview used on the dashboard) through normally.
-  if (request.headers.get('Sec-Fetch-Dest') === 'iframe' && !request.nextUrl.pathname.startsWith('/s/')) {
+  if (request.headers.get('Sec-Fetch-Dest') === 'iframe' && !pathname.startsWith('/s/')) {
     return new NextResponse(
       '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0"></body></html>',
       { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     )
+  }
+
+  // ── Site-wide password protection ────────────────────────────────────────────
+  const SITE_PASSWORD = process.env.SITE_PASSWORD
+  const isUnlockRoute = pathname.startsWith('/unlock') || pathname.startsWith('/api/unlock')
+  const isPublicSite  = pathname.startsWith('/s/')
+
+  if (SITE_PASSWORD && !isUnlockRoute && !isPublicSite) {
+    const cookie = request.cookies.get('site_unlocked')
+    if (cookie?.value !== SITE_PASSWORD) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/unlock'
+      url.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(url)
+    }
   }
 
   let supabaseResponse = NextResponse.next({ request })
@@ -32,7 +46,6 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
 
   // Redirect unauthenticated users to login
   const protectedRoutes = ['/dashboard', '/editor']
