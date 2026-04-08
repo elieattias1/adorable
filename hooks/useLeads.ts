@@ -18,6 +18,20 @@ export interface Lead {
   meta_description: string | null
   og_image:         string | null
   source:           string | null
+  // Extended Google Maps export columns
+  arrondissement:   string | null
+  postcode:         string | null
+  departement:      string | null
+  rating:           number | null
+  reviews:          number | null
+  opening_hours:    string | null
+  instagram:        string | null
+  facebook:         string | null
+  latitude:         number | null
+  longitude:        number | null
+  google_maps_url:  string | null
+  has_website:      boolean | null
+  outreach_status:  string | null
   created_at:       string
   updated_at:       string
   // joined

@@ -59,17 +59,33 @@ function parseCSV(text: string): Record<string, string>[] {
 
 // ─── CSV column mapping ───────────────────────────────────────────────────────
 function mapCsvRow(row: Record<string, string>): Partial<Lead> {
-  const g = (...keys: string[]) => keys.map(k => row[k]).find(v => v) || undefined
+  const g  = (...keys: string[]) => keys.map(k => row[k]).find(v => v) || undefined
+  const gn = (...keys: string[]) => { const v = g(...keys); return v ? parseFloat(v) || undefined : undefined }
+  const gb = (...keys: string[]) => { const v = g(...keys); return v ? v === 'true' || v === '1' || v === 'yes' : undefined }
   return {
-    business_name: g('name','business_name','nom','business','company') || 'Unknown',
-    website_url:   g('website','website_url','url','site','web') || undefined,
-    email:         g('email','email_address','courriel') || undefined,
-    phone:         g('phone','telephone','téléphone','tel','phone_number') || undefined,
-    address:       g('address','adresse') || undefined,
-    city:          g('city','ville') || undefined,
-    category:      g('category','catégorie','type') || undefined,
-    cms:           g('cms') || undefined,
-    source:        'csv_import',
+    business_name:   g('name','business_name','nom','business','company') || 'Unknown',
+    website_url:     g('website','website_url','url','site','web') || undefined,
+    email:           g('email','email_address','courriel') || undefined,
+    phone:           g('phone','telephone','téléphone','tel','phone_number') || undefined,
+    address:         g('address','adresse') || undefined,
+    city:            g('city','ville') || undefined,
+    category:        g('category','catégorie','type') || undefined,
+    cms:             g('cms') || undefined,
+    // Extended Google Maps columns
+    arrondissement:  g('arrondissement') || undefined,
+    postcode:        g('postcode','postal_code','code_postal','zip') || undefined,
+    departement:     g('departement','département') || undefined,
+    rating:          gn('rating','note'),
+    reviews:         gn('reviews','avis') ? Math.round(gn('reviews','avis')!) : undefined,
+    opening_hours:   g('opening_hours','horaires') || undefined,
+    instagram:       g('instagram') || undefined,
+    facebook:        g('facebook') || undefined,
+    latitude:        gn('latitude','lat'),
+    longitude:       gn('longitude','lng','lon'),
+    google_maps_url: g('google_maps_url','maps_url','google_maps') || undefined,
+    has_website:     gb('has_website'),
+    outreach_status: g('outreach_status') || undefined,
+    source:          'csv_import',
   }
 }
 
@@ -561,10 +577,7 @@ export default function CRMPage() {
   }
 
   const mappableCount = useMemo(() =>
-    leads.filter(l => {
-      if (!l.source) return false
-      try { return /\/@-?\d/.test(l.source) || /[?&]ll=/.test(l.source) || /[?&]q=/.test(l.source) } catch { return false }
-    }).length
+    leads.filter(l => l.latitude != null && l.longitude != null).length
   , [leads])
 
   return (
@@ -638,11 +651,20 @@ export default function CRMPage() {
                 </div>
 
                 <div className="space-y-1.5">
+                  {(mapLead.rating != null || mapLead.reviews != null) && (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                      ★ {mapLead.rating ?? '—'}
+                      {mapLead.reviews != null && <span className="text-gray-400 font-normal">({mapLead.reviews} avis)</span>}
+                    </div>
+                  )}
                   {mapLead.address && (
                     <div className="flex items-start gap-2 text-xs text-gray-600">
                       <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
                       {mapLead.address}
                     </div>
+                  )}
+                  {mapLead.opening_hours && (
+                    <div className="text-xs text-gray-500">🕐 {mapLead.opening_hours}</div>
                   )}
                   {mapLead.phone && (
                     <a href={`tel:${mapLead.phone}`} className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900">
@@ -663,8 +685,8 @@ export default function CRMPage() {
                       <span className="truncate">{mapLead.website_url.replace(/^https?:\/\/(www\.)?/, '')}</span>
                     </a>
                   )}
-                  {mapLead.source?.startsWith('http') && (
-                    <a href={mapLead.source} target="_blank" rel="noopener noreferrer"
+                  {mapLead.google_maps_url && (
+                    <a href={mapLead.google_maps_url} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700">
                       <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                       Voir sur Google Maps
@@ -892,16 +914,16 @@ export default function CRMPage() {
                         <StatusBadge status={lead.status} onChange={s => handleStatusChange(lead.id, s)} />
                       </div>
 
-                      {/* Google Maps source */}
+                      {/* Google Maps */}
                       <div onClick={e => e.stopPropagation()}>
-                        {lead.source?.startsWith('http') ? (
-                          <a href={lead.source} target="_blank" rel="noopener noreferrer"
+                        {lead.google_maps_url ? (
+                          <a href={lead.google_maps_url} target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors">
                             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                             Maps
                           </a>
                         ) : (
-                          <span className="text-xs text-gray-400">{lead.source || '—'}</span>
+                          <span className="text-xs text-gray-300">—</span>
                         )}
                       </div>
 
