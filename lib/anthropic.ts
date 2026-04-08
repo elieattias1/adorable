@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { scrapeUrl, formatScrapeForAgent } from './scrape'
+import { scrapeUrl as scrapeUrlPlaywright, formatScrapeForAgent } from './scrape'
+import { scrapeUrl as scrapeUrlSimple } from './scrape-url'
 
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -1146,8 +1147,9 @@ export function buildSectionPrompt(
   syntaxError?:  string | null,
 ): string {
   const d = manifest.design
-  const photosLine = manifest.unsplashUrls.length > 0
-    ? `Photos Unsplash : ${manifest.unsplashUrls.join(' | ')}`
+  const urls = manifest.unsplashUrls ?? []
+  const photosLine = urls.length > 0
+    ? `Photos Unsplash : ${urls.join(' | ')}`
     : ''
 
   return `Tu es un expert React/Tailwind. Tu écris UNE SEULE section : ${section.component}.
@@ -1401,6 +1403,8 @@ Use when the user wants to:
 - Copy or replicate a website ("fais un site comme ça", "copie ce site", "inspire-toi de X")
 - Import content or branding from a URL
 - Use an existing site as a visual or structural reference
+
+IMPORTANT: If the user's message already contains "[Contenu extrait]" for a URL, that URL has already been scraped — do NOT call this tool for it again. Only call this for NEW URLs not yet in context.
 
 Returns: title, nav links, headings, CTA texts, body content, color palette, fonts, and cleaned HTML.
 After scraping, use write_code to create a similar site inspired by the data.
@@ -1719,20 +1723,29 @@ export async function executeTool(
       }
 
       case 'scrape_website': {
-        const url = (toolInput.url as string)?.trim()
-        if (!url) return { error: 'URL manquante' }
-        try { new URL(url.startsWith('http') ? url : `https://${url}`) } catch {
-          return { error: `URL invalide : "${url}"` }
+        const rawUrl = (toolInput.url as string)?.trim()
+        if (!rawUrl) return { error: 'URL manquante' }
+        const normalizedUrl = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`
+        try { new URL(normalizedUrl) } catch {
+          return { error: `URL invalide : "${rawUrl}"` }
         }
 
-        const result = await scrapeUrl(url)
-        if (!result.ok) {
-          return { error: `Impossible de scraper ${url} : ${result.error}` }
+        // Try simple HTTP fetch first (works in production, no Playwright needed)
+        const simpleResult = await scrapeUrlSimple(normalizedUrl)
+        if (simpleResult) {
+          return {
+            info: `${simpleResult}\n\n─────\nScraping terminé. Utilise write_code pour recréer ce site en t'inspirant du contenu, des titres et de la structure ci-dessus.`,
+          }
         }
 
-        const formatted = formatScrapeForAgent(result, url)
+        // Fallback: Playwright (local dev / servers with Chromium)
+        const playwrightResult = await scrapeUrlPlaywright(normalizedUrl)
+        if (!playwrightResult.ok) {
+          return { error: `Impossible de scraper ${normalizedUrl} : ${playwrightResult.error}` }
+        }
+
         return {
-          info: `${formatted}\n\n─────\nScraping terminé. Utilise write_code pour recréer ce site en t'inspirant du contenu, des titres, des couleurs et de la structure ci-dessus.`,
+          info: `${formatScrapeForAgent(playwrightResult, normalizedUrl)}\n\n─────\nScraping terminé. Utilise write_code pour recréer ce site en t'inspirant du contenu, des titres, des couleurs et de la structure ci-dessus.`,
         }
       }
 
