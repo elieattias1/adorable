@@ -4,8 +4,9 @@ import { addCustomDomain } from '@/lib/deploy'
 
 type Params = { params: Promise<{ id: string }> }
 
-// The main Vercel project that serves adorable.click
-const MAIN_PROJECT = process.env.VERCEL_MAIN_PROJECT || 'sitebot'
+// Vercel injects VERCEL_PROJECT_ID automatically in all deployments.
+// Fall back to the manually-set VERCEL_MAIN_PROJECT env var if needed.
+const MAIN_PROJECT = process.env.VERCEL_PROJECT_ID || process.env.VERCEL_MAIN_PROJECT || 'sitebot'
 
 // POST /api/site/[id]/domain — add a custom domain
 export async function POST(req: NextRequest, { params }: Params) {
