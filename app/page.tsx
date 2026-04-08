@@ -1,5 +1,5 @@
 import MarqueeSection from "@/components/MarqueeSection";
-import { ArrowRight, Check, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Check, Zap } from "lucide-react";
 import Link from "next/link";
 
 // ─── Pricing card ─────────────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 bg-[#fafaf9]/90 backdrop-blur-xl border-b border-gray-200/60">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="font-black text-lg tracking-tight">adorable</span>
         </div>
@@ -350,7 +350,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-gray-950 flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-white" />
+              <Zap className="w-3 h-3 text-white" />
             </div>
             <span className="font-black text-sm text-gray-950">adorable</span>
           </div>
