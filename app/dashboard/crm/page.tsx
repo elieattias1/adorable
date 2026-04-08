@@ -443,6 +443,8 @@ export default function CRMPage() {
   const [toast,           setToast]            = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const [deletingId,      setDeletingId]       = useState<string | null>(null)
   const [userEmail,       setUserEmail]        = useState('')
+  const [selected,        setSelected]         = useState<Set<string>>(new Set())
+  const [bulkDeleting,    setBulkDeleting]     = useState(false)
 
   // Load user & sites
   useEffect(() => {
@@ -517,6 +519,31 @@ export default function CRMPage() {
 
   const handleStatusChange = async (id: string, status: Lead['status']) => {
     await updateLead(id, { status })
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(filtered.map(l => l.id)))
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (!selected.size) return
+    setBulkDeleting(true)
+    await Promise.all([...selected].map(id => deleteLead(id)))
+    showToast(`${selected.size} leads supprimés`)
+    setSelected(new Set())
+    setBulkDeleting(false)
   }
 
   return (
@@ -598,6 +625,26 @@ export default function CRMPage() {
           </button>
         </div>
 
+        {/* Selection action bar */}
+        {selected.size > 0 && (
+          <div className="flex items-center justify-between px-4 py-2.5 mb-3 bg-violet-950/50 border border-violet-500/30 rounded-xl">
+            <span className="text-sm text-violet-300 font-medium">
+              {selected.size} lead{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setSelected(new Set())}
+                className="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                Désélectionner
+              </button>
+              <button onClick={handleBulkDelete} disabled={bulkDeleting}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25 transition-colors disabled:opacity-50">
+                {bulkDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                Supprimer ({selected.size})
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -632,7 +679,15 @@ export default function CRMPage() {
         ) : (
           <div className="bg-gray-900 border border-white/5 rounded-2xl overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 border-b border-white/5 text-xs text-gray-500 font-medium">
+            <div className="grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 border-b border-white/5 text-xs text-gray-500 font-medium">
+              <div className="flex items-center">
+                <input type="checkbox"
+                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < filtered.length }}
+                  onChange={toggleSelectAll}
+                  className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer"
+                />
+              </div>
               <div>Business</div>
               <div>Site web / CMS</div>
               <div>Contact</div>
@@ -644,7 +699,19 @@ export default function CRMPage() {
             <div className="divide-y divide-white/5">
               {filtered.map(lead => (
                 <div key={lead.id}
-                  className="grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center hover:bg-white/2 transition-colors group">
+                  onClick={() => toggleSelect(lead.id)}
+                  className={`grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center transition-colors cursor-pointer group ${
+                    selected.has(lead.id) ? 'bg-violet-950/30' : 'hover:bg-white/2'
+                  }`}>
+
+                  {/* Checkbox */}
+                  <div onClick={e => e.stopPropagation()} className="flex items-center">
+                    <input type="checkbox"
+                      checked={selected.has(lead.id)}
+                      onChange={() => toggleSelect(lead.id)}
+                      className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer"
+                    />
+                  </div>
 
                   {/* Business name */}
                   <div>
@@ -661,7 +728,7 @@ export default function CRMPage() {
                   </div>
 
                   {/* Website */}
-                  <div>
+                  <div onClick={e => e.stopPropagation()}>
                     {lead.website_url ? (
                       <div className="flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
@@ -683,7 +750,7 @@ export default function CRMPage() {
                   </div>
 
                   {/* Contact */}
-                  <div className="space-y-0.5">
+                  <div onClick={e => e.stopPropagation()} className="space-y-0.5">
                     {lead.email ? (
                       <a href={`mailto:${lead.email}`}
                         className="flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors truncate max-w-[130px]"
@@ -706,7 +773,7 @@ export default function CRMPage() {
                   </div>
 
                   {/* Status */}
-                  <div>
+                  <div onClick={e => e.stopPropagation()}>
                     <StatusBadge
                       status={lead.status}
                       onChange={s => handleStatusChange(lead.id, s)}
@@ -714,7 +781,7 @@ export default function CRMPage() {
                   </div>
 
                   {/* Linked site */}
-                  <div>
+                  <div onClick={e => e.stopPropagation()}>
                     {lead.sites ? (
                       <div className="flex items-center gap-1.5">
                         <a
@@ -741,7 +808,7 @@ export default function CRMPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => setEditingLead(lead)}
                       className="p-1.5 rounded-lg hover:bg-white/8 text-gray-500 hover:text-white transition-colors"
                       title="Modifier">
