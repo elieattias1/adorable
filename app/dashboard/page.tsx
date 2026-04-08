@@ -235,7 +235,7 @@ function ProfileModal({
                         {isCurrent ? 'Actif' : switchingPlan ? '…' : 'Activer (admin)'}
                       </button>
                     ) : isCurrent ? (
-                      <div className="w-full py-2 rounded-lg text-xs font-bold text-center text-green-500 bg-green-900/30">
+                      <div className="w-full py-2 rounded-lg text-xs font-bold text-center text-green-700 bg-green-100">
                         Plan actuel
                       </div>
                     ) : canCheckout ? (
@@ -252,7 +252,7 @@ function ProfileModal({
                     ) : !isAdmin && !isCurrent && isPro ? (
                       <button
                         onClick={openPortal}
-                        className="w-full py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-white border border-white/8 hover:border-white/20 transition-all"
+                        className="w-full py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-all"
                       >
                         Changer via Stripe
                       </button>
@@ -356,12 +356,14 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <a href="/dashboard/crm"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all text-sm"
-            title="CRM Leads">
-            <Building2 className="w-4 h-4" />
-            <span className="hidden sm:inline">CRM</span>
-          </a>
+          {isAdmin && (
+            <a href="/dashboard/crm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all text-sm"
+              title="CRM Leads">
+              <Building2 className="w-4 h-4" />
+              <span className="hidden sm:inline">CRM</span>
+            </a>
+          )}
 
           <ThemeToggle />
 

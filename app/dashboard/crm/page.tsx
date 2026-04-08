@@ -3,32 +3,33 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import { isAdminUserClient } from '@/lib/admin'
 import { useLeads, type Lead } from '@/hooks/useLeads'
 import {
   ArrowLeft, Plus, Upload, Globe, ExternalLink, Trash2, Edit2, X,
-  Search, ChevronDown, Loader2, Zap, CheckCircle2, Link2, RefreshCw,
+  Search, ChevronDown, Loader2, CheckCircle2, Link2, RefreshCw,
   Phone, Mail, Building2, LayoutTemplate,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 // ─── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  new:        { label: 'Nouveau',    color: 'bg-blue-500/20 text-blue-300  border-blue-500/30'   },
-  contacted:  { label: 'Contacté',   color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-  building:   { label: 'En cours',   color: 'bg-violet-500/20 text-violet-300 border-violet-500/30' },
-  built:      { label: 'Livré',      color: 'bg-green-500/20 text-green-300 border-green-500/30' },
-  closed:     { label: 'Fermé',      color: 'bg-gray-500/20 text-gray-400 border-gray-500/30'   },
+  new:        { label: 'Nouveau',    color: 'bg-blue-50 text-blue-700 border-blue-200'       },
+  contacted:  { label: 'Contacté',   color: 'bg-amber-50 text-amber-700 border-amber-200'    },
+  building:   { label: 'En cours',   color: 'bg-violet-50 text-violet-700 border-violet-200' },
+  built:      { label: 'Livré',      color: 'bg-green-50 text-green-700 border-green-200'    },
+  closed:     { label: 'Fermé',      color: 'bg-gray-100 text-gray-500 border-gray-200'      },
 } as const
 
 const CMS_COLOR: Record<string, string> = {
-  WordPress:  'text-sky-400',
-  Wix:        'text-blue-400',
-  Squarespace:'text-gray-300',
-  Webflow:    'text-indigo-400',
-  Shopify:    'text-green-400',
-  Jimdo:      'text-orange-400',
+  WordPress:  'text-sky-600',
+  Wix:        'text-blue-600',
+  Squarespace:'text-gray-600',
+  Webflow:    'text-indigo-600',
+  Shopify:    'text-green-600',
+  Jimdo:      'text-orange-600',
   Custom:     'text-gray-500',
-  PrestaShop: 'text-rose-400',
+  PrestaShop: 'text-rose-600',
 }
 
 // ─── Parse CSV helper ─────────────────────────────────────────────────────────
@@ -86,10 +87,10 @@ function LeadModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="font-bold text-base">{lead ? 'Modifier le lead' : 'Ajouter un lead'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -102,7 +103,7 @@ function LeadModal({
                 required value={form.business_name ?? ''}
                 onChange={e => set('business_name', e.target.value)}
                 placeholder="Boulangerie Dupont"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -112,7 +113,7 @@ function LeadModal({
                 type="url" value={form.website_url ?? ''}
                 onChange={e => set('website_url', e.target.value)}
                 placeholder="https://example.com"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -122,7 +123,7 @@ function LeadModal({
                 type="email" value={form.email ?? ''}
                 onChange={e => set('email', e.target.value)}
                 placeholder="contact@example.com"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -132,7 +133,7 @@ function LeadModal({
                 value={form.phone ?? ''}
                 onChange={e => set('phone', e.target.value)}
                 placeholder="06 12 34 56 78"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -142,7 +143,7 @@ function LeadModal({
                 value={form.category ?? ''}
                 onChange={e => set('category', e.target.value)}
                 placeholder="Boulangerie"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -152,7 +153,7 @@ function LeadModal({
                 value={form.city ?? ''}
                 onChange={e => set('city', e.target.value)}
                 placeholder="Paris"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -162,7 +163,7 @@ function LeadModal({
                 value={form.address ?? ''}
                 onChange={e => set('address', e.target.value)}
                 placeholder="12 rue de la Paix, 75001 Paris"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               />
             </div>
 
@@ -171,7 +172,7 @@ function LeadModal({
               <select
                 value={form.status ?? 'new'}
                 onChange={e => set('status', e.target.value)}
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               >
                 {Object.entries(STATUS_CONFIG).map(([v, c]) => (
                   <option key={v} value={v}>{c.label}</option>
@@ -184,7 +185,7 @@ function LeadModal({
               <select
                 value={form.site_id ?? ''}
                 onChange={e => set('site_id', e.target.value)}
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
               >
                 <option value="">— aucun —</option>
                 {sites.map(s => (
@@ -200,14 +201,14 @@ function LeadModal({
                 onChange={e => set('notes', e.target.value)}
                 rows={3}
                 placeholder="Notes internes…"
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60 resize-none"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500 resize-none"
               />
             </div>
           </div>
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/8 text-sm transition-colors">
+              className="flex-1 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-100 text-sm transition-colors text-gray-900">
               Annuler
             </button>
             <button type="submit" disabled={saving}
@@ -288,20 +289,20 @@ function BulkImportModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 flex-shrink-0">
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <h2 className="font-bold text-base">Importer des leads</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/8 flex-shrink-0">
+        <div className="flex border-b border-gray-200 flex-shrink-0">
           {(['csv', 'urls'] as const).map(t => (
             <button key={t} onClick={() => { setTab(t); setPreview([]) }}
               className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
-                tab === t ? 'border-violet-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+                tab === t ? 'border-violet-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}>
               {t === 'csv' ? '📊 CSV / Coller' : '🔗 Scraper des URLs'}
             </button>
@@ -320,10 +321,10 @@ function BulkImportModal({
                 onChange={e => setCsvText(e.target.value)}
                 rows={8}
                 placeholder={'name,website,email,phone,city\nBoulangerie Dupont,https://dupont.fr,contact@dupont.fr,0612345678,Paris'}
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-violet-500/60 resize-none"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500 resize-none"
               />
               <button onClick={parseCsvPreview}
-                className="px-4 py-2 rounded-lg bg-violet-600/20 border border-violet-500/30 text-violet-300 text-sm hover:bg-violet-600/30 transition-colors">
+                className="px-4 py-2 rounded-lg bg-violet-50 border border-violet-200 text-violet-700 text-sm hover:bg-violet-100 transition-colors">
                 Prévisualiser ({parseCSV(csvText).length} lignes)
               </button>
             </>
@@ -339,11 +340,11 @@ function BulkImportModal({
                 onChange={e => setUrlsText(e.target.value)}
                 rows={8}
                 placeholder={'https://boulangerie-dupont.fr\nhttps://salon-marieclaire.com\nhttps://restaurant-laumiere.fr'}
-                className="w-full bg-gray-800 border border-white/8 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-violet-500/60 resize-none"
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500 resize-none"
               />
               <div className="flex items-center gap-3">
                 <button onClick={scrapeUrls} disabled={scraping}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600/20 border border-violet-500/30 text-violet-300 text-sm hover:bg-violet-600/30 transition-colors disabled:opacity-50">
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-50 border border-violet-200 text-violet-700 text-sm hover:bg-violet-100 transition-colors disabled:opacity-50">
                   {scraping ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                   Lancer le scraping
                 </button>
@@ -356,10 +357,10 @@ function BulkImportModal({
           {preview.length > 0 && (
             <div>
               <p className="text-xs text-gray-400 mb-2">{preview.length} leads prêts à importer :</p>
-              <div className="max-h-48 overflow-y-auto rounded-lg border border-white/8 divide-y divide-white/5">
+              <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-200 divide-y divide-gray-100">
                 {preview.slice(0, 20).map((l, i) => (
                   <div key={i} className="flex items-center gap-3 px-3 py-2 text-xs">
-                    <span className="font-medium text-white truncate flex-1">{l.business_name}</span>
+                    <span className="font-medium text-gray-900 truncate flex-1">{l.business_name}</span>
                     {l.website_url && <span className="text-gray-500 truncate max-w-[160px]">{l.website_url}</span>}
                     {l.email       && <Mail className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
                     {l.cms         && <span className={`flex-shrink-0 ${CMS_COLOR[l.cms] ?? 'text-gray-500'}`}>{l.cms}</span>}
@@ -373,9 +374,9 @@ function BulkImportModal({
           )}
         </div>
 
-        <div className="flex gap-3 px-6 py-4 border-t border-white/8 flex-shrink-0">
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-200 flex-shrink-0">
           <button onClick={onClose}
-            className="flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/8 text-sm transition-colors">
+            className="flex-1 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm transition-colors">
             Annuler
           </button>
           <button onClick={handleImport} disabled={!preview.length || importing}
@@ -412,11 +413,11 @@ function StatusBadge({ status, onChange }: { status: Lead['status']; onChange?: 
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 bg-gray-800 border border-white/10 rounded-lg py-1 min-w-[130px] shadow-xl">
+          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-lg py-1 min-w-[130px] shadow-xl">
             {Object.entries(STATUS_CONFIG).map(([v, c]) => (
               <button key={v} onClick={() => { onChange(v as Lead['status']); setOpen(false) }}
-                className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-white/5 transition-colors text-left ${
-                  v === status ? 'text-white font-semibold' : 'text-gray-300'
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors text-left ${
+                  v === status ? 'text-gray-900 font-semibold' : 'text-gray-600'
                 }`}>
                 <span className={`w-2 h-2 rounded-full ${c.color.split(' ')[0]}`} />
                 {c.label}
@@ -446,14 +447,18 @@ export default function CRMPage() {
   const [selected,        setSelected]         = useState<Set<string>>(new Set())
   const [bulkDeleting,    setBulkDeleting]     = useState(false)
 
-  // Load user & sites
+  // Load user & sites — redirect non-admins
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setUserEmail(data.user.email ?? '')
+      if (!data.user || !isAdminUserClient(data.user.id)) {
+        router.replace('/dashboard')
+        return
+      }
+      setUserEmail(data.user.email ?? '')
     })
     fetch('/api/sites').then(r => r.json()).then(d => setSites(d.sites ?? []))
-  }, [])
+  }, [router])
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type })
@@ -547,21 +552,21 @@ export default function CRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-[#fafaf9] text-gray-900 flex flex-col">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-white/5 flex-shrink-0">
+      <nav className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-4">
           <button onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
             Sites
           </button>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
-              <Building2 className="w-3.5 h-3.5" />
+          <div className="h-4 w-px bg-gray-200" />
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
+              <Building2 className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold text-base">CRM Leads</span>
+            <span className="font-black text-base tracking-tight text-gray-950">CRM Leads</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -576,15 +581,15 @@ export default function CRMPage() {
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {[
-            { label: 'Total',     value: stats.total,       color: 'text-white'         },
-            { label: 'Nouveaux',  value: stats.new,         color: 'text-blue-400'      },
-            { label: 'Contactés', value: stats.contacted,   color: 'text-amber-400'     },
-            { label: 'En cours',  value: stats.building,    color: 'text-violet-400'    },
-            { label: 'Livrés',    value: stats.built,       color: 'text-green-400'     },
-            { label: 'Avec email',value: stats.withEmail,   color: 'text-emerald-400'   },
+            { label: 'Total',     value: stats.total,       color: 'text-gray-950'      },
+            { label: 'Nouveaux',  value: stats.new,         color: 'text-blue-600'      },
+            { label: 'Contactés', value: stats.contacted,   color: 'text-amber-600'     },
+            { label: 'En cours',  value: stats.building,    color: 'text-violet-600'    },
+            { label: 'Livrés',    value: stats.built,       color: 'text-green-600'     },
+            { label: 'Avec email',value: stats.withEmail,   color: 'text-emerald-600'   },
           ].map(s => (
             <div key={s.label}
-              className="bg-gray-900 border border-white/5 rounded-xl px-4 py-3 text-center">
+              className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-center">
               <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
               <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
             </div>
@@ -599,14 +604,14 @@ export default function CRMPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher…"
-              className="w-full bg-gray-900 border border-white/8 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-violet-500/60"
+              className="w-full bg-white border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="bg-gray-900 border border-white/8 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60 min-w-[140px]"
+            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-violet-500 min-w-[140px]"
           >
             <option value="all">Tous les statuts</option>
             {Object.entries(STATUS_CONFIG).map(([v, c]) => (
@@ -620,20 +625,20 @@ export default function CRMPage() {
           </button>
 
           <button onClick={() => setShowBulkImport(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/8 hover:bg-white/8 text-sm transition-colors whitespace-nowrap">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm transition-colors whitespace-nowrap">
             <Upload className="w-4 h-4" /> Importer
           </button>
         </div>
 
         {/* Selection action bar */}
         {selected.size > 0 && (
-          <div className="flex items-center justify-between px-4 py-2.5 mb-3 bg-violet-950/50 border border-violet-500/30 rounded-xl">
-            <span className="text-sm text-violet-300 font-medium">
+          <div className="flex items-center justify-between px-4 py-2.5 mb-3 bg-violet-50 border border-violet-200 rounded-xl">
+            <span className="text-sm text-violet-700 font-medium">
               {selected.size} lead{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''}
             </span>
             <div className="flex items-center gap-2">
               <button onClick={() => setSelected(new Set())}
-                className="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                className="px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-gray-900 hover:bg-white transition-colors">
                 Désélectionner
               </button>
               <button onClick={handleBulkDelete} disabled={bulkDeleting}
@@ -670,16 +675,16 @@ export default function CRMPage() {
                   <Plus className="w-4 h-4" /> Ajouter un lead
                 </button>
                 <button onClick={() => setShowBulkImport(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/8 text-sm">
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm">
                   <Upload className="w-4 h-4" /> Importer CSV
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <div className="bg-gray-900 border border-white/5 rounded-2xl overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 border-b border-white/5 text-xs text-gray-500 font-medium">
+            <div className="grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 border-b border-gray-200 text-xs text-gray-500 font-medium">
               <div className="flex items-center">
                 <input type="checkbox"
                   checked={filtered.length > 0 && selected.size === filtered.length}
@@ -696,16 +701,15 @@ export default function CRMPage() {
               <div />
             </div>
 
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-gray-100">
               {filtered.map(lead => (
                 <div key={lead.id}
-                  onClick={() => toggleSelect(lead.id)}
-                  className={`grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center transition-colors cursor-pointer group ${
-                    selected.has(lead.id) ? 'bg-violet-950/30' : 'hover:bg-white/2'
+                  className={`grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center transition-colors group ${
+                    selected.has(lead.id) ? 'bg-violet-50' : 'hover:bg-gray-50'
                   }`}>
 
                   {/* Checkbox */}
-                  <div onClick={e => e.stopPropagation()} className="flex items-center">
+                  <div className="flex items-center">
                     <input type="checkbox"
                       checked={selected.has(lead.id)}
                       onChange={() => toggleSelect(lead.id)}
@@ -715,7 +719,7 @@ export default function CRMPage() {
 
                   {/* Business name */}
                   <div>
-                    <div className="font-medium text-sm text-white leading-tight">{lead.business_name}</div>
+                    <div className="font-medium text-sm text-gray-900 leading-tight">{lead.business_name}</div>
                     {lead.city && (
                       <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
                         <span>{lead.city}</span>
@@ -723,7 +727,7 @@ export default function CRMPage() {
                       </div>
                     )}
                     {lead.notes && (
-                      <div className="text-xs text-gray-600 mt-0.5 truncate max-w-[180px]">{lead.notes}</div>
+                      <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[180px]">{lead.notes}</div>
                     )}
                   </div>
 
@@ -733,13 +737,13 @@ export default function CRMPage() {
                       <div className="flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                         <a href={lead.website_url} target="_blank" rel="noopener noreferrer"
-                          className="text-xs text-violet-400 hover:text-violet-300 truncate max-w-[150px] transition-colors"
+                          className="text-xs text-violet-600 hover:text-violet-700 truncate max-w-[150px] transition-colors"
                           title={lead.website_url}>
                           {lead.website_url.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-600">—</span>
+                      <span className="text-xs text-gray-400">—</span>
                     )}
                     {lead.cms && (
                       <div className={`text-xs mt-0.5 flex items-center gap-1 ${CMS_COLOR[lead.cms] ?? 'text-gray-500'}`}>
@@ -753,19 +757,19 @@ export default function CRMPage() {
                   <div onClick={e => e.stopPropagation()} className="space-y-0.5">
                     {lead.email ? (
                       <a href={`mailto:${lead.email}`}
-                        className="flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors truncate max-w-[130px]"
+                        className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 transition-colors truncate max-w-[130px]"
                         title={lead.email}>
                         <Mail className="w-3 h-3 flex-shrink-0 text-green-500" />
                         <span className="truncate">{lead.email}</span>
                       </a>
                     ) : (
-                      <span className="text-xs text-gray-600 flex items-center gap-1">
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
                         <Mail className="w-3 h-3" /> —
                       </span>
                     )}
                     {lead.phone && (
                       <a href={`tel:${lead.phone}`}
-                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors">
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors">
                         <Phone className="w-3 h-3 flex-shrink-0" />
                         <span>{lead.phone}</span>
                       </a>
@@ -810,7 +814,7 @@ export default function CRMPage() {
                   {/* Actions */}
                   <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => setEditingLead(lead)}
-                      className="p-1.5 rounded-lg hover:bg-white/8 text-gray-500 hover:text-white transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors"
                       title="Modifier">
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -827,7 +831,7 @@ export default function CRMPage() {
             </div>
 
             {/* Footer count */}
-            <div className="px-4 py-3 border-t border-white/5 text-xs text-gray-600">
+            <div className="px-4 py-3 border-t border-gray-200 text-xs text-gray-400">
               {filtered.length} lead{filtered.length !== 1 ? 's' : ''}
               {statusFilter !== 'all' || search ? ` (filtrés sur ${leads.length})` : ''}
             </div>
