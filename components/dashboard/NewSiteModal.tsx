@@ -1,34 +1,52 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Zap, Crown, Check } from 'lucide-react'
-import { TEMPLATES } from '@/lib/templates'
+import { X, Zap, Crown, Check, Sparkles } from 'lucide-react'
+import { createClient } from '@/lib/supabase-browser'
 
-const SITE_TYPES = [
-  { id: 'business',   label: 'Business',      emoji: '🏢', desc: 'Site vitrine pro' },
-  { id: 'saas',       label: 'SaaS',          emoji: '⚡', desc: 'Landing produit' },
-  { id: 'landing',    label: 'Landing',       emoji: '🚀', desc: 'Page de conversion' },
-  { id: 'restaurant', label: 'Restaurant',    emoji: '🍽️', desc: 'Menu & réservation' },
-  { id: 'bakery',     label: 'Boulangerie',   emoji: '🥐', desc: 'Artisanal & gourmand' },
-  { id: 'wellness',   label: 'Bien-être',     emoji: '🌿', desc: 'Spa, yoga, santé' },
-  { id: 'shop',       label: 'E-commerce',    emoji: '🛍️', desc: 'Boutique en ligne' },
-  { id: 'portfolio',  label: 'Portfolio',     emoji: '🎨', desc: 'Présentation créative' },
-  { id: 'blog',       label: 'Blog',          emoji: '✍️', desc: 'Articles & contenu' },
-]
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const DESCRIPTION_PLACEHOLDERS: Record<string, string> = {
-  business:   'Ex : Cabinet de conseil en stratégie digitale, fondé en 2018, 12 collaborateurs, spécialisé PME industrielles.',
-  saas:       'Ex : Outil de gestion de projet pour équipes remote. 3 plans : Starter, Pro, Enterprise. Intégration Slack & Notion.',
-  landing:    'Ex : Formation en ligne "Photographe Freelance" — 6 semaines, 240 élèves, 97% de satisfaction. Lancement mars 2025.',
-  restaurant: 'Ex : Brasserie traditionnelle lyonnaise, ouverte depuis 1962, spécialité quenelles et tablier de sapeur, 80 couverts.',
-  bakery:     'Ex : Boulangerie artisanale fondée en 1987, spécialité baguette tradition Label Rouge et croissant AOP Charentes.',
-  wellness:   'Ex : Institut de massage thaïlandais et ayurvédique, Paris 11e, 4 thérapeutes, soins 60/90/120 min, sur RDV.',
-  shop:       'Ex : Créatrice de bijoux en argent recyclé, pièces uniques, livraison mondiale, 2 000 clientes fidèles.',
-  portfolio:  'Ex : Directrice artistique spécialisée packaging luxe & cosmétique. 10 ans d\'expérience, clients : LVMH, L\'Oréal.',
-  blog:       'Ex : Blog cuisine végétale & zéro déchet, 2 articles/semaine, newsletter 8 000 abonnés, recettes accessibles.',
+interface ScrapedTemplate {
+  id:             number
+  slug:           string
+  name:           string
+  url:            string
+  industry:       string
+  site_type:      string
+  screenshot_url: string | null
 }
+
+// ─── Industry display labels ──────────────────────────────────────────────────
+
+const INDUSTRY_LABELS: Record<string, string> = {
+  'Food & Beverage':  'Food',
+  'Restaurant':       'Food',
+  'E-commerce':       'Shop',
+  'SaaS':             'SaaS',
+  'Health & Wellness':'Santé',
+  'Wellness':         'Santé',
+  'Portfolio':        'Portfolio',
+  'Agency':           'Agence',
+  'Real Estate':      'Immo',
+  'Education':        'Éducation',
+  'Finance':          'Finance',
+  'Technology':       'Tech',
+  'Fashion':          'Mode',
+  'Travel':           'Voyage',
+  'Beauty':           'Beauté',
+  'Sports':           'Sport',
+  'Photography':      'Photo',
+  'Music':            'Musique',
+  'Non-profit':       'ONG',
+}
+
+function shortIndustry(industry: string): string {
+  return INDUSTRY_LABELS[industry] ?? industry.split(' ')[0]
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
 
 interface NewSiteModalProps {
   open: boolean
@@ -39,17 +57,41 @@ interface NewSiteModalProps {
 
 export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit }: NewSiteModalProps) {
   const router = useRouter()
-  const [name,           setName]          = useState('')
-  const [type,           setType]          = useState('business')
-  const [description,    setDescription]   = useState('')
-  const [loading,        setLoading]       = useState(false)
-  const [error,          setError]         = useState<string | null>(null)
-  const [tab,            setTab]           = useState<'scratch' | 'template'>('scratch')
-  const [selectedTpl,    setSelectedTpl]   = useState<string | null>(null)
+
+  const [name,          setName]         = useState('')
+  const [loading,       setLoading]      = useState(false)
+  const [error,         setError]        = useState<string | null>(null)
+  const [selectedSlug,  setSelectedSlug] = useState<string | null>(null)  // null = scratch
+  const [templates,     setTemplates]    = useState<ScrapedTemplate[]>([])
+  const [tplLoading,    setTplLoading]   = useState(false)
+  const [activeIndustry,setActiveIndustry] = useState<string>('Tous')
+
+  // Fetch templates from Supabase when modal opens
+  useEffect(() => {
+    if (!open) return
+    setTplLoading(true)
+    const supabase = createClient()
+    supabase
+      .from('templates')
+      .select('id, slug, name, url, industry, site_type, screenshot_url')
+      .not('screenshot_url', 'is', null)
+      .order('id', { ascending: true })
+      .limit(120)
+      .then(({ data }) => {
+        setTemplates((data as ScrapedTemplate[]) ?? [])
+        setTplLoading(false)
+      })
+  }, [open])
+
+  // Derive unique industry filter labels
+  const industries = ['Tous', ...Array.from(new Set(templates.map(t => shortIndustry(t.industry))))]
+
+  const visible = activeIndustry === 'Tous'
+    ? templates
+    : templates.filter(t => shortIndustry(t.industry) === activeIndustry)
 
   const reset = () => {
-    setName(''); setType('business'); setDescription(''); setError(null)
-    setTab('scratch'); setSelectedTpl(null)
+    setName(''); setError(null); setSelectedSlug(null); setActiveIndustry('Tous')
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -59,37 +101,19 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     if (!name.trim()) return
     setLoading(true)
     setError(null)
+
     try {
-      const tpl = tab === 'template' ? TEMPLATES.find(t => t.id === selectedTpl) : null
-      const site = await onCreateSite(
-        name.trim(),
-        tpl ? tpl.id : type,
-        tpl ? `[TEMPLATE:${tpl.id}]${description.trim()}` : description.trim() || undefined,
-      )
+      const tpl = templates.find(t => t.slug === selectedSlug) ?? null
+
+      const siteType = tpl?.site_type ?? 'business'
+      const initMsg  = tpl
+        ? `Crée un site web pour "${name.trim()}" en t'inspirant du style visuel de "${tpl.name}" (${tpl.url}). Adapte le contenu à "${name.trim()}" tout en respectant l'esthétique de la référence.`
+        : `Crée un site web complet et professionnel pour "${name.trim()}".`
+
+      const site = await onCreateSite(name.trim(), siteType)
       reset()
       onClose()
-
-      // If template selected, save schema directly via PUT
-      if (tpl) {
-        fetch('/api/generate', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            siteId: site.id,
-            name: name.trim(),
-            type: tpl.id,
-            description: `[TEMPLATE:${tpl.id}]`,
-            templateSchema: JSON.stringify(tpl.schema),
-          }),
-        }).catch(console.error)
-        router.push(`/editor/${site.id}`)
-      } else {
-        const desc = description.trim()
-        const initMsg = desc
-          ? desc
-          : `Crée un site web complet et professionnel pour "${name.trim()}".`
-        router.push(`/editor/${site.id}?init=${encodeURIComponent(initMsg)}`)
-      }
+      router.push(`/editor/${site.id}?init=${encodeURIComponent(initMsg)}`)
     } catch (err: any) {
       if (err.code === 'PLAN_LIMIT') {
         onClose()
@@ -102,12 +126,16 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     }
   }
 
+  const selectedTpl = templates.find(t => t.slug === selectedSlug) ?? null
+
   return (
     <Dialog.Root open={open} onOpenChange={v => !v && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-gray-900 border border-white/10 rounded-2xl shadow-2xl p-6 animate-in fade-in-0 zoom-in-95">
-          <div className="flex items-center justify-between mb-6">
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl bg-gray-950 border border-white/10 rounded-2xl shadow-2xl animate-in fade-in-0 zoom-in-95 flex flex-col max-h-[90vh]">
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 flex-shrink-0">
             <Dialog.Title className="text-lg font-bold">Nouveau site</Dialog.Title>
             <Dialog.Close asChild>
               <button className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
@@ -116,36 +144,8 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-
-            {/* Tab switcher */}
-            <div className="flex gap-1 bg-white/5 rounded-xl p-1">
-              {([['scratch', 'Depuis zéro'], ['template', 'Depuis un template']] as const).map(([id, label]) => (
-                <button key={id} type="button" onClick={() => setTab(id)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${tab === id ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Template picker */}
-            {tab === 'template' && (
-              <div className="grid grid-cols-2 gap-2">
-                {TEMPLATES.map(tpl => (
-                  <button key={tpl.id} type="button" onClick={() => setSelectedTpl(tpl.id)}
-                    className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${selectedTpl === tpl.id ? 'border-violet-500 bg-violet-950/40' : 'border-white/8 bg-white/3 hover:border-white/20'}`}>
-                    <span className="text-2xl">{tpl.emoji}</span>
-                    <div>
-                      <p className="text-xs font-bold text-white">{tpl.label}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">{tpl.desc}</p>
-                    </div>
-                    {selectedTpl === tpl.id && (
-                      <Check className="w-3.5 h-3.5 text-violet-400 ml-auto flex-shrink-0 mt-0.5" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Scrollable body */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 pb-6 overflow-y-auto flex-1">
 
             {/* Name */}
             <div>
@@ -162,47 +162,120 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
               />
             </div>
 
-            {/* Type */}
+            {/* Template gallery */}
             <div>
-              <label className="text-xs text-gray-400 mb-2 block font-medium">Type de site</label>
-              <div className="grid grid-cols-3 gap-2">
-                {SITE_TYPES.map(t => (
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-xs text-gray-400 font-medium">
+                  Choisis un style de référence
+                  <span className="text-gray-600 ml-1">— optionnel</span>
+                </label>
+                {selectedSlug && (
+                  <button type="button" onClick={() => setSelectedSlug(null)}
+                    className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors">
+                    Effacer la sélection
+                  </button>
+                )}
+              </div>
+
+              {/* Industry filter pills */}
+              {templates.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap mb-3">
+                  {industries.slice(0, 14).map(ind => (
+                    <button
+                      key={ind}
+                      type="button"
+                      onClick={() => setActiveIndustry(ind)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                        activeIndustry === ind
+                          ? 'bg-violet-600 text-white'
+                          : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {ind}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Grid */}
+              <div className="grid grid-cols-3 gap-2.5">
+
+                {/* From scratch card */}
+                {activeIndustry === 'Tous' && (
                   <button
-                    key={t.id}
                     type="button"
-                    onClick={() => setType(t.id)}
-                    className={`relative flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${
-                      type === t.id
-                        ? 'border-violet-500 bg-violet-950/40 text-white'
-                        : 'border-white/8 bg-white/3 text-gray-400 hover:border-white/20 hover:text-white'
-                    }`}
+                    onClick={() => setSelectedSlug(null)}
+                    className={`relative aspect-video rounded-xl border-2 overflow-hidden transition-all flex flex-col items-center justify-center gap-2 ${
+                      selectedSlug === null
+                        ? 'border-violet-500 ring-1 ring-violet-500/30'
+                        : 'border-white/10 hover:border-white/25'
+                    } bg-gradient-to-br from-violet-950/60 to-gray-900`}
                   >
-                    {type === t.id && (
-                      <div className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-violet-600 flex items-center justify-center">
-                        <Check className="w-2 h-2" />
+                    {selectedSlug === null && (
+                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
                       </div>
                     )}
-                    <span className="text-xl">{t.emoji}</span>
-                    <span className="text-xs font-semibold leading-tight">{t.label}</span>
-                    <span className="text-[10px] text-gray-500 leading-tight">{t.desc}</span>
+                    <Sparkles className="w-6 h-6 text-violet-400" />
+                    <span className="text-xs font-semibold text-white">Depuis zéro</span>
+                    <span className="text-[10px] text-gray-500">L'IA décide du style</span>
+                  </button>
+                )}
+
+                {/* Loading skeletons */}
+                {tplLoading && Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="aspect-video rounded-xl bg-white/5 animate-pulse" />
+                ))}
+
+                {/* Template cards */}
+                {!tplLoading && visible.map(tpl => (
+                  <button
+                    key={tpl.slug}
+                    type="button"
+                    onClick={() => setSelectedSlug(tpl.slug)}
+                    className={`relative aspect-video rounded-xl border-2 overflow-hidden transition-all group ${
+                      selectedSlug === tpl.slug
+                        ? 'border-violet-500 ring-1 ring-violet-500/30'
+                        : 'border-white/8 hover:border-white/25'
+                    }`}
+                  >
+                    {/* Screenshot */}
+                    {tpl.screenshot_url ? (
+                      <img
+                        src={tpl.screenshot_url}
+                        alt={tpl.name}
+                        className="w-full h-full object-cover object-top"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                        <span className="text-2xl">🌐</span>
+                      </div>
+                    )}
+
+                    {/* Name overlay (always visible) */}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-2 py-1.5">
+                      <p className="text-[10px] font-semibold text-white leading-tight truncate">{tpl.name}</p>
+                      <p className="text-[9px] text-gray-400 truncate">{shortIndustry(tpl.industry)}</p>
+                    </div>
+
+                    {/* Selected checkmark */}
+                    {selectedSlug === tpl.slug && (
+                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center shadow-lg">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Description */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1.5 block font-medium">
-                Décris ton activité <span className="text-gray-600 font-normal">— plus c'est précis, meilleur sera le résultat</span>
-              </label>
-              <textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                rows={3}
-                maxLength={500}
-                placeholder={DESCRIPTION_PLACEHOLDERS[type] ?? 'Décris ton activité, tes produits/services, ton histoire…'}
-                className="w-full bg-white/5 border border-white/10 focus:border-violet-500 rounded-xl px-4 py-3 text-white outline-none transition-colors text-sm resize-none placeholder-gray-600"
-              />
+              {/* Selection label */}
+              {selectedTpl && (
+                <p className="mt-2 text-[11px] text-violet-400">
+                  Référence : <span className="font-medium">{selectedTpl.name}</span>
+                  <span className="text-gray-600 ml-1">— {selectedTpl.url}</span>
+                </p>
+              )}
             </div>
 
             {error && (
@@ -211,7 +284,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
               </div>
             )}
 
-            <div className="flex gap-3 pt-1">
+            <div className="flex gap-3 pt-1 flex-shrink-0">
               <button
                 type="button"
                 onClick={handleClose}
