@@ -14,6 +14,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const allowed = [
     'business_name','website_url','email','phone','address','category','city',
     'status','notes','site_id','cms','page_title','meta_description','og_image',
+    'arrondissement','postcode','departement','rating','reviews',
+    'opening_hours','instagram','facebook','latitude','longitude',
+    'google_maps_url','has_website','outreach_status',
   ]
   const updates: Record<string, unknown> = {}
   for (const key of allowed) {
