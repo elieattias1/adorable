@@ -121,7 +121,7 @@ const MAX_IMGS = 4
 interface ChatPanelProps {
   messages: ChatMessage[]
   isGenerating: boolean
-  onSend: (message: string, imageFiles?: File[]) => void
+  onSend: (message: string, imageFile?: File) => void
   streamingText?: string
   currentSteps?: AgentStep[]
   siteType?: string
