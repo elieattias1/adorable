@@ -10,7 +10,7 @@ import {
   type SiteManifest,
 } from '@/lib/anthropic'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { scrapeUrl, extractUrl } from '@/lib/scrape-url'
+import { scrapeUrl, extractUrl } from '@/lib/scrape'
 import { getRelevantTemplates, buildTemplateContext } from '@/lib/scraped-templates'
 import { parse as babelParse } from '@babel/parser'
 import type Anthropic from '@anthropic-ai/sdk'

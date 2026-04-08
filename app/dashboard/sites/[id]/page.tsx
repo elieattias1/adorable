@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { createClient } from '@/lib/supabase-browser'
+import { Toast, type ToastState } from '@/components/ui/Toast'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,14 +25,6 @@ interface DashData { site: Site; versionCount: number; submissionCount: number }
 const fmt     = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 const fmtTime = (d: string) => new Date(d).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-function Toast({ msg, type, onDismiss }: { msg: string; type: 'success' | 'error'; onDismiss: () => void }) {
-  useEffect(() => { const t = setTimeout(onDismiss, 4000); return () => clearTimeout(t) }, [onDismiss])
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in-0 max-w-sm ${type === 'success' ? 'bg-green-950 border-green-700 text-green-300' : 'bg-red-950 border-red-700 text-red-300'}`}>
-      {type === 'success' ? <Check className="w-4 h-4 flex-shrink-0" /> : <X className="w-4 h-4 flex-shrink-0" />} {msg}
-    </div>
-  )
-}
 
 function StatCard({ icon: Icon, label, value, sub, color = 'violet' }: { icon: any; label: string; value: string | number; sub?: string; color?: string }) {
   const c: Record<string, string> = { violet: 'bg-violet-500/10 text-violet-400', green: 'bg-green-500/10 text-green-400', blue: 'bg-blue-500/10 text-blue-400', pink: 'bg-pink-500/10 text-pink-400' }
@@ -718,7 +711,7 @@ export default function SiteDashboardPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading,     setLoading]     = useState(true)
   const [active,      setActive]      = useState('overview')
-  const [toast,       setToast]       = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [toast,       setToast]       = useState<ToastState>(null)
   const [deploying,   setDeploying]   = useState(false)
   const [userEmail,   setUserEmail]   = useState('')
   const [loggingOut,  setLoggingOut]  = useState(false)

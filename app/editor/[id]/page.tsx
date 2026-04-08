@@ -8,26 +8,9 @@ import CodePreview from '@/components/editor/CodePreview'
 import ChatPanel, { type ChatMessage } from '@/components/editor/ChatPanel'
 import VersionPanel, { type Version } from '@/components/editor/VersionPanel'
 import type { Tables } from '@/types/supabase'
+import { Toast, type ToastState } from '@/components/ui/Toast'
 
 type Site = Tables<'sites'>
-
-// ─── Simple toast ──────────────────────────────────────────────────────────────
-function Toast({ msg, type, onDismiss }: { msg: string; type: 'success' | 'error'; onDismiss: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onDismiss, 5000)
-    return () => clearTimeout(t)
-  }, [onDismiss])
-
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in-0 max-w-sm ${
-      type === 'success'
-        ? 'bg-green-950 border-green-700 text-green-300'
-        : 'bg-red-950 border-red-700 text-red-300'
-    }`}>
-      {type === 'success' ? '✓' : '✕'} {msg}
-    </div>
-  )
-}
 
 // ─── Is this React code? (vs legacy JSON schema) ──────────────────────────────
 function isReactCode(content: string): boolean {
@@ -60,7 +43,7 @@ function EditorPage() {
   const [previewMode,   setPreviewMode]   = useState<'desktop' | 'mobile'>('desktop')
   const [isPro,         setIsPro]         = useState(false)
   const [loading,       setLoading]       = useState(true)
-  const [toast,         setToast]         = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [toast,         setToast]         = useState<ToastState>(null)
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => setToast({ msg, type })
 

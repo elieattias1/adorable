@@ -12,21 +12,7 @@ import SubmissionsModal from '@/components/dashboard/SubmissionsModal'
 import { Zap, Plus, LogOut, Crown, Loader2, Settings2, User, CreditCard, Check, Eye, EyeOff, ExternalLink, X } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { isAdminUserClient } from '@/lib/admin'
-
-// ─── Toast ─────────────────────────────────────────────────────────────────────
-function Toast({ msg, type, onDismiss }: { msg: string; type: 'success' | 'error'; onDismiss: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onDismiss, 4000)
-    return () => clearTimeout(t)
-  }, [onDismiss])
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in-0 ${
-      type === 'success' ? 'bg-green-950 border-green-700 text-green-300' : 'bg-red-950 border-red-700 text-red-300'
-    }`}>
-      {type === 'success' ? '✓' : '✕'} {msg}
-    </div>
-  )
-}
+import { Toast, type ToastState } from '@/components/ui/Toast'
 
 function UpgradeChecker({ onUpgraded }: { onUpgraded: () => void }) {
   const searchParams = useSearchParams()
@@ -294,7 +280,7 @@ export default function DashboardPage() {
   const [showNewSite,   setShowNewSite]   = useState(false)
   const [showPaywall,   setShowPaywall]   = useState(false)
   const [submissionsSite, setSubmissionsSite] = useState<{ id: string; name: string } | null>(null)
-  const [toast,         setToast]         = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [toast,         setToast]         = useState<ToastState>(null)
   const [userEmail,     setUserEmail]     = useState<string>('')
   const [userId,        setUserId]        = useState<string>('')
   const [loggingOut,    setLoggingOut]    = useState(false)
