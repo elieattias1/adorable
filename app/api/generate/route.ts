@@ -392,11 +392,21 @@ export async function POST(req: NextRequest) {
                 } else if (result.error) {
                   toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: `Erreur : ${result.error}`, is_error: true })
                 } else if (result.code) {
-                  currentCode = result.code
-                  finalCode   = result.code
-                  if (result.note) finalNote = result.note
-                  safeSend({ code_update: result.code })
-                  toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: 'Succès.' })
+                  const syntaxErr = validateTSX(result.code)
+                  if (syntaxErr) {
+                    // Feed the exact error back so the agent fixes it in the next iteration
+                    console.warn(`${tag}  ⚠️  ${tb.name} syntax error: ${syntaxErr}`)
+                    toolResults.push({
+                      type: 'tool_result', tool_use_id: tb.id, is_error: true,
+                      content: `Erreur de syntaxe TSX — le code a été rejeté par le parser :\n${syntaxErr}\n\nCauses fréquentes : apostrophes non échappées dans des strings single-quotées (utilise des backticks \`...\`), virgules manquantes, JSX mal fermé. Corrige et rappelle le tool.`,
+                    })
+                  } else {
+                    currentCode = result.code
+                    finalCode   = result.code
+                    if (result.note) finalNote = result.note
+                    safeSend({ code_update: result.code })
+                    toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: 'Succès.' })
+                  }
                 } else {
                   toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: 'Succès.' })
                 }
