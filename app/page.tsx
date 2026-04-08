@@ -183,24 +183,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Second marquee + overlay message ── */}
-      <section className="relative bg-gray-950 py-20 overflow-hidden">
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-gray-950 to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-gray-950 to-transparent z-10 pointer-events-none" />
+      {/* ── Marquee with text overlay ── */}
+      <section className="relative py-20 overflow-hidden bg-[#fafaf9]">
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#fafaf9] to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#fafaf9] to-transparent z-10 pointer-events-none" />
 
-        {/* Tinted marquee overlay */}
-        <div className="opacity-20">
+        <div className="opacity-25 pointer-events-none">
           <MarqueeSection />
         </div>
 
-        {/* Center message */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 text-center px-6">
-          <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight mb-4">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 text-center px-6 pointer-events-none">
+          <h2 className="text-4xl md:text-6xl font-black text-gray-950 leading-tight tracking-tight mb-4">
             Restaurant, portfolio, SaaS,<br className="hidden md:block" />
             boutique, cabinet, coach…
           </h2>
-          <p className="text-gray-400 text-lg max-w-md">
-            Adorable crée un design spécifique à chaque métier. Jamais un template générique.
+          <p className="text-gray-500 text-lg max-w-md">
+            Adorable crée un design sur-mesure à chaque métier. Jamais un template générique.
           </p>
         </div>
       </section>
