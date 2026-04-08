@@ -796,8 +796,16 @@ export default function CRMPage() {
                 )}
               </div>
             ) : (
-              <div className="border-t border-gray-100 px-4 py-3 flex-shrink-0">
+              <div className="border-t border-gray-100 px-4 py-3 flex-shrink-0 space-y-2">
                 <p className="text-xs text-gray-400">Clique sur un marqueur pour voir les détails</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  {Object.entries(STATUS_CONFIG).map(([k, v]) => (
+                    <div key={k} className="flex items-center gap-1">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${v.color.split(' ')[0]}`} />
+                      <span className="text-[10px] text-gray-500">{v.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

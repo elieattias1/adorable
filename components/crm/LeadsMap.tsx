@@ -18,27 +18,32 @@ export function getCoords(lead: Lead): [number, number] | null {
   return null
 }
 
-// Violet gradient teardrop pin
-function makeIcon(L: typeof import('leaflet'), selected = false) {
-  const size   = selected ? 36 : 30
-  const color  = selected ? '#7c3aed' : '#8b5cf6'
-  const shadow = selected ? '0 3px 12px rgba(124,58,237,0.6)' : '0 2px 6px rgba(124,58,237,0.35)'
-  const html = `
-    <div style="
-      width:${size}px;height:${size}px;
-      background:${color};
-      border-radius:50% 50% 50% 0;
-      transform:rotate(-45deg);
-      border:2px solid white;
-      box-shadow:${shadow};
-      transition:all 0.15s;
-    "></div>`
+const STATUS_COLORS: Record<string, string> = {
+  new:       '#3b82f6', // blue
+  contacted: '#f59e0b', // amber
+  building:  '#8b5cf6', // violet
+  built:     '#22c55e', // green
+  closed:    '#9ca3af', // gray
+}
+
+function makeIcon(L: typeof import('leaflet'), status: string, selected = false) {
+  const color = STATUS_COLORS[status] ?? '#8b5cf6'
+  const size  = selected ? 14 : 10
+  const ring  = selected ? `0 0 0 3px ${color}40, 0 2px 6px rgba(0,0,0,0.25)` : '0 1px 4px rgba(0,0,0,0.25)'
+  const html  = `<div style="
+    width:${size}px;height:${size}px;
+    background:${color};
+    border-radius:50%;
+    border:2px solid white;
+    box-shadow:${ring};
+    transition:all 0.15s;
+  "></div>`
   return L.divIcon({
     html,
     className: '',
     iconSize:    [size, size],
-    iconAnchor:  [size / 2, size],
-    popupAnchor: [0, -(size + 4)],
+    iconAnchor:  [size / 2, size / 2],
+    popupAnchor: [0, -(size + 6)],
   })
 }
 
@@ -77,7 +82,7 @@ export default function LeadsMap({ leads, selectedId, selectedIds, onSelect }: P
       leads.forEach(lead => {
         const coords = getCoords(lead)
         if (!coords) return
-        const marker = L.marker(coords, { icon: makeIcon(L) })
+        const marker = L.marker(coords, { icon: makeIcon(L, lead.status) })
           .addTo(map)
           .on('click', () => onSelect(lead))
         markersRef.current.set(lead.id, marker)
@@ -116,7 +121,7 @@ export default function LeadsMap({ leads, selectedId, selectedIds, onSelect }: P
       bounds.push(coords)
 
       if (existingIds.has(lead.id)) return
-      const marker = L.marker(coords, { icon: makeIcon(L) })
+      const marker = L.marker(coords, { icon: makeIcon(L, lead.status) })
         .addTo(map)
         .on('click', () => onSelect(lead))
       markersRef.current.set(lead.id, marker)
@@ -161,8 +166,9 @@ export default function LeadsMap({ leads, selectedId, selectedIds, onSelect }: P
     if (!L) return
 
     // Reset all icons, highlight the selected one
-    markersRef.current.forEach((marker, id) => {
-      marker.setIcon(makeIcon(L, id === selectedId))
+    leads.forEach(lead => {
+      const marker = markersRef.current.get(lead.id)
+      if (marker) marker.setIcon(makeIcon(L, lead.status, lead.id === selectedId))
     })
 
     if (selectedId) {
