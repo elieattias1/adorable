@@ -1078,7 +1078,7 @@ export const MANIFEST_TOOL: Anthropic.Tool = {
       },
       sections: {
         type: 'array' as const,
-        description: 'Ordered list of sections. Always start with NavSection, end with FooterSection. 5-8 total.',
+        description: 'Ordered list of sections. Typically starts with NavSection and ends with FooterSection, but omit them if the design concept calls for a full-screen or immersive layout with no traditional nav. 5-8 total.',
         items: {
           type: 'object' as const,
           properties: {
@@ -1126,7 +1126,8 @@ RÈGLES :
 - design : respecte STRICTEMENT les valeurs du design system ci-dessus — couleurs, typographie, radius
 - tone : 3 adjectifs décrivant précisément le style visuel (ex: "luxurieux, chaleureux, gastronomique")
 - sections : 5 à 8 sections adaptées au type de business
-  → Toujours NavSection en premier, FooterSection en dernier
+  → NavSection en premier et FooterSection en dernier dans la plupart des cas
+  → Pour les designs immersifs / full-screen / TYPO-GIANT, tu peux omettre la nav classique et utiliser une approche différente (logo flottant, sidebar, etc.)
   → spec : décrit précisément le layout (SPLIT/FULLSCREEN/EDITORIAL/BENTO/TYPO-GIANT), le contenu, et l'objectif
   → Choisis les sections les plus pertinentes pour CE business — pas une liste générique
 - unsplashUrls : utilise les URLs validées du design system ci-dessus
