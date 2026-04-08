@@ -4,8 +4,7 @@ import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
 import type { Lead } from '@/hooks/useLeads'
 
-// Extract coordinates from a Google Maps URL when lat/lng columns are empty
-function getCoordsFromMapsUrl(url: string): [number, number] | null {
+export function getCoordsFromMapsUrl(url: string): [number, number] | null {
   const m = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/)
   if (m) return [parseFloat(m[1]), parseFloat(m[2])]
   const m2 = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
@@ -13,37 +12,58 @@ function getCoordsFromMapsUrl(url: string): [number, number] | null {
   return null
 }
 
-function getCoords(lead: Lead): [number, number] | null {
+export function getCoords(lead: Lead): [number, number] | null {
   if (lead.latitude != null && lead.longitude != null) return [lead.latitude, lead.longitude]
   if (lead.google_maps_url) return getCoordsFromMapsUrl(lead.google_maps_url)
   return null
 }
 
-interface Props {
-  leads: Lead[]
-  selectedId: string | null
-  onSelect: (lead: Lead) => void
+// Violet gradient teardrop pin
+function makeIcon(L: typeof import('leaflet'), selected = false) {
+  const size   = selected ? 36 : 30
+  const color  = selected ? '#7c3aed' : '#8b5cf6'
+  const shadow = selected ? '0 3px 12px rgba(124,58,237,0.6)' : '0 2px 6px rgba(124,58,237,0.35)'
+  const html = `
+    <div style="
+      width:${size}px;height:${size}px;
+      background:${color};
+      border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      border:2px solid white;
+      box-shadow:${shadow};
+      transition:all 0.15s;
+    "></div>`
+  return L.divIcon({
+    html,
+    className: '',
+    iconSize:    [size, size],
+    iconAnchor:  [size / 2, size],
+    popupAnchor: [0, -(size + 4)],
+  })
 }
 
-export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
+interface Props {
+  leads:       Lead[]
+  selectedId:  string | null
+  selectedIds: Set<string>          // from table checkbox selection
+  onSelect:    (lead: Lead) => void
+}
+
+export default function LeadsMap({ leads, selectedId, selectedIds, onSelect }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef       = useRef<import('leaflet').Map | null>(null)
   const markersRef   = useRef<Map<string, import('leaflet').Marker>>(new Map())
+  const LRef         = useRef<typeof import('leaflet') | null>(null)
 
   const mappable = leads.filter(l => getCoords(l) != null)
 
+  // ── Init map once ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
     import('leaflet').then(L => {
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
-
       if (!containerRef.current || mapRef.current) return
+      LRef.current = L
 
       const map = L.map(containerRef.current, { zoomControl: true })
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -52,12 +72,12 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
       }).addTo(map)
       mapRef.current = map
 
+      // Add initial markers
       const bounds: [number, number][] = []
-
       leads.forEach(lead => {
         const coords = getCoords(lead)
         if (!coords) return
-        const marker = L.marker(coords)
+        const marker = L.marker(coords, { icon: makeIcon(L) })
           .addTo(map)
           .on('click', () => onSelect(lead))
         markersRef.current.set(lead.id, marker)
@@ -65,9 +85,9 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
       })
 
       if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [40, 40] })
+        map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15 })
       } else {
-        map.setView([46.6, 2.4], 6) // France
+        map.setView([48.86, 2.35], 12) // Paris
       }
     })
 
@@ -79,46 +99,76 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Add/remove markers when filtered leads change
+  // ── Sync markers + re-fit bounds when leads (filter) change ───────────────
+  useEffect(() => {
+    const map = mapRef.current
+    const L   = LRef.current
+    if (!map || !L) return
+
+    const existingIds = new Set(markersRef.current.keys())
+    const currentIds  = new Set<string>()
+    const bounds: [number, number][] = []
+
+    leads.forEach(lead => {
+      const coords = getCoords(lead)
+      if (!coords) return
+      currentIds.add(lead.id)
+      bounds.push(coords)
+
+      if (existingIds.has(lead.id)) return
+      const marker = L.marker(coords, { icon: makeIcon(L) })
+        .addTo(map)
+        .on('click', () => onSelect(lead))
+      markersRef.current.set(lead.id, marker)
+    })
+
+    // Remove stale markers
+    existingIds.forEach(id => {
+      if (!currentIds.has(id)) {
+        markersRef.current.get(id)?.remove()
+        markersRef.current.delete(id)
+      }
+    })
+
+    // Re-fit to visible markers
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15, animate: true })
+    }
+  }, [leads, onSelect])
+
+  // ── Zoom to table-selected leads when selection changes ───────────────────
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
 
-    import('leaflet').then(L => {
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
+    if (selectedIds.size === 0) return
 
-      const existingIds = new Set(markersRef.current.keys())
-      const currentIds  = new Set<string>()
-
-      leads.forEach(lead => {
-        const coords = getCoords(lead)
-        if (!coords) return
-        currentIds.add(lead.id)
-        if (!existingIds.has(lead.id)) {
-          const marker = L.marker(coords).addTo(map).on('click', () => onSelect(lead))
-          markersRef.current.set(lead.id, marker)
-        }
-      })
-
-      existingIds.forEach(id => {
-        if (!currentIds.has(id)) {
-          markersRef.current.get(id)?.remove()
-          markersRef.current.delete(id)
-        }
-      })
+    const bounds: [number, number][] = []
+    leads.forEach(lead => {
+      if (!selectedIds.has(lead.id)) return
+      const coords = getCoords(lead)
+      if (coords) bounds.push(coords)
     })
-  }, [leads, onSelect])
 
-  // Pan to selected marker
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16, animate: true })
+    }
+  }, [selectedIds, leads])
+
+  // ── Highlight selected pin / pan to clicked pin ───────────────────────────
   useEffect(() => {
-    if (!selectedId || !mapRef.current) return
-    const marker = markersRef.current.get(selectedId)
-    if (marker) mapRef.current.panTo(marker.getLatLng(), { animate: true })
+    const L = LRef.current
+    if (!L) return
+
+    // Reset all icons, highlight the selected one
+    markersRef.current.forEach((marker, id) => {
+      marker.setIcon(makeIcon(L, id === selectedId))
+    })
+
+    if (selectedId) {
+      const marker = markersRef.current.get(selectedId)
+      if (marker) mapRef.current?.panTo(marker.getLatLng(), { animate: true })
+    }
   }, [selectedId])
 
   return (
@@ -129,7 +179,7 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
           <p className="text-xs text-gray-400 mt-1">Les leads avec latitude/longitude s'afficheront ici</p>
         </div>
       )}
-      <div ref={containerRef} className="w-full h-full rounded-xl" />
+      <div ref={containerRef} className="w-full h-full rounded-xl overflow-hidden" />
     </div>
   )
 }

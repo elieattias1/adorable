@@ -127,7 +127,7 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
         <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-pink-100 rounded-full blur-[100px] opacity-40 pointer-events-none" />
         <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-[-0.03em] max-w-4xl mb-7 text-gray-950">
-          Ton commerce mérite
+          Votre commerce mérite
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500">
             un beau site web.
@@ -156,7 +156,8 @@ export default function LandingPage() {
           </a>
         </div>
         <p className="text-xs text-gray-400">
-          Sans CB · Prêt en moins de 1 minute · Aucune compétence technique requise
+          Sans CB · Prêt en moins de 1 minute · Aucune compétence technique
+          requise
         </p>
       </section>
 
@@ -193,7 +194,8 @@ export default function LandingPage() {
             Trois étapes, c'est tout.
           </h2>
           <p className="text-gray-500 max-w-sm mx-auto">
-            Pas de formation, pas d'agence, pas de semaines d'attente. Juste toi et ton activité.
+            Pas de formation, pas d'agence, pas de semaines d'attente. Juste toi
+            et ton activité.
           </p>
         </div>
 

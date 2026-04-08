@@ -9,7 +9,7 @@ import { useLeads, type Lead } from '@/hooks/useLeads'
 import {
   ArrowLeft, Plus, Upload, Globe, Trash2, Edit2, X,
   Search, ChevronDown, Loader2, CheckCircle2, RefreshCw,
-  Phone, Mail, Building2, LayoutTemplate, MapPin,
+  Phone, Mail, Building2, MapPin,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
@@ -655,6 +655,7 @@ export default function CRMPage() {
               <LeadsMap
                 leads={filtered}
                 selectedId={mapLead?.id ?? null}
+                selectedIds={selected}
                 onSelect={setMapLead}
               />
             </div>
@@ -848,9 +849,10 @@ export default function CRMPage() {
         ) : (
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
-              <div className="min-w-[1100px]">
-                {/* Table header */}
-                <div className="grid grid-cols-[auto_200px_140px_160px_130px_160px_130px_120px_100px_auto] gap-x-3 px-4 py-3 border-b border-gray-200 text-xs text-gray-500 font-medium">
+              {/* min-w matches col count: checkbox + 15 data cols + actions */}
+              <div className="min-w-[1800px]">
+                {/* ── Header ── */}
+                <div className="grid grid-cols-[auto_180px_110px_140px_120px_150px_160px_90px_80px_110px_90px_90px_120px_120px_110px_110px_auto] gap-x-2 px-4 py-3 border-b border-gray-200 text-xs text-gray-500 font-medium uppercase tracking-wide">
                   <div className="flex items-center">
                     <input type="checkbox"
                       checked={filtered.length > 0 && selected.size === filtered.length}
@@ -861,78 +863,125 @@ export default function CRMPage() {
                   </div>
                   <div>Business</div>
                   <div>Catégorie</div>
-                  <div>Site web / CMS</div>
-                  <div>Téléphone</div>
-                  <div>Email</div>
                   <div>Adresse</div>
+                  <div>Arrond.</div>
+                  <div>CP / Dépt</div>
+                  <div>Téléphone</div>
+                  <div>Note</div>
+                  <div>Avis</div>
+                  <div>Horaires</div>
+                  <div>Email</div>
+                  <div>Site web</div>
+                  <div>Instagram</div>
+                  <div>Facebook</div>
                   <div>Statut</div>
-                  <div>Google Maps</div>
-                  <div>Actions</div>
+                  <div>Maps</div>
+                  <div />
                 </div>
 
+                {/* ── Rows ── */}
                 <div className="divide-y divide-gray-100">
                   {filtered.map(lead => (
                     <div key={lead.id}
-                      className={`grid grid-cols-[auto_200px_140px_160px_130px_160px_130px_120px_100px_auto] gap-x-3 px-4 py-3 items-center transition-colors group ${
+                      className={`grid grid-cols-[auto_180px_110px_140px_120px_150px_160px_90px_80px_110px_90px_90px_120px_120px_110px_110px_auto] gap-x-2 px-4 py-2.5 items-center transition-colors group text-xs ${
                         selected.has(lead.id) ? 'bg-violet-50' : 'hover:bg-gray-50'
                       }`}>
 
                       {/* Checkbox */}
                       <div className="flex items-center">
-                        <input type="checkbox"
-                          checked={selected.has(lead.id)}
+                        <input type="checkbox" checked={selected.has(lead.id)}
                           onChange={() => toggleSelect(lead.id)}
-                          className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer"
-                        />
+                          className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer" />
                       </div>
 
                       {/* Business */}
                       <div className="min-w-0">
-                        <div className="font-medium text-sm text-gray-900 truncate">{lead.business_name}</div>
-                        {lead.city && <div className="text-xs text-gray-500 truncate">{lead.city}</div>}
-                        {lead.notes && <div className="text-xs text-gray-400 truncate">{lead.notes}</div>}
+                        <div className="font-medium text-gray-900 truncate">{lead.business_name}</div>
+                        {lead.notes && <div className="text-gray-400 truncate mt-0.5">{lead.notes}</div>}
                       </div>
 
                       {/* Category */}
-                      <div className="text-xs text-gray-600 truncate">{lead.category || <span className="text-gray-300">—</span>}</div>
+                      <div className="text-gray-600 truncate">{lead.category || <span className="text-gray-300">—</span>}</div>
 
-                      {/* Website / CMS */}
-                      <div onClick={e => e.stopPropagation()} className="min-w-0">
-                        {lead.website_url ? (
-                          <a href={lead.website_url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 truncate"
-                            title={lead.website_url}>
-                            <Globe className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{lead.website_url.replace(/^https?:\/\/(www\.)?/, '')}</span>
-                          </a>
-                        ) : <span className="text-xs text-gray-300">—</span>}
-                        {lead.cms && (
-                          <div className={`text-xs mt-0.5 flex items-center gap-1 ${CMS_COLOR[lead.cms] ?? 'text-gray-500'}`}>
-                            <LayoutTemplate className="w-3 h-3 flex-shrink-0" />{lead.cms}
-                          </div>
-                        )}
+                      {/* Address */}
+                      <div className="text-gray-600 truncate" title={lead.address ?? ''}>{lead.address || <span className="text-gray-300">—</span>}</div>
+
+                      {/* Arrondissement */}
+                      <div className="text-gray-600 truncate">{lead.arrondissement || lead.city || <span className="text-gray-300">—</span>}</div>
+
+                      {/* Postcode / Dept */}
+                      <div className="text-gray-600 truncate">
+                        {lead.postcode && <span>{lead.postcode}</span>}
+                        {lead.postcode && lead.departement && <span className="text-gray-400"> · </span>}
+                        {lead.departement && <span className="text-gray-500">{lead.departement}</span>}
+                        {!lead.postcode && !lead.departement && <span className="text-gray-300">—</span>}
                       </div>
 
                       {/* Phone */}
                       <div onClick={e => e.stopPropagation()}>
                         {lead.phone
-                          ? <a href={`tel:${lead.phone}`} className="text-xs text-gray-600 hover:text-gray-900 transition-colors">{lead.phone}</a>
-                          : <span className="text-xs text-gray-300">—</span>}
+                          ? <a href={`tel:${lead.phone}`} className="text-gray-600 hover:text-gray-900 transition-colors">{lead.phone}</a>
+                          : <span className="text-gray-300">—</span>}
+                      </div>
+
+                      {/* Rating */}
+                      <div>
+                        {lead.rating != null
+                          ? <span className="text-amber-600 font-medium">★ {lead.rating}</span>
+                          : <span className="text-gray-300">—</span>}
+                      </div>
+
+                      {/* Reviews */}
+                      <div className="text-gray-500">
+                        {lead.reviews != null ? lead.reviews.toLocaleString('fr') : <span className="text-gray-300">—</span>}
+                      </div>
+
+                      {/* Opening hours */}
+                      <div className="text-gray-500 truncate" title={lead.opening_hours ?? ''}>
+                        {lead.opening_hours ? lead.opening_hours.split(/lundi|lun\.|mon/i)[0].trim() || lead.opening_hours.slice(0, 20) : <span className="text-gray-300">—</span>}
                       </div>
 
                       {/* Email */}
                       <div onClick={e => e.stopPropagation()} className="min-w-0">
                         {lead.email
-                          ? <a href={`mailto:${lead.email}`} className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 transition-colors truncate" title={lead.email}>
+                          ? <a href={`mailto:${lead.email}`} className="flex items-center gap-1 text-gray-600 hover:text-gray-900 truncate" title={lead.email}>
                               <Mail className="w-3 h-3 flex-shrink-0 text-green-500" />
                               <span className="truncate">{lead.email}</span>
                             </a>
-                          : <span className="text-xs text-gray-300">—</span>}
+                          : <span className="text-gray-300">—</span>}
                       </div>
 
-                      {/* Address */}
-                      <div className="text-xs text-gray-600 truncate" title={lead.address ?? ''}>
-                        {lead.address || <span className="text-gray-300">—</span>}
+                      {/* Website */}
+                      <div onClick={e => e.stopPropagation()} className="min-w-0">
+                        {lead.website_url
+                          ? <a href={lead.website_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-violet-600 hover:text-violet-700 truncate" title={lead.website_url}>
+                              <Globe className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">{lead.website_url.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                            </a>
+                          : <span className="text-gray-300">—</span>}
+                      </div>
+
+                      {/* Instagram */}
+                      <div onClick={e => e.stopPropagation()} className="min-w-0">
+                        {lead.instagram
+                          ? <a href={lead.instagram.startsWith('http') ? lead.instagram : `https://instagram.com/${lead.instagram}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="text-pink-500 hover:text-pink-600 truncate block">
+                              {lead.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '@')}
+                            </a>
+                          : <span className="text-gray-300">—</span>}
+                      </div>
+
+                      {/* Facebook */}
+                      <div onClick={e => e.stopPropagation()} className="min-w-0">
+                        {lead.facebook
+                          ? <a href={lead.facebook.startsWith('http') ? lead.facebook : `https://facebook.com/${lead.facebook}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="text-blue-500 hover:text-blue-600 truncate block">
+                              {lead.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}
+                            </a>
+                          : <span className="text-gray-300">—</span>}
                       </div>
 
                       {/* Status */}
@@ -942,15 +991,12 @@ export default function CRMPage() {
 
                       {/* Google Maps */}
                       <div onClick={e => e.stopPropagation()}>
-                        {lead.google_maps_url ? (
-                          <a href={lead.google_maps_url} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors">
-                            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                            Maps
-                          </a>
-                        ) : (
-                          <span className="text-xs text-gray-300">—</span>
-                        )}
+                        {lead.google_maps_url
+                          ? <a href={lead.google_maps_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors">
+                              <MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Maps
+                            </a>
+                          : <span className="text-gray-300">—</span>}
                       </div>
 
                       {/* Actions */}
@@ -968,7 +1014,7 @@ export default function CRMPage() {
                   ))}
                 </div>
 
-                {/* Footer count */}
+                {/* Footer */}
                 <div className="px-4 py-3 border-t border-gray-200 text-xs text-gray-400">
                   {filtered.length} lead{filtered.length !== 1 ? 's' : ''}
                   {statusFilter !== 'all' || search ? ` (filtrés sur ${leads.length})` : ''}
