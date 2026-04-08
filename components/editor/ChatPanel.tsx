@@ -138,7 +138,7 @@ function ThinkingBubble({ text, steps }: { text: string; steps: AgentStep[] }) {
       <div className="max-w-[85%] flex flex-col gap-2">
         {/* Thinking text */}
         {text && (
-          <div className="text-sm px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-white/8 text-gray-300 leading-relaxed italic">
+          <div className="text-sm px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-gray-100 text-gray-600 leading-relaxed italic">
             {text}
             <span className="inline-block w-1 h-3.5 bg-violet-400 ml-1 animate-pulse rounded-sm" />
           </div>
@@ -147,8 +147,8 @@ function ThinkingBubble({ text, steps }: { text: string; steps: AgentStep[] }) {
         {steps.map((step, i) => (
           <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${
             step.done
-              ? 'bg-white/5 border border-white/8 text-gray-500'
-              : 'bg-violet-950/40 border border-violet-800/30 text-violet-300'
+              ? 'bg-gray-100 border border-gray-200 text-gray-500'
+              : 'bg-violet-50 border border-violet-200 text-violet-700'
           }`}>
             <span>{step.icon}</span>
             <span className="flex-1">{step.label}</span>
@@ -159,7 +159,7 @@ function ThinkingBubble({ text, steps }: { text: string; steps: AgentStep[] }) {
         ))}
         {/* Dots if no text yet */}
         {!text && steps.length === 0 && (
-          <div className="bg-white/8 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1">
+          <div className="bg-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1">
             <div className="typing-dot" />
             <div className="typing-dot" />
             <div className="typing-dot" />
@@ -186,7 +186,7 @@ function AssistantMessage({ msg, onSendOption }: { msg: ChatMessage; onSendOptio
         {hasSteps && (
           <button
             onClick={() => setStepsOpen(v => !v)}
-            className="flex items-center gap-1.5 text-[11px] text-violet-400/70 hover:text-violet-300 transition-colors self-start"
+            className="flex items-center gap-1.5 text-[11px] text-violet-500/70 hover:text-violet-700 transition-colors self-start"
           >
             <ChevronDown className={`w-3 h-3 transition-transform ${stepsOpen ? 'rotate-180' : ''}`} />
             {msg.steps!.length} action{msg.steps!.length > 1 ? 's' : ''} effectuée{msg.steps!.length > 1 ? 's' : ''}
@@ -195,7 +195,7 @@ function AssistantMessage({ msg, onSendOption }: { msg: ChatMessage; onSendOptio
         {stepsOpen && hasSteps && (
           <div className="flex flex-col gap-1">
             {msg.steps!.map((step, i) => (
-              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-950/30 border border-violet-800/20 text-xs text-violet-400">
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-50 border border-violet-200 text-xs text-violet-700">
                 <span>{step.icon}</span>
                 <span>{step.label}</span>
               </div>
@@ -205,7 +205,7 @@ function AssistantMessage({ msg, onSendOption }: { msg: ChatMessage; onSendOptio
 
         {/* Main content */}
         {msg.content && (
-          <div className="text-sm px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-white/8 text-gray-200 leading-relaxed">
+          <div className="text-sm px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-gray-100 text-gray-700 leading-relaxed">
             {msg.content}
           </div>
         )}
@@ -217,7 +217,7 @@ function AssistantMessage({ msg, onSendOption }: { msg: ChatMessage; onSendOptio
               <button
                 key={i}
                 onClick={() => onSendOption(opt)}
-                className="text-xs px-3 py-1.5 rounded-full bg-violet-900/40 border border-violet-700/40 text-violet-300 hover:bg-violet-800/60 hover:border-violet-600/60 hover:text-white transition-all cursor-pointer"
+                className="text-xs px-3 py-1.5 rounded-full bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100 hover:border-violet-300 transition-all cursor-pointer"
               >
                 {opt}
               </button>
@@ -303,15 +303,15 @@ export default function ChatPanel({
   const canSend = (input.trim().length > 0 || imageFiles.length > 0) && !isGenerating
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 border-l border-white/8">
+    <div className="flex flex-col h-full bg-white border-l border-gray-200">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 h-12 border-b border-white/8 flex-shrink-0">
+      <div className="flex items-center gap-2.5 px-4 h-12 border-b border-gray-200 flex-shrink-0">
         <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
-          <Zap className="w-3.5 h-3.5" />
+          <Zap className="w-3.5 h-3.5 text-white" />
         </div>
-        <span className="text-sm font-semibold">Adorable</span>
+        <span className="text-sm font-semibold text-gray-900">Adorable</span>
         {isGenerating && (
-          <div className="ml-auto flex items-center gap-1.5 text-xs text-violet-400">
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-violet-600">
             <div className="w-3.5 h-3.5 border border-violet-500 border-t-transparent rounded-full animate-spin" />
             Réflexion…
           </div>
@@ -330,7 +330,7 @@ export default function ChatPanel({
                 <button
                   key={s}
                   onClick={() => onSend(s)}
-                  className="text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/8 text-gray-400 hover:text-white hover:border-white/20 transition-all"
+                  className="text-xs px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-all"
                 >
                   {s}
                 </button>
@@ -351,7 +351,7 @@ export default function ChatPanel({
                       <div className={`flex gap-1.5 flex-wrap justify-end ${displayUrls.length > 1 ? 'max-w-[220px]' : ''}`}>
                         {displayUrls.map((url, i) => (
                           <img key={i} src={url} alt={`image ${i + 1}`}
-                            className={`object-cover rounded-xl rounded-br-sm border border-white/10 ${displayUrls.length === 1 ? 'max-h-48 max-w-full' : 'h-20 w-20'}`} />
+                            className={`object-cover rounded-xl rounded-br-sm border border-gray-200 ${displayUrls.length === 1 ? 'max-h-48 max-w-full' : 'h-20 w-20'}`} />
                         ))}
                       </div>
                     )}
@@ -377,13 +377,13 @@ export default function ChatPanel({
         {/* Suggestions after conversation */}
         {messages.length >= 2 && !isGenerating && (
           <div className="pt-2">
-            <p className="text-[11px] text-gray-600 mb-2">Suggestions :</p>
+            <p className="text-[11px] text-gray-400 mb-2">Suggestions :</p>
             <div className="flex flex-wrap gap-1.5">
               {suggestions.slice(0, 3).map(s => (
                 <button
                   key={s}
                   onClick={() => onSend(s)}
-                  className="text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/8 text-gray-400 hover:text-white hover:border-white/20 transition-all"
+                  className="text-xs px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 transition-all"
                 >
                   {s}
                 </button>
@@ -396,35 +396,35 @@ export default function ChatPanel({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="flex-shrink-0 p-3 border-t border-white/8">
+      <form onSubmit={handleSubmit} className="flex-shrink-0 p-3 border-t border-gray-200">
         {/* Image previews */}
         {previewUrls.length > 0 && (
           <div className="flex gap-2 flex-wrap mb-2 ml-1">
             {previewUrls.map((url, i) => (
               <div key={i} className="relative">
-                <img src={url} alt={`preview ${i + 1}`} className="h-16 w-16 object-cover rounded-xl border border-white/10" />
+                <img src={url} alt={`preview ${i + 1}`} className="h-16 w-16 object-cover rounded-xl border border-gray-200" />
                 <button type="button" onClick={() => removeImage(i)}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-800 border border-white/20 flex items-center justify-center hover:bg-gray-700 transition-colors">
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors text-gray-500">
                   <X className="w-3 h-3" />
                 </button>
               </div>
             ))}
             {previewUrls.length < MAX_IMGS && (
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isGenerating}
-                className="h-16 w-16 rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 hover:border-white/40 transition-colors">
+                className="h-16 w-16 rounded-xl border border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors">
                 <ImagePlus className="w-4 h-4" />
                 <span className="text-[9px] mt-0.5">{previewUrls.length}/{MAX_IMGS}</span>
               </button>
             )}
           </div>
         )}
-        {imgError && <p className="text-xs text-red-400 mb-1.5 ml-1">{imgError}</p>}
+        {imgError && <p className="text-xs text-red-500 mb-1.5 ml-1">{imgError}</p>}
 
-        <div className="flex items-end gap-2 bg-white/5 border border-white/10 focus-within:border-violet-500/60 rounded-xl px-3 py-2 transition-colors">
+        <div className="flex items-end gap-2 bg-gray-50 border border-gray-200 focus-within:border-violet-400 rounded-xl px-3 py-2 transition-colors">
           <input ref={fileInputRef} type="file" accept={ACCEPTED} multiple onChange={handleFileChange} className="hidden" />
           {previewUrls.length === 0 && (
             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isGenerating}
-              className="flex-shrink-0 text-gray-500 hover:text-gray-300 disabled:opacity-40 transition-colors pb-0.5" title="Joindre des images">
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 disabled:opacity-40 transition-colors pb-0.5" title="Joindre des images">
               <ImagePlus className="w-4 h-4" />
             </button>
           )}
@@ -438,15 +438,15 @@ export default function ChatPanel({
             rows={1}
             maxLength={2000}
             placeholder={isGenerating ? 'L\'agent réfléchit…' : imageFiles.length > 0 ? `Décris comment utiliser ${imageFiles.length > 1 ? 'ces images' : 'cette image'}…` : 'Modifie le site…'}
-            className="flex-1 bg-transparent text-white text-sm outline-none resize-none placeholder-gray-600 leading-relaxed"
+            className="flex-1 bg-transparent text-gray-900 text-sm outline-none resize-none placeholder-gray-400 leading-relaxed"
             style={{ minHeight: '24px', maxHeight: '120px' }}
           />
           <button type="submit" disabled={!canSend}
             className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 disabled:opacity-40 flex items-center justify-center transition-all">
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-3.5 h-3.5 text-white" />
           </button>
         </div>
-        <p className="text-[10px] text-gray-700 mt-1.5 text-center">
+        <p className="text-[10px] text-gray-400 mt-1.5 text-center">
           Entrée pour envoyer · Shift+Entrée pour nouvelle ligne
         </p>
       </form>

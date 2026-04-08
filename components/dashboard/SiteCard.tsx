@@ -70,7 +70,7 @@ export default function SiteCard({ site, onDelete, onViewSubmissions }: SiteCard
     <div
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      className="group bg-gray-900 rounded-xl overflow-hidden border border-white/8 hover:border-white/20 transition-all hover:shadow-lg hover:shadow-violet-950/30 hover:-translate-y-0.5"
+      className="group bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 transition-all hover:shadow-lg hover:shadow-gray-200 hover:-translate-y-0.5"
     >
       {/* Thumbnail */}
       <div
@@ -140,7 +140,7 @@ export default function SiteCard({ site, onDelete, onViewSubmissions }: SiteCard
               {!!site.unread_submissions && (
                 <button
                   onClick={e => { e.stopPropagation(); onViewSubmissions?.(site.id) }}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-violet-300 bg-violet-950/60 border border-violet-700/50 px-1.5 py-0.5 rounded-full hover:bg-violet-900/60 transition-colors"
+                  className="flex items-center gap-1 text-[11px] font-semibold text-violet-700 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded-full hover:bg-violet-100 transition-colors"
                 >
                   <Mail className="w-2.5 h-2.5" />
                   {site.unread_submissions} nouveau{site.unread_submissions > 1 ? 'x' : ''}
@@ -155,8 +155,8 @@ export default function SiteCard({ site, onDelete, onViewSubmissions }: SiteCard
                 onClick={e => { e.stopPropagation(); onViewSubmissions(site.id) }}
                 className={`p-1.5 rounded-lg transition-all ${
                   site.unread_submissions
-                    ? 'text-violet-400 hover:bg-violet-950/40 opacity-100'
-                    : `text-gray-600 hover:text-violet-400 hover:bg-violet-950/40 ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`
+                    ? 'text-violet-600 hover:bg-violet-50 opacity-100'
+                    : `text-gray-400 hover:text-violet-600 hover:bg-violet-50 ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`
                 }`}
                 title="Formulaires"
               >
@@ -170,7 +170,7 @@ export default function SiteCard({ site, onDelete, onViewSubmissions }: SiteCard
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className={`p-1.5 rounded-lg text-gray-600 hover:text-green-400 hover:bg-green-950/40 transition-all ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                className={`p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-all ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                 title="Voir le site"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export default function SiteCard({ site, onDelete, onViewSubmissions }: SiteCard
 
             <button
               onClick={() => router.push(`/editor/${site.id}`)}
-              className={`p-1.5 rounded-lg text-gray-600 hover:text-violet-400 hover:bg-violet-950/40 transition-all ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              className={`p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-all ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
               title="Éditer"
             >
               <PenLine className="w-3.5 h-3.5" />
@@ -188,7 +188,7 @@ export default function SiteCard({ site, onDelete, onViewSubmissions }: SiteCard
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className={`p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-950/40 transition-all ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              className={`p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all ${hovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
               title="Supprimer"
             >
               {deleting

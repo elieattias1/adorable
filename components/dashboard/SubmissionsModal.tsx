@@ -63,13 +63,13 @@ export default function SubmissionsModal({ siteId, siteName, open, onClose }: Su
     <Dialog.Root open={open} onOpenChange={v => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-xl max-h-[80vh] bg-gray-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col animate-in fade-in-0 zoom-in-95">
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-xl max-h-[80vh] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col animate-in fade-in-0 zoom-in-95">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 flex-shrink-0">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 flex-shrink-0">
             <div>
-              <Dialog.Title className="text-sm font-bold flex items-center gap-2">
-                <Mail className="w-4 h-4 text-violet-400" />
+              <Dialog.Title className="text-sm font-bold flex items-center gap-2 text-gray-950">
+                <Mail className="w-4 h-4 text-violet-600" />
                 Messages — {siteName}
               </Dialog.Title>
               {unreadCount > 0 && (
@@ -80,13 +80,13 @@ export default function SubmissionsModal({ siteId, siteName, open, onClose }: Su
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/8 transition-all"
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-all"
                 >
                   <CheckCheck className="w-3.5 h-3.5" /> Tout marquer lu
                 </button>
               )}
               <Dialog.Close asChild>
-                <button className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/8 transition-colors">
+                <button className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </Dialog.Close>
@@ -101,9 +101,9 @@ export default function SubmissionsModal({ siteId, siteName, open, onClose }: Su
               </div>
             ) : submissions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Inbox className="w-10 h-10 text-gray-700 mb-3" />
+                <Inbox className="w-10 h-10 text-gray-300 mb-3" />
                 <p className="text-sm text-gray-500 font-medium">Aucun message pour l'instant</p>
-                <p className="text-xs text-gray-600 mt-1">Les soumissions de formulaire apparaîtront ici</p>
+                <p className="text-xs text-gray-400 mt-1">Les soumissions de formulaire apparaîtront ici</p>
               </div>
             ) : (
               submissions.map(sub => (
@@ -111,8 +111,8 @@ export default function SubmissionsModal({ siteId, siteName, open, onClose }: Su
                   key={sub.id}
                   className={`rounded-xl border p-4 transition-all ${
                     !sub.read_at
-                      ? 'border-violet-700/40 bg-violet-950/20'
-                      : 'border-white/8 bg-white/3'
+                      ? 'border-violet-200 bg-violet-50'
+                      : 'border-gray-200 bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
@@ -120,9 +120,9 @@ export default function SubmissionsModal({ siteId, siteName, open, onClose }: Su
                       {!sub.read_at && (
                         <span className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />
                       )}
-                      <span className="text-xs font-semibold text-gray-400 capitalize">{sub.form_name}</span>
+                      <span className="text-xs font-semibold text-gray-500 capitalize">{sub.form_name}</span>
                     </div>
-                    <span className="text-[11px] text-gray-600">{formatDate(sub.created_at)}</span>
+                    <span className="text-[11px] text-gray-400">{formatDate(sub.created_at)}</span>
                   </div>
 
                   <dl className="space-y-1.5">
@@ -134,8 +134,8 @@ export default function SubmissionsModal({ siteId, siteName, open, onClose }: Su
                       .filter(([k]) => k !== '_honeypot')
                       .map(([key, val]) => (
                         <div key={key} className="flex gap-3 text-xs">
-                          <dt className="text-gray-500 capitalize flex-shrink-0 w-20 truncate">{key}</dt>
-                          <dd className="text-gray-200 break-words min-w-0">{String(val)}</dd>
+                          <dt className="text-gray-400 capitalize flex-shrink-0 w-20 truncate">{key}</dt>
+                          <dd className="text-gray-700 break-words min-w-0">{String(val)}</dd>
                         </div>
                       ))}
                   </dl>

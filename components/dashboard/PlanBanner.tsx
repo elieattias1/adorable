@@ -12,13 +12,13 @@ export default function PlanBanner({ onUpgrade }: PlanBannerProps) {
   if (dismissed) return null
 
   return (
-    <div className="relative flex items-center gap-4 bg-gradient-to-r from-violet-950/60 to-pink-950/60 border border-violet-700/40 rounded-xl px-4 py-3 mb-6">
+    <div className="relative flex items-center gap-4 bg-gradient-to-r from-violet-50 to-pink-50 border border-violet-200 rounded-xl px-4 py-3 mb-6">
       <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
         <Zap className="w-4 h-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold">Tu utilises la version gratuite</p>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-sm font-semibold text-gray-950">Tu utilises la version gratuite</p>
+        <p className="text-xs text-gray-500 mt-0.5">
           Limite : 1 site, 5 versions. Passe à Pro pour des sites illimités, versions illimitées et domaine personnalisé.
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function PlanBanner({ onUpgrade }: PlanBannerProps) {
       </button>
       <button
         onClick={() => setDismissed(true)}
-        className="flex-shrink-0 p-1 rounded text-gray-600 hover:text-gray-400 transition-colors"
+        className="flex-shrink-0 p-1 rounded text-gray-400 hover:text-gray-700 transition-colors"
       >
         <X className="w-4 h-4" />
       </button>

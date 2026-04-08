@@ -29,7 +29,7 @@ const fmtTime = (d: string) => new Date(d).toLocaleString('fr-FR', { day: 'numer
 function StatCard({ icon: Icon, label, value, sub, color = 'violet' }: { icon: any; label: string; value: string | number; sub?: string; color?: string }) {
   const c: Record<string, string> = { violet: 'bg-violet-500/10 text-violet-400', green: 'bg-green-500/10 text-green-400', blue: 'bg-blue-500/10 text-blue-400', pink: 'bg-pink-500/10 text-pink-400' }
   return (
-    <div className="bg-gray-900 border border-white/8 rounded-xl p-4">
+    <div className="bg-white border border-gray-200 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-2">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${c[color]}`}><Icon className="w-3.5 h-3.5" /></div>
         <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">{label}</span>
@@ -62,7 +62,7 @@ function OverviewSection({ data, submissions }: { data: DashData; submissions: S
   return (
     <div className="space-y-6">
       {/* Status */}
-      <div className={`flex items-center gap-3 p-4 rounded-xl border text-sm ${site.is_published ? 'bg-green-950/20 border-green-900/40' : 'bg-gray-900 border-white/8'}`}>
+      <div className={`flex items-center gap-3 p-4 rounded-xl border text-sm ${site.is_published ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
         {site.is_published
           ? <><CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /><div><div className="font-semibold text-green-300">En ligne</div><a href={site.deployed_url!} target="_blank" rel="noopener noreferrer" className="text-xs text-green-700 hover:text-green-500 transition-colors">{site.deployed_url?.replace('https://', '')}</a></div></>
           : <><Circle className="w-4 h-4 text-gray-600 flex-shrink-0" /><div className="font-semibold text-gray-400">Non publié — cliquez sur "Déployer" pour mettre en ligne</div></>
@@ -73,14 +73,14 @@ function OverviewSection({ data, submissions }: { data: DashData; submissions: S
       {/* Preview + stats side by side */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
         {/* Scaled iframe preview */}
-        <div className="xl:col-span-3 bg-gray-900 border border-white/8 rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/6 bg-gray-950/50">
+        <div className="xl:col-span-3 bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-200 bg-[#fafaf9]/50">
             <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/50" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/50" /></div>
-            <div className="flex-1 flex items-center gap-1.5 bg-gray-800/60 rounded-md px-3 py-1 mx-2 text-xs text-gray-500 min-w-0">
+            <div className="flex-1 flex items-center gap-1.5 bg-gray-100 rounded-md px-3 py-1 mx-2 text-xs text-gray-500 min-w-0">
               <Globe className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{site.deployed_url || `localhost:3000/s/${site.id}`}</span>
             </div>
-            <a href={`/s/${site.id}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-white transition-colors"><ExternalLink className="w-3.5 h-3.5" /></a>
+            <a href={`/s/${site.id}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors"><ExternalLink className="w-3.5 h-3.5" /></a>
           </div>
           <div className="relative overflow-hidden" style={{ height: '380px', background: '#0f0f13' }}>
             <iframe
@@ -101,13 +101,13 @@ function OverviewSection({ data, submissions }: { data: DashData; submissions: S
           </div>
           {/* Recent messages */}
           {submissions.length > 0 && (
-            <div className="bg-gray-900 border border-white/8 rounded-xl overflow-hidden flex-1 min-h-0">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex-1 min-h-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Derniers messages</span>
                 {unread > 0 && <span className="bg-violet-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{unread} nouveau{unread > 1 ? 'x' : ''}</span>}
               </div>
               {submissions.slice(0, 5).map(s => (
-                <div key={s.id} className={`flex items-start gap-2.5 px-4 py-3 border-b border-white/4 last:border-0 ${!s.read_at ? 'bg-violet-950/10' : ''}`}>
+                <div key={s.id} className={`flex items-start gap-2.5 px-4 py-3 border-b border-gray-100 last:border-0 ${!s.read_at ? 'bg-violet-50' : ''}`}>
                   <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${s.read_at ? 'bg-gray-700' : 'bg-violet-500'}`} />
                   <div className="min-w-0">
                     <div className="text-xs font-semibold truncate">{s.data?.name || s.data?.nom || s.data?.Name || s.name || s.data?.email || s.email || 'Anonyme'}</div>
@@ -136,11 +136,11 @@ function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promi
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="space-y-5">
-        <div className="bg-gray-900 border border-white/8 rounded-xl p-6 space-y-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
           <div className="space-y-1.5">
             <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Titre SEO</label>
             <input value={title} onChange={e => setTitle(e.target.value)} maxLength={60}
-              className="w-full bg-gray-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
+              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
             <div className="flex justify-between text-[11px] text-gray-600">
               <span>Recommandé : 50–60 caractères</span>
               <span className={title.length > 54 ? 'text-yellow-500' : ''}>{title.length}/60</span>
@@ -149,7 +149,7 @@ function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promi
           <div className="space-y-1.5">
             <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Méta-description</label>
             <textarea value={desc} onChange={e => setDesc(e.target.value)} maxLength={160} rows={4}
-              className="w-full bg-gray-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors resize-none" />
+              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors resize-none" />
             <div className="flex justify-between text-[11px] text-gray-600">
               <span>Recommandé : 120–160 caractères</span>
               <span className={desc.length > 145 ? 'text-yellow-500' : ''}>{desc.length}/160</span>
@@ -158,7 +158,7 @@ function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promi
           <div className="space-y-1.5">
             <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">URL du favicon</label>
             <input value={favicon} onChange={e => setFavicon(e.target.value)} placeholder="https://..."
-              className="w-full bg-gray-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
+              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
           </div>
         </div>
         <button onClick={save} disabled={saving}
@@ -169,7 +169,7 @@ function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promi
 
       {/* Google preview */}
       <div className="space-y-4">
-        <div className="bg-gray-900 border border-white/8 rounded-xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">Aperçu Google</p>
           <div className="bg-white rounded-lg p-4 font-sans">
             <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
@@ -180,7 +180,7 @@ function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promi
             <div className="text-gray-600 text-sm leading-snug line-clamp-2">{desc || '(Aucune description renseignée)'}</div>
           </div>
         </div>
-        <div className="bg-gray-900 border border-white/8 rounded-xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">Aperçu partage social</p>
           <div className="border border-gray-200 rounded-lg overflow-hidden font-sans bg-white">
             <div className="h-24 bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-white/50 text-sm">Image OG (1200×630)</div>
@@ -222,8 +222,8 @@ function FormsSection({ siteId }: { siteId: string }) {
   if (loading) return <div className="flex items-center gap-2 text-gray-500 py-8"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
 
   if (!submissions.length) return (
-    <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-900 border border-white/8 rounded-xl">
-      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-4"><Mail className="w-6 h-6 text-gray-600" /></div>
+    <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-gray-200 rounded-xl">
+      <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4"><Mail className="w-6 h-6 text-gray-600" /></div>
       <h3 className="font-semibold mb-1">Aucun message pour l'instant</h3>
       <p className="text-sm text-gray-500 max-w-xs">Les soumissions de votre formulaire de contact apparaîtront ici.</p>
     </div>
@@ -237,11 +237,11 @@ function FormsSection({ siteId }: { siteId: string }) {
           <span className="text-gray-400">{submissions.length} message{submissions.length > 1 ? 's' : ''}</span>
           {unread > 0 && <span className="bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{unread} non lu{unread > 1 ? 's' : ''}</span>}
         </div>
-        <button onClick={load} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors">
+        <button onClick={load} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors">
           <RefreshCw className="w-3.5 h-3.5" /> Actualiser
         </button>
       </div>
-      <div className="bg-gray-900 border border-white/8 rounded-xl overflow-hidden divide-y divide-white/5">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
         {submissions.map(s => {
           // Support both new (data jsonb) and legacy (name/email/message) formats
           const fields = s.data ?? {
@@ -253,9 +253,9 @@ function FormsSection({ siteId }: { siteId: string }) {
           const displayName    = s.data?.name  || s.data?.nom   || s.data?.Name || s.name || s.data?.email || s.data?.Email || s.email || 'Anonyme'
           const displayPreview = s.data?.message || s.data?.Message || s.data?.contenu || s.message || Object.values(fields)[0] || ''
           return (
-            <div key={s.id} className={!s.read_at ? 'bg-violet-950/10' : ''}>
+            <div key={s.id} className={!s.read_at ? 'bg-violet-50' : ''}>
               <button onClick={() => { setExpanded(expanded === s.id ? null : s.id); if (!s.read_at) markRead(s.id, true) }}
-                className="w-full flex items-start gap-4 px-5 py-4 text-left hover:bg-white/3 transition-colors">
+                className="w-full flex items-start gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors">
                 <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${s.read_at ? 'bg-gray-700' : 'bg-violet-500'}`} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -264,7 +264,7 @@ function FormsSection({ siteId }: { siteId: string }) {
                       <a href={`mailto:${displayEmail}`} onClick={e => e.stopPropagation()} className="text-xs text-violet-400 hover:underline">{displayEmail}</a>
                     )}
                     {s.form_name && s.form_name !== 'contact' && (
-                      <span className="text-[10px] text-gray-600 bg-white/5 px-1.5 py-0.5 rounded capitalize">{s.form_name}</span>
+                      <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded capitalize">{s.form_name}</span>
                     )}
                   </div>
                   <p className={`text-xs text-gray-400 mt-0.5 ${expanded === s.id ? '' : 'truncate'}`}>{String(displayPreview)}</p>
@@ -273,7 +273,7 @@ function FormsSection({ siteId }: { siteId: string }) {
               </button>
               {expanded === s.id && (
                 <div className="px-5 pb-4 ml-6">
-                  <dl className="bg-gray-800 rounded-lg p-4 space-y-2">
+                  <dl className="bg-white rounded-lg p-4 space-y-2">
                     {Object.entries(fields).filter(([k]) => k !== '_honeypot').map(([key, val]) => (
                       <div key={key} className="flex gap-3 text-sm">
                         <dt className="text-gray-500 capitalize w-24 flex-shrink-0">{key}</dt>
@@ -289,7 +289,7 @@ function FormsSection({ siteId }: { siteId: string }) {
                       </a>
                     )}
                     <button onClick={() => markRead(s.id, !s.read_at)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-medium transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-400 text-xs font-medium transition-colors">
                       {s.read_at ? <><Circle className="w-3 h-3" /> Marquer non lu</> : <><CheckCircle2 className="w-3 h-3" /> Marquer lu</>}
                     </button>
                   </div>
@@ -331,19 +331,19 @@ function HistorySection({ siteId }: { siteId: string }) {
   if (loading) return <div className="flex items-center gap-2 text-gray-500 py-8"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
 
   if (!versions.length) return (
-    <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-900 border border-white/8 rounded-xl">
-      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-4"><History className="w-6 h-6 text-gray-600" /></div>
+    <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-gray-200 rounded-xl">
+      <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4"><History className="w-6 h-6 text-gray-600" /></div>
       <h3 className="font-semibold mb-1">Aucune version sauvegardée</h3>
       <p className="text-sm text-gray-500 max-w-xs">Les versions sont créées automatiquement à chaque modification via l'IA.</p>
     </div>
   )
 
   return (
-    <div className="bg-gray-900 border border-white/8 rounded-xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-white/6 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-200 text-xs font-semibold text-gray-400 uppercase tracking-wide">
         {versions.length} version{versions.length > 1 ? 's' : ''} sauvegardée{versions.length > 1 ? 's' : ''}
       </div>
-      <div className="divide-y divide-white/5">
+      <div className="divide-y divide-gray-100">
         {versions.map((v, i) => (
           <div key={v.id} className="flex items-center gap-4 px-5 py-4">
             <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
@@ -358,7 +358,7 @@ function HistorySection({ siteId }: { siteId: string }) {
               <button
                 onClick={() => restore(v.id)}
                 disabled={restoring === v.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-violet-600/20 hover:text-violet-300 text-gray-400 text-xs font-medium transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-violet-600/20 hover:text-violet-300 text-gray-400 text-xs font-medium transition-all disabled:opacity-50"
               >
                 {restoring === v.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                 Restaurer
@@ -390,18 +390,18 @@ function AnalyticsSection({ site }: { site: Site }) {
               <p className="text-yellow-700 text-xs">Déployez pour recevoir des visites et suivre vos statistiques.</p></div>
           </div>
         )}
-        <div className="bg-gray-900 border border-white/8 rounded-xl p-6 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-3">
           {[['URL publique', site.deployed_url || `/s/${site.id}`], ['Créé le', fmt(site.created_at)], ['Dernière modification', fmt(site.updated_at)]].map(([k, v]) => (
-            <div key={k} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 text-sm">
+            <div key={k} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0 text-sm">
               <span className="text-gray-500">{k}</span><span className="font-medium text-xs truncate max-w-[220px]">{v}</span>
             </div>
           ))}
         </div>
       </div>
-      <div className="bg-gray-900 border border-white/8 rounded-xl p-6 flex flex-col">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col">
         <div className="flex items-center gap-2 mb-3"><Shield className="w-4 h-4 text-violet-400" /><h3 className="font-semibold text-sm">Analytics avancés</h3></div>
         <p className="text-sm text-gray-500 mb-6 leading-relaxed">Pour des statistiques détaillées (sources de trafic, pages visitées, comportement), connectez Google Analytics ou Plausible depuis la section <strong className="text-gray-300">Intégrations</strong>.</p>
-        <div className="mt-auto p-4 bg-white/3 rounded-xl">
+        <div className="mt-auto p-4 bg-gray-50 rounded-xl">
           <p className="text-xs text-gray-600 mb-2">Intégrations analytics disponibles :</p>
           {['📊 Google Analytics 4', '📈 Plausible Analytics', '🏷️ Google Tag Manager', '🔥 Hotjar'].map(s => (
             <div key={s} className="text-xs text-gray-400 py-1 flex items-center gap-2"><Check className="w-3 h-3 text-violet-500" /> {s}</div>
@@ -450,9 +450,9 @@ function IntegrationCard({ integration, savedValues, onSave }: { integration: In
   const save = async () => { setSaving(true); await onSave(integration.id, values); setSaving(false); setOpen(false) }
 
   return (
-    <div className={`bg-gray-900 border rounded-xl overflow-hidden transition-all ${isEnabled ? 'border-violet-700/40' : 'border-white/8'}`}>
-      <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-3 p-4 text-left hover:bg-white/3 transition-colors">
-        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl flex-shrink-0">{integration.logo}</div>
+    <div className={`bg-white border rounded-xl overflow-hidden transition-all ${isEnabled ? 'border-violet-700/40' : 'border-gray-200'}`}>
+      <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
+        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl flex-shrink-0">{integration.logo}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm">{integration.name}</span>
@@ -463,13 +463,13 @@ function IntegrationCard({ integration, savedValues, onSave }: { integration: In
         {open ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-white/6 pt-4">
-          {integration.howto && <div className="text-xs text-gray-500 bg-white/3 rounded-lg p-3 leading-relaxed">💡 {integration.howto}</div>}
+        <div className="px-4 pb-4 space-y-4 border-t border-gray-200 pt-4">
+          {integration.howto && <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 leading-relaxed">💡 {integration.howto}</div>}
           {integration.fields.map(f => (
             <div key={f.key} className="space-y-1.5">
               <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">{f.label}</label>
               <input type={f.type || 'text'} value={values[f.key] || ''} onChange={e => setValues(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder}
-                className="w-full bg-gray-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
             </div>
           ))}
           <div className="flex items-center gap-2 pt-1 flex-wrap">
@@ -479,7 +479,7 @@ function IntegrationCard({ integration, savedValues, onSave }: { integration: In
             </button>
             {integration.docs && (
               <a href={integration.docs} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-medium transition-colors">
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-400 text-xs font-medium transition-colors">
                 <ExternalLink className="w-3.5 h-3.5" /> Docs
               </a>
             )}
@@ -514,7 +514,7 @@ function IntegrationsSection({ site, onSave }: { site: Site; onSave: (p: object)
         <div className="flex items-center gap-1.5 flex-wrap">
           {CATEGORIES.map(c => (
             <button key={c} onClick={() => setCat(c)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${cat === c ? 'bg-violet-600 text-white' : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'}`}>
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${cat === c ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'}`}>
               {c}
             </button>
           ))}
@@ -576,7 +576,7 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
     <div className="space-y-4">
       {current ? (
         <div className="space-y-3">
-          <div className={`flex items-center gap-3 p-4 rounded-xl border ${current.verified ? 'bg-green-950/20 border-green-900/40' : 'bg-yellow-950/20 border-yellow-800/40'}`}>
+          <div className={`flex items-center gap-3 p-4 rounded-xl border ${current.verified ? 'bg-green-50 border-green-200' : 'bg-yellow-950/20 border-yellow-800/40'}`}>
             <Globe2 className={`w-4 h-4 flex-shrink-0 ${current.verified ? 'text-green-400' : 'text-yellow-500'}`} />
             <div className="flex-1 min-w-0">
               <div className={`font-semibold text-sm ${current.verified ? 'text-green-300' : 'text-yellow-300'}`}>
@@ -592,10 +592,10 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
           </div>
 
           {!current.verified && (
-            <div className="bg-gray-800/60 rounded-xl p-4 space-y-3">
+            <div className="bg-gray-100 rounded-xl p-4 space-y-3">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Instructions DNS</p>
               <p className="text-xs text-gray-500 leading-relaxed">Ajoutez ce CNAME chez votre registrar (Namecheap, OVH, Cloudflare…) :</p>
-              <div className="bg-gray-900 rounded-lg p-3 font-mono text-xs text-gray-300 space-y-1">
+              <div className="bg-white rounded-lg p-3 font-mono text-xs text-gray-300 space-y-1">
                 <div><span className="text-gray-500">Type</span>  CNAME</div>
                 <div><span className="text-gray-500">Nom </span>  {current.domain}</div>
                 <div><span className="text-gray-500">Valeur</span> cname.vercel-dns.com</div>
@@ -615,7 +615,7 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
             <input
               value={domain} onChange={e => setDomain(e.target.value)}
               placeholder="monsite.fr"
-              className="flex-1 bg-gray-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors"
+              className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors"
             />
             <button onClick={save} disabled={saving || !domain.trim()}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-semibold transition-all">
@@ -644,18 +644,18 @@ function SettingsSection({ site, onSave, onDelete }: { site: Site; onSave: (p: o
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="space-y-6">
-        <div className="bg-gray-900 border border-white/8 rounded-xl p-6 space-y-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
           <h3 className="font-semibold text-sm">Informations générales</h3>
           <div className="space-y-1.5">
             <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Nom du site</label>
             <input value={name} onChange={e => setName(e.target.value)}
-              className="w-full bg-gray-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
+              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition-colors" />
           </div>
           <div className="space-y-1.5">
             <label className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Identifiant unique</label>
             <div className="flex items-center gap-2">
-              <input readOnly value={site.id} className="flex-1 bg-gray-800/50 border border-white/5 rounded-lg px-4 py-2.5 text-xs text-gray-500" />
-              <button onClick={copyId} className="p-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+              <input readOnly value={site.id} className="flex-1 bg-gray-1000 border border-gray-200 rounded-lg px-4 py-2.5 text-xs text-gray-500" />
+              <button onClick={copyId} className="p-2.5 rounded-lg bg-white hover:bg-gray-700 transition-colors">
                 {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
               </button>
             </div>
@@ -667,7 +667,7 @@ function SettingsSection({ site, onSave, onDelete }: { site: Site; onSave: (p: o
         </div>
 
         {/* Custom domain */}
-        <div className="bg-gray-900 border border-white/8 rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Globe2 className="w-4 h-4 text-violet-400" />
             <h3 className="font-semibold text-sm">Domaine personnalisé</h3>
@@ -676,7 +676,7 @@ function SettingsSection({ site, onSave, onDelete }: { site: Site; onSave: (p: o
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-red-900/40 rounded-xl p-6 space-y-4 self-start">
+      <div className="bg-white border border-red-900/40 rounded-xl p-6 space-y-4 self-start">
         <h3 className="font-semibold text-sm text-red-400 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Zone dangereuse</h3>
         <p className="text-xs text-gray-500 leading-relaxed">La suppression est irréversible — toutes les versions, messages et données associés seront perdus définitivement.</p>
         {!confirm
@@ -690,7 +690,7 @@ function SettingsSection({ site, onSave, onDelete }: { site: Site; onSave: (p: o
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold">
                   {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Confirmer
                 </button>
-                <button onClick={() => setConfirm(false)} className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm">Annuler</button>
+                <button onClick={() => setConfirm(false)} className="px-4 py-2 rounded-lg bg-white hover:bg-gray-700 text-sm">Annuler</button>
               </div>
             </div>
         }
@@ -798,7 +798,7 @@ export default function SiteDashboardPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+    <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-500">Chargement…</p>
@@ -810,10 +810,10 @@ export default function SiteDashboardPage() {
   const unreadCount = submissions.filter(s => !s.read_at).length
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-[#fafaf9] text-gray-900">
       {/* Top bar */}
-      <nav className="border-b border-white/5 px-6 py-3 flex items-center gap-3 sticky top-0 bg-gray-950/95 backdrop-blur z-40">
-        <a href="/dashboard" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-white transition-colors">
+      <nav className="border-b border-gray-200 px-6 py-3 flex items-center gap-3 sticky top-0 bg-[#fafaf9]/95 backdrop-blur z-40">
+        <a href="/dashboard" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Dashboard
         </a>
         <span className="text-gray-700">/</span>
@@ -821,7 +821,7 @@ export default function SiteDashboardPage() {
         <div className="ml-auto flex items-center gap-2">
           {data.site.deployed_url && (
             <a href={data.site.deployed_url} target="_blank" rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all">
               <Globe className="w-3.5 h-3.5" /> Voir le site
             </a>
           )}
@@ -837,7 +837,7 @@ export default function SiteDashboardPage() {
             <PenLine className="w-3.5 h-3.5" /> Éditer
           </a>
 
-          <div className="w-px h-5 bg-white/10 mx-1" />
+          <div className="w-px h-5 bg-gray-200 mx-1" />
 
           <ThemeToggle />
 
@@ -848,7 +848,7 @@ export default function SiteDashboardPage() {
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all"
+            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
             title="Se déconnecter"
           >
             {loggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
@@ -858,7 +858,7 @@ export default function SiteDashboardPage() {
 
       <div className="flex">
         {/* Left sidebar — sticky scroll spy */}
-        <aside className="w-52 flex-shrink-0 border-r border-white/5 sticky top-[53px] h-[calc(100vh-53px)] flex flex-col py-5 px-3 overflow-y-auto">
+        <aside className="w-52 flex-shrink-0 border-r border-gray-200 sticky top-[53px] h-[calc(100vh-53px)] flex flex-col py-5 px-3 overflow-y-auto">
           <div className="px-2 mb-5">
             <div className="flex items-center gap-1.5 mb-0.5">
               <span className={`w-2 h-2 rounded-full ${data.site.is_published ? 'bg-green-400' : 'bg-gray-600'}`} />
@@ -870,7 +870,7 @@ export default function SiteDashboardPage() {
             {SECTIONS.map(s => (
               <button key={s.id} onClick={() => scrollTo(s.id)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
-                  active === s.id ? 'bg-violet-600/20 text-violet-300' : 'text-gray-500 hover:text-white hover:bg-white/5'
+                  active === s.id ? 'bg-violet-600/20 text-violet-300' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                 }`}>
                 <s.icon className="w-4 h-4 flex-shrink-0" />
                 <span className="flex-1">{s.label}</span>
@@ -890,42 +890,42 @@ export default function SiteDashboardPage() {
             <OverviewSection data={data} submissions={submissions} />
           </section>
 
-          <div className="border-t border-white/5" />
+          <div className="border-t border-gray-200" />
 
           <section id="seo">
             <h2 className="text-lg font-black mb-6">SEO</h2>
             <SEOSection site={data.site} onSave={handleSave} />
           </section>
 
-          <div className="border-t border-white/5" />
+          <div className="border-t border-gray-200" />
 
           <section id="forms">
             <h2 className="text-lg font-black mb-6">Formulaires</h2>
             <FormsSection siteId={siteId} />
           </section>
 
-          <div className="border-t border-white/5" />
+          <div className="border-t border-gray-200" />
 
           <section id="history">
             <h2 className="text-lg font-black mb-6">Historique des versions</h2>
             <HistorySection siteId={siteId} />
           </section>
 
-          <div className="border-t border-white/5" />
+          <div className="border-t border-gray-200" />
 
           <section id="analytics">
             <h2 className="text-lg font-black mb-6">Analytiques</h2>
             <AnalyticsSection site={data.site} />
           </section>
 
-          <div className="border-t border-white/5" />
+          <div className="border-t border-gray-200" />
 
           <section id="integrations">
             <h2 className="text-lg font-black mb-6">Intégrations</h2>
             <IntegrationsSection site={data.site} onSave={handleSave} />
           </section>
 
-          <div className="border-t border-white/5" />
+          <div className="border-t border-gray-200" />
 
           <section id="settings" className="pb-20">
             <h2 className="text-lg font-black mb-6">Paramètres</h2>

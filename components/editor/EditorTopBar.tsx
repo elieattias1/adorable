@@ -47,30 +47,30 @@ export default function EditorTopBar({
   }
 
   return (
-    <header className="flex items-center justify-between gap-3 px-4 h-14 border-b border-white/8 bg-gray-950 flex-shrink-0">
+    <header className="flex items-center justify-between gap-3 px-4 h-14 border-b border-gray-200 bg-white flex-shrink-0">
       {/* Left */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={() => router.push(`/dashboard/sites/${siteId}`)}
-          className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-sm"
+          className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors text-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Dashboard</span>
         </button>
 
-        <span className="text-gray-700">/</span>
+        <span className="text-gray-300">/</span>
 
-        <span className="font-semibold text-sm truncate max-w-[160px]">{siteName}</span>
+        <span className="font-semibold text-sm truncate max-w-[160px] text-gray-900">{siteName}</span>
       </div>
 
       {/* Center: preview toggle */}
-      <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
         <button
           onClick={() => previewMode === 'mobile' && onPreviewToggle()}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
             previewMode === 'desktop'
-              ? 'bg-white/10 text-white'
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
           }`}
         >
           <Monitor className="w-3.5 h-3.5" />
@@ -80,8 +80,8 @@ export default function EditorTopBar({
           onClick={() => previewMode === 'desktop' && onPreviewToggle()}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
             previewMode === 'mobile'
-              ? 'bg-white/10 text-white'
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
           }`}
         >
           <Smartphone className="w-3.5 h-3.5" />
@@ -94,7 +94,7 @@ export default function EditorTopBar({
         {/* Version count */}
         <button
           onClick={onShowVersions}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
         >
           <History className="w-3.5 h-3.5" />
           <span>{versionCount} version{versionCount !== 1 ? 's' : ''}</span>
@@ -104,7 +104,7 @@ export default function EditorTopBar({
         {deployedUrl && (
           <button
             onClick={copyPublicUrl}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
             title="Copier le lien public"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Link2 className="w-3.5 h-3.5" />}
@@ -128,7 +128,7 @@ export default function EditorTopBar({
         {/* Toggle chat */}
         <button
           onClick={onToggleChat}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
           title={showChat ? 'Masquer le chat' : 'Afficher le chat'}
         >
           {showChat
@@ -142,24 +142,24 @@ export default function EditorTopBar({
         {/* Deploy button + phase indicator */}
         <div className="flex items-center gap-2">
           {isDeploying && deployPhase !== 'idle' && (
-            <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
               {/* Progress steps */}
               <div className="flex items-center gap-1">
                 <span className={`w-1.5 h-1.5 rounded-full ${deployPhase === 'generating' ? 'bg-violet-400 animate-pulse' : (deployPhase === 'building' || deployPhase === 'ready') ? 'bg-green-500' : 'bg-gray-600'}`} />
-                <span className={deployPhase === 'generating' ? 'text-violet-400' : (deployPhase === 'building' || deployPhase === 'ready') ? 'text-gray-500 line-through' : 'text-gray-600'}>Code</span>
+                <span className={deployPhase === 'generating' ? 'text-violet-600' : (deployPhase === 'building' || deployPhase === 'ready') ? 'text-gray-400 line-through' : 'text-gray-400'}>Code</span>
               </div>
-              <span className="text-gray-700">→</span>
+              <span className="text-gray-400">→</span>
               <div className="flex items-center gap-1">
                 <span className={`w-1.5 h-1.5 rounded-full ${deployPhase === 'building' ? 'bg-amber-400 animate-pulse' : deployPhase === 'ready' ? 'bg-green-500' : 'bg-gray-600'}`} />
-                <span className={deployPhase === 'building' ? 'text-amber-400' : deployPhase === 'ready' ? 'text-gray-500 line-through' : 'text-gray-600'}>Build</span>
+                <span className={deployPhase === 'building' ? 'text-amber-600' : deployPhase === 'ready' ? 'text-gray-400 line-through' : 'text-gray-400'}>Build</span>
               </div>
-              <span className="text-gray-700">→</span>
+              <span className="text-gray-400">→</span>
               <div className="flex items-center gap-1">
                 <span className={`w-1.5 h-1.5 rounded-full ${deployPhase === 'ready' ? 'bg-green-500' : 'bg-gray-600'}`} />
-                <span className={deployPhase === 'ready' ? 'text-green-400' : 'text-gray-600'}>Live</span>
+                <span className={deployPhase === 'ready' ? 'text-green-600' : 'text-gray-400'}>Live</span>
               </div>
               {deployPhase === 'building' && (
-                <span className="text-gray-600 text-[10px]">(~2 min)</span>
+                <span className="text-gray-400 text-[10px]">(~2 min)</span>
               )}
             </div>
           )}

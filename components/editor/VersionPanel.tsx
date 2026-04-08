@@ -35,17 +35,17 @@ function formatDate(dateStr: string) {
 
 export default function VersionPanel({ versions, isPro, onRestore, onClose, onUpgrade }: VersionPanelProps) {
   return (
-    <div className="absolute inset-y-0 right-0 w-72 bg-gray-900 border-l border-white/8 flex flex-col z-20 shadow-2xl">
+    <div className="absolute inset-y-0 right-0 w-72 bg-white border-l border-gray-200 flex flex-col z-20 shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-12 border-b border-white/8 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 h-12 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-semibold">Versions</span>
-          <span className="text-xs text-gray-600">({versions.length})</span>
+          <span className="text-sm font-semibold text-gray-900">Versions</span>
+          <span className="text-xs text-gray-400">({versions.length})</span>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -54,11 +54,11 @@ export default function VersionPanel({ versions, isPro, onRestore, onClose, onUp
       {/* Version list */}
       <div className="flex-1 overflow-y-auto py-2 min-h-0">
         {versions.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-600 text-sm">
+          <div className="px-4 py-8 text-center text-gray-400 text-sm">
             Aucune version sauvegardée
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-gray-100">
             {versions.map((v, i) => {
               const isLocked = !isPro && i >= FREE_VERSION_LIMIT
               return (
@@ -67,11 +67,11 @@ export default function VersionPanel({ versions, isPro, onRestore, onClose, onUp
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         {isLocked && <Lock className="w-3 h-3 text-yellow-500 flex-shrink-0" />}
-                        <p className="text-xs font-medium text-white truncate">
+                        <p className="text-xs font-medium text-gray-900 truncate">
                           {v.note || `Version ${versions.length - i}`}
                         </p>
                       </div>
-                      <p className="text-[11px] text-gray-600 mt-0.5">{formatDate(v.created_at)}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{formatDate(v.created_at)}</p>
                     </div>
                     {isLocked ? (
                       <button
@@ -83,7 +83,7 @@ export default function VersionPanel({ versions, isPro, onRestore, onClose, onUp
                     ) : (
                       <button
                         onClick={() => onRestore(v.id)}
-                        className="flex-shrink-0 flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                        className="flex-shrink-0 flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-all"
                       >
                         <RotateCcw className="w-3 h-3" />
                         Restaurer
@@ -99,8 +99,8 @@ export default function VersionPanel({ versions, isPro, onRestore, onClose, onUp
 
       {/* Pro upsell if free */}
       {!isPro && versions.length >= FREE_VERSION_LIMIT && (
-        <div className="flex-shrink-0 px-4 py-3 border-t border-white/8">
-          <p className="text-xs text-gray-400 mb-2">
+        <div className="flex-shrink-0 px-4 py-3 border-t border-gray-200">
+          <p className="text-xs text-gray-500 mb-2">
             Les versions au-delà de {FREE_VERSION_LIMIT} sont réservées au plan Pro.
           </p>
           <button

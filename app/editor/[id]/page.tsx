@@ -338,7 +338,7 @@ function EditorPage() {
   // ─── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-500">Chargement de l'éditeur…</p>
@@ -349,17 +349,17 @@ function EditorPage() {
 
   if (!site) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 mb-2">Site introuvable</p>
-          <a href="/dashboard" className="text-violet-400 text-sm hover:underline">← Retour au dashboard</a>
+          <p className="text-gray-500 mb-2">Site introuvable</p>
+          <a href="/dashboard" className="text-violet-600 text-sm hover:underline">← Retour au dashboard</a>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-screen bg-gray-950 flex flex-col overflow-hidden">
+    <div className="h-screen bg-[#fafaf9] flex flex-col overflow-hidden">
       {/* Top bar */}
       <EditorTopBar
         siteName={site.name}
@@ -415,7 +415,7 @@ function EditorPage() {
       </div>
 
       {/* Mobile chat */}
-      <div className="md:hidden flex-shrink-0 border-t border-white/8" style={{ height: '40vh' }}>
+      <div className="md:hidden flex-shrink-0 border-t border-gray-200" style={{ height: '40vh' }}>
         <ChatPanel
           messages={messages}
           isGenerating={isGenerating}

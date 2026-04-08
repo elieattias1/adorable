@@ -132,13 +132,13 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     <Dialog.Root open={open} onOpenChange={v => !v && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl bg-gray-950 border border-white/10 rounded-2xl shadow-2xl animate-in fade-in-0 zoom-in-95 flex flex-col max-h-[90vh]">
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-2xl animate-in fade-in-0 zoom-in-95 flex flex-col max-h-[90vh]">
 
           {/* Header */}
           <div className="flex items-center justify-between px-6 pt-6 pb-4 flex-shrink-0">
-            <Dialog.Title className="text-lg font-bold">Nouveau site</Dialog.Title>
+            <Dialog.Title className="text-lg font-bold text-gray-950">Nouveau site</Dialog.Title>
             <Dialog.Close asChild>
-              <button className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-colors">
+              <button className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </Dialog.Close>
@@ -149,7 +149,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
 
             {/* Name */}
             <div>
-              <label className="text-xs text-gray-400 mb-1.5 block font-medium">Nom du site *</label>
+              <label className="text-xs text-gray-500 mb-1.5 block font-medium">Nom du site *</label>
               <input
                 type="text"
                 value={name}
@@ -157,7 +157,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                 required
                 maxLength={80}
                 placeholder="Mon super site"
-                className="w-full bg-white/5 border border-white/10 focus:border-violet-500 rounded-xl px-4 py-3 text-white outline-none transition-colors text-sm"
+                className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-colors text-sm"
                 autoFocus
               />
             </div>
@@ -165,13 +165,13 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
             {/* Template gallery */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <label className="text-xs text-gray-400 font-medium">
+                <label className="text-xs text-gray-500 font-medium">
                   Choisis un style de référence
-                  <span className="text-gray-600 ml-1">— optionnel</span>
+                  <span className="text-gray-400 ml-1">— optionnel</span>
                 </label>
                 {selectedSlug && (
                   <button type="button" onClick={() => setSelectedSlug(null)}
-                    className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors">
+                    className="text-[11px] text-gray-400 hover:text-gray-700 transition-colors">
                     Effacer la sélection
                   </button>
                 )}
@@ -188,7 +188,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                       className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
                         activeIndustry === ind
                           ? 'bg-violet-600 text-white'
-                          : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                       }`}
                     >
                       {ind}
@@ -208,8 +208,8 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                     className={`relative aspect-video rounded-xl border-2 overflow-hidden transition-all flex flex-col items-center justify-center gap-2 ${
                       selectedSlug === null
                         ? 'border-violet-500 ring-1 ring-violet-500/30'
-                        : 'border-white/10 hover:border-white/25'
-                    } bg-gradient-to-br from-violet-950/60 to-gray-900`}
+                        : 'border-gray-200 hover:border-gray-300'
+                    } bg-gradient-to-br from-violet-50 to-white`}
                   >
                     {selectedSlug === null && (
                       <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center">
@@ -217,14 +217,14 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                       </div>
                     )}
                     <Sparkles className="w-6 h-6 text-violet-400" />
-                    <span className="text-xs font-semibold text-white">Depuis zéro</span>
-                    <span className="text-[10px] text-gray-500">L'IA décide du style</span>
+                    <span className="text-xs font-semibold text-gray-900">Depuis zéro</span>
+                    <span className="text-[10px] text-gray-400">L'IA décide du style</span>
                   </button>
                 )}
 
                 {/* Loading skeletons */}
                 {tplLoading && Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="aspect-video rounded-xl bg-white/5 animate-pulse" />
+                  <div key={i} className="aspect-video rounded-xl bg-gray-100 animate-pulse" />
                 ))}
 
                 {/* Template cards */}
@@ -236,7 +236,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                     className={`relative aspect-video rounded-xl border-2 overflow-hidden transition-all group ${
                       selectedSlug === tpl.slug
                         ? 'border-violet-500 ring-1 ring-violet-500/30'
-                        : 'border-white/8 hover:border-white/25'
+                        : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     {/* Screenshot */}
@@ -248,7 +248,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                         <span className="text-2xl">🌐</span>
                       </div>
                     )}
@@ -271,15 +271,15 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
 
               {/* Selection label */}
               {selectedTpl && (
-                <p className="mt-2 text-[11px] text-violet-400">
+                <p className="mt-2 text-[11px] text-violet-600">
                   Référence : <span className="font-medium">{selectedTpl.name}</span>
-                  <span className="text-gray-600 ml-1">— {selectedTpl.url}</span>
+                  <span className="text-gray-400 ml-1">— {selectedTpl.url}</span>
                 </p>
               )}
             </div>
 
             {error && (
-              <div className="bg-red-950/60 border border-red-800 rounded-xl px-4 py-3 text-red-300 text-sm">
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-600 text-sm">
                 {error}
               </div>
             )}
@@ -288,7 +288,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 text-sm font-medium transition-colors"
+                className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 text-sm font-medium transition-colors"
               >
                 Annuler
               </button>
@@ -333,22 +333,22 @@ export function PaywallModal({ open, onClose, onUpgrade }: PaywallModalProps) {
     <Dialog.Root open={open} onOpenChange={v => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 animate-in fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-gray-950 border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95">
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95">
 
           {/* Header */}
           <div className="relative px-8 pt-8 pb-5 text-center overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-violet-600/15 to-transparent pointer-events-none" />
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-40 h-40 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
             <Dialog.Close asChild>
-              <button className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/5 transition-colors">
+              <button className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </Dialog.Close>
             <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-950/50">
               <Crown className="w-6 h-6 text-white" />
             </div>
-            <Dialog.Title className="text-xl font-black mb-2">Passe à la vitesse supérieure</Dialog.Title>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <Dialog.Title className="text-xl font-black mb-2 text-gray-950">Passe à la vitesse supérieure</Dialog.Title>
+            <p className="text-gray-500 text-sm leading-relaxed">
               Tu as atteint la limite du plan gratuit. Choisis le plan qui te convient.
             </p>
           </div>
@@ -357,24 +357,24 @@ export function PaywallModal({ open, onClose, onUpgrade }: PaywallModalProps) {
           <div className="px-6 pb-6 grid grid-cols-2 gap-3">
 
             {/* Starter */}
-            <div className="flex flex-col rounded-2xl border border-white/10 bg-white/3 p-5">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Starter</p>
+            <div className="flex flex-col rounded-2xl border border-gray-200 bg-gray-50 p-5">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Starter</p>
               <div className="flex items-end gap-1 mb-1">
                 <span className="text-3xl font-black">6€</span>
                 <span className="text-gray-500 text-xs mb-1">/mois</span>
               </div>
-              <p className="text-[11px] text-gray-600 mb-4">Sans engagement</p>
+              <p className="text-[11px] text-gray-400 mb-4">Sans engagement</p>
               <ul className="flex-1 space-y-2 mb-5">
                 {['5 sites', '100 générations / jour', 'Versions illimitées', 'Hébergement Adorable'].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-xs text-gray-400">
-                    <Check className="w-3 h-3 text-gray-500 flex-shrink-0" />{f}
+                  <li key={f} className="flex items-center gap-2 text-xs text-gray-500">
+                    <Check className="w-3 h-3 text-gray-400 flex-shrink-0" />{f}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => handleUpgrade('starter')}
                 disabled={loading !== null}
-                className="w-full py-2.5 rounded-xl border border-white/15 hover:border-white/30 text-white text-xs font-bold transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl border border-gray-200 hover:border-gray-300 text-gray-700 hover:text-gray-900 bg-white text-xs font-bold transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {loading === 'starter'
                   ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Redirection…</>
@@ -396,8 +396,8 @@ export function PaywallModal({ open, onClose, onUpgrade }: PaywallModalProps) {
               <p className="text-[11px] text-green-400 mb-4">7 jours gratuits · sans CB</p>
               <ul className="flex-1 space-y-2 mb-5">
                 {['Sites illimités', 'IA illimitée', 'Domaine personnalisé', 'Support prioritaire'].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
-                    <Check className="w-3 h-3 text-violet-400 flex-shrink-0" />{f}
+                  <li key={f} className="flex items-center gap-2 text-xs text-violet-900">
+                    <Check className="w-3 h-3 text-violet-500 flex-shrink-0" />{f}
                   </li>
                 ))}
               </ul>
@@ -414,7 +414,7 @@ export function PaywallModal({ open, onClose, onUpgrade }: PaywallModalProps) {
             </div>
           </div>
 
-          <button onClick={onClose} className="w-full pb-5 text-xs text-gray-600 hover:text-gray-400 transition-colors">
+          <button onClick={onClose} className="w-full pb-5 text-xs text-gray-400 hover:text-gray-700 transition-colors">
             Rester sur le plan gratuit
           </button>
         </Dialog.Content>
