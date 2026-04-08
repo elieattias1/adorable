@@ -384,13 +384,16 @@ export async function POST(req: NextRequest) {
                 const meta  = getToolMeta(tb.name, input)
                 safeSend({ tool_start: { name: tb.name, icon: meta.icon, label: meta.label } })
 
-                const result = executeTool(tb.name, input, currentCode)
+                const result = await executeTool(tb.name, input, currentCode)
 
                 if (tb.name === 'ask_user') {
                   askQuestion = result.askQuestion || null
                   toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: 'Question posée.' })
                 } else if (result.error) {
                   toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: `Erreur : ${result.error}`, is_error: true })
+                } else if (result.info) {
+                  // Informational result (e.g. search_unsplash) — no code change, pass data back to agent
+                  toolResults.push({ type: 'tool_result', tool_use_id: tb.id, content: result.info })
                 } else if (result.code) {
                   const syntaxErr = validateTSX(result.code)
                   if (syntaxErr) {

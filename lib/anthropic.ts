@@ -1345,6 +1345,75 @@ Always offer 2–3 concrete options to make it easy to answer.`,
       required: ['question'],
     },
   },
+
+  {
+    name: 'remove_section',
+    description: `Removes an entire named section component from the site.
+Use when the user wants to delete a specific section (FAQ, gallery, testimonials, pricing, etc.).
+Automatically removes BOTH the function definition AND its JSX usage in App().
+Much faster than write_code for deletions — use this instead.`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        component: {
+          type: 'string',
+          description: 'Exact function name of the component to remove (e.g. "TestimonialsSection", "FaqSection", "PricingSection")',
+        },
+        note: { type: 'string', description: 'One-sentence summary of what was removed.' },
+      },
+      required: ['component', 'note'],
+    },
+  },
+
+  {
+    name: 'add_section',
+    description: `Adds a new section to the site without rewriting the whole file.
+Write ONLY the new component code (50–150 lines). It will be inserted before or after the specified anchor component in App().
+Use for adding FAQ, pricing, gallery, features, CTA, newsletter sections, etc.
+Much faster than write_code for additions — use this instead.`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        code: {
+          type: 'string',
+          description: 'Complete TSX for the new section component. Must be a named function: function NewSection() { return <section>...</section> }. No imports needed.',
+        },
+        anchor: {
+          type: 'string',
+          description: 'Component name to insert near (e.g. "FooterSection"). The new section will be inserted before/after its JSX usage in App().',
+        },
+        position: {
+          type: 'string',
+          enum: ['before', 'after'],
+          description: 'Whether to insert before or after the anchor component',
+        },
+        note: { type: 'string', description: 'One-sentence summary of what was added.' },
+      },
+      required: ['code', 'anchor', 'position', 'note'],
+    },
+  },
+
+  {
+    name: 'search_unsplash',
+    description: `Searches Unsplash for relevant photos and returns their direct CDN URLs.
+Use BEFORE swapping images with edit_code to get contextually correct photos.
+Returns high-quality landscape URLs ready to paste into src attributes.
+Example: to replace generic food photos, search "italian restaurant pasta interior".`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'English search query. Be specific for better results (e.g. "yoga studio sunrise stretch" not just "yoga")',
+        },
+        count: {
+          type: 'number',
+          description: 'Number of photos to return, between 1 and 6. Default: 4',
+        },
+      },
+      required: ['query'],
+    },
+  },
 ]
 
 // ─── System prompt ────────────────────────────────────────────────────────────
@@ -1409,10 +1478,13 @@ COMPORTEMENT D'AGENT :
 Réfléchis brièvement avant d'agir — 1-2 phrases max.
 Après chaque modification, propose UNE suggestion concrète de prochaine étape.
 `}
-CHOIX D'OUTIL :
-→ write_code : création initiale, refonte complète, changement de thème, restructuration majeure
-→ edit_code : texte, couleurs, ajout d'une section, ajustements visuels ciblés
-→ ask_user : seulement si vraiment impossible de deviner — préfère une décision créative
+CHOIX D'OUTIL — préfère toujours l'outil le plus ciblé :
+→ write_code    : création initiale, refonte complète, changement de thème global, restructuration majeure
+→ edit_code     : texte, couleurs, ajustements visuels, swapper des URLs d'images
+→ remove_section: supprimer une section entière (ex: "enlève la FAQ") → BEAUCOUP plus rapide que write_code
+→ add_section   : ajouter une nouvelle section sans réécrire le site → BEAUCOUP plus rapide que write_code
+→ search_unsplash: trouver de vraies photos contextuelles, puis les placer avec edit_code
+→ ask_user      : seulement si vraiment impossible de deviner — préfère une décision créative
 
 CONTRAINTE DE CODE :
 - Max 1 000 lignes pour la création initiale, 600 pour les éditions
@@ -1489,11 +1561,28 @@ ${currentCode || '// Pas encore de code — génère un nouveau site complet.'}
 
 // ─── Execute a tool server-side ───────────────────────────────────────────────
 
-export function executeTool(
+// Helper: remove a named function's full body from code (brace-counting)
+function removeFunctionBody(code: string, name: string): string {
+  const fnRegex = new RegExp(`\\n(?:export )?function ${name}[\\s(]`)
+  const fnMatch = fnRegex.exec(code)
+  if (!fnMatch) return code
+  let depth = 0, i = fnMatch.index, foundOpen = false
+  while (i < code.length) {
+    if (code[i] === '{') { depth++; foundOpen = true }
+    if (code[i] === '}') { depth-- }
+    if (foundOpen && depth === 0) {
+      return code.slice(0, fnMatch.index) + code.slice(i + 1)
+    }
+    i++
+  }
+  return code
+}
+
+export async function executeTool(
   toolName: string,
   toolInput: Record<string, any>,
   currentCode: string,
-): { code?: string; note?: string; askQuestion?: string; askOptions?: string[]; error?: string } {
+): Promise<{ code?: string; note?: string; askQuestion?: string; askOptions?: string[]; error?: string; info?: string }> {
   try {
     switch (toolName) {
       case 'write_code': {
@@ -1530,6 +1619,109 @@ export function executeTool(
         return { askQuestion: toolInput.question, askOptions: toolInput.options }
       }
 
+      case 'remove_section': {
+        const component = toolInput.component as string
+        if (!component) return { error: 'Nom du composant manquant' }
+        if (!currentCode) return { error: 'Pas de code existant' }
+
+        let result = removeFunctionBody(currentCode, component)
+
+        // Remove self-closing JSX usage: <Component /> or <Component prop={...} />
+        result = result.replace(new RegExp(`[ \t]*<${component}[^>]*/>\n?`, 'g'), '')
+        // Remove paired JSX usage: <Component>...</Component>
+        result = result.replace(new RegExp(`[ \t]*<${component}[^>]*>[\\s\\S]*?</${component}>\n?`, 'g'), '')
+
+        if (result === currentCode) {
+          return { error: `Composant "${component}" introuvable dans le code. Vérifie le nom exact.` }
+        }
+        return { code: result, note: toolInput.note }
+      }
+
+      case 'add_section': {
+        const sectionCode = (toolInput.code as string)?.trim()
+        const anchor      = toolInput.anchor as string
+        const position    = (toolInput.position as 'before' | 'after') ?? 'before'
+        if (!sectionCode) return { error: 'code requis' }
+        if (!anchor)      return { error: 'anchor requis' }
+        if (!currentCode) return { error: 'Pas de code existant' }
+
+        // Extract new component name from the provided code
+        const nameMatch = /function\s+(\w+)\s*[(<]/.exec(sectionCode)
+        if (!nameMatch) return { error: 'Le code doit contenir une fonction nommée, ex: function NewSection() {...}' }
+        const newName = nameMatch[1]
+
+        // Insert component code just before `export default function App(`
+        const appMarker = '\nexport default function App('
+        const appIdx = currentCode.indexOf(appMarker)
+        if (appIdx === -1) return { error: 'export default function App() introuvable dans le code' }
+
+        let result = currentCode.slice(0, appIdx) + '\n\n' + sectionCode + currentCode.slice(appIdx)
+
+        // Find anchor JSX usage in the (now updated) App return and insert new component tag
+        const anchorTag   = `<${anchor}`
+        const anchorIdx   = result.indexOf(anchorTag, appIdx)
+        if (anchorIdx === -1) return { error: `Anchor "${anchor}" introuvable dans le JSX de App()` }
+
+        const newJSX = `\n              <${newName} />`
+        if (position === 'before') {
+          result = result.slice(0, anchorIdx) + newJSX + '\n              ' + result.slice(anchorIdx)
+        } else {
+          // Find the end of the anchor tag (self-close or closing tag line)
+          const lines = result.split('\n')
+          // Find the line index from position
+          let offset = 0
+          let insertAfterLine = -1
+          for (let li = 0; li < lines.length; li++) {
+            if (offset + lines[li].length >= anchorIdx) {
+              // Walk forward from this line to find "/> " or closing tag
+              for (let lj = li; lj < Math.min(li + 20, lines.length); lj++) {
+                if (lines[lj].includes('/>') || lines[lj].includes(`</${anchor}>`)) {
+                  insertAfterLine = lj
+                  break
+                }
+              }
+              if (insertAfterLine === -1) insertAfterLine = li
+              break
+            }
+            offset += lines[li].length + 1
+          }
+          if (insertAfterLine === -1) insertAfterLine = lines.findIndex(l => l.includes(anchorTag))
+          lines.splice(insertAfterLine + 1, 0, `              <${newName} />`)
+          result = lines.join('\n')
+        }
+
+        return { code: result, note: toolInput.note }
+      }
+
+      case 'search_unsplash': {
+        const query      = toolInput.query as string
+        const count      = Math.min(Math.max(Number(toolInput.count ?? 4), 1), 6)
+        const accessKey  = process.env.UNSPLASH_ACCESS_KEY
+
+        if (!accessKey) {
+          return { info: `Clé Unsplash non configurée (UNSPLASH_ACCESS_KEY). Utilise les URLs du design system déjà fournies, ou demande à l'utilisateur de configurer la clé.` }
+        }
+
+        const resp = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=${count}&orientation=landscape`,
+          { headers: { Authorization: `Client-ID ${accessKey}` } }
+        )
+        if (!resp.ok) return { error: `Unsplash API error ${resp.status}` }
+
+        const data = await resp.json() as { results: Array<{ urls: { raw: string }; alt_description: string }> }
+        const photos = data.results ?? []
+        if (photos.length === 0) return { error: `Aucune photo trouvée pour "${query}"` }
+
+        const lines = photos.map((p, i) => {
+          const url = `${p.urls.raw}&w=1200&h=800&fit=crop&q=80`
+          return `${i + 1}. ${url}${p.alt_description ? `  ← ${p.alt_description}` : ''}`
+        })
+
+        return {
+          info: `Photos Unsplash pour "${query}" :\n${lines.join('\n')}\n\nUtilise edit_code pour remplacer les URLs existantes dans le code.`,
+        }
+      }
+
       default:
         return { error: `Outil inconnu : ${toolName}` }
     }
@@ -1548,6 +1740,12 @@ export function getToolMeta(toolName: string, input: Record<string, any>): { ico
       return { icon: '✏️', label: `Modification : ${input.note || (input.edits?.length + ' edit(s)')}` }
     case 'ask_user':
       return { icon: '💬', label: 'Question de clarification' }
+    case 'remove_section':
+      return { icon: '🗑️', label: `Suppression : ${input.component || 'section'}` }
+    case 'add_section':
+      return { icon: '➕', label: `Ajout section : ${input.note || input.component || 'nouvelle section'}` }
+    case 'search_unsplash':
+      return { icon: '🖼️', label: `Recherche photos : "${input.query}"` }
     default:
       return { icon: '🔧', label: toolName }
   }
