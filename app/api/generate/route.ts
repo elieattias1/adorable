@@ -11,10 +11,10 @@ import {
 } from '@/lib/anthropic'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { scrapeUrl, extractUrl } from '@/lib/scrape-url'
-import { getRelevantTemplates, getTemplateScreenshot, buildTemplateContext } from '@/lib/scraped-templates'
+import { getRelevantTemplates, buildTemplateContext } from '@/lib/scraped-templates'
 import type Anthropic from '@anthropic-ai/sdk'
 
-export const maxDuration = 120
+export const maxDuration = 300
 
 const MAX_ITERATIONS = 6
 
@@ -66,26 +66,13 @@ async function runSequentialGeneration(opts: {
 
   const designPreset = getDesignPresetForManifest(siteType, message)
 
-  // ── Reference templates (Supabase) ────────────────────────────────────────
-  type ImageBlock = { type: 'image'; source: { type: 'base64'; media_type: 'image/png'; data: string } }
-  let refTemplates:  Awaited<ReturnType<typeof getRelevantTemplates>> = []
-  let templateCtx    = ''
-  let visionBlocks:  ImageBlock[] = []
-
+  // ── Reference templates (Supabase) — text context only, no vision ──────────
+  let templateCtx = ''
   try {
-    refTemplates = await getRelevantTemplates(siteType, message, 3)
-    templateCtx  = buildTemplateContext(refTemplates)
-
-    // Fetch up to 2 screenshots from Supabase Storage for vision context
-    const screenshots = await Promise.all(
-      refTemplates.slice(0, 2).map(t => getTemplateScreenshot(t))
-    )
-    visionBlocks = screenshots
-      .filter((img): img is NonNullable<typeof img> => img !== null)
-      .map(img => ({ type: 'image', source: { type: 'base64', media_type: img.mimeType, data: img.base64 } }))
-
+    const refTemplates = await getRelevantTemplates(siteType, message, 3)
+    templateCtx = buildTemplateContext(refTemplates)
     if (refTemplates.length > 0) {
-      console.log(`${tag} 📚 templates=[${refTemplates.map(t => t.name).join(', ')}] screenshots=${visionBlocks.length}`)
+      console.log(`${tag} 📚 templates=[${refTemplates.map(t => t.name).join(', ')}]`)
     }
   } catch (err) {
     console.warn(`${tag} ⚠️  template lookup failed (non-blocking):`, err)
@@ -95,10 +82,7 @@ async function runSequentialGeneration(opts: {
   console.log(`${tag} 📋 manifest phase`)
   safeSend({ chunk: `Analyse de ta demande pour **${siteName}**…\n` })
 
-  const userContent: Anthropic.MessageParam['content'] = [
-    ...visionBlocks,
-    { type: 'text', text: `Business : ${siteName}\nType : ${siteType}\nDemande : ${message}` },
-  ]
+  const userContent = `Business : ${siteName}\nType : ${siteType}\nDemande : ${message}`
 
   const manifestRes = await anthropic.messages.create({
     model:       'claude-sonnet-4-6',
