@@ -1,16 +1,23 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { isAdminUserClient } from '@/lib/admin'
 import { useLeads, type Lead } from '@/hooks/useLeads'
 import {
-  ArrowLeft, Plus, Upload, Globe, ExternalLink, Trash2, Edit2, X,
-  Search, ChevronDown, Loader2, CheckCircle2, Link2, RefreshCw,
-  Phone, Mail, Building2, LayoutTemplate,
+  ArrowLeft, Plus, Upload, Globe, Trash2, Edit2, X,
+  Search, ChevronDown, Loader2, CheckCircle2, RefreshCw,
+  Phone, Mail, Building2, LayoutTemplate, MapPin,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
+
+const LeadsMap = dynamic(() => import('@/components/crm/LeadsMap'), { ssr: false, loading: () => (
+  <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-xl">
+    <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
+  </div>
+) })
 
 // ─── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -446,6 +453,8 @@ export default function CRMPage() {
   const [userEmail,       setUserEmail]        = useState('')
   const [selected,        setSelected]         = useState<Set<string>>(new Set())
   const [bulkDeleting,    setBulkDeleting]     = useState(false)
+  const [mapOpen,         setMapOpen]          = useState(true)
+  const [mapLead,         setMapLead]          = useState<Lead | null>(null)
 
   // Load user & sites — redirect non-admins
   useEffect(() => {
@@ -551,8 +560,15 @@ export default function CRMPage() {
     setBulkDeleting(false)
   }
 
+  const mappableCount = useMemo(() =>
+    leads.filter(l => {
+      if (!l.source) return false
+      try { return /\/@-?\d/.test(l.source) || /[?&]ll=/.test(l.source) || /[?&]q=/.test(l.source) } catch { return false }
+    }).length
+  , [leads])
+
   return (
-    <div className="min-h-screen bg-[#fafaf9] text-gray-900 flex flex-col">
+    <div className="h-screen bg-[#fafaf9] text-gray-900 flex flex-col overflow-hidden">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-4">
@@ -570,6 +586,17 @@ export default function CRMPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setMapOpen(p => !p); setMapLead(null) }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+              mapOpen
+                ? 'bg-violet-50 border-violet-200 text-violet-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            Carte{mappableCount > 0 ? ` (${mappableCount})` : ''}
+          </button>
           <ThemeToggle />
           {userEmail && (
             <span className="text-xs text-gray-500 hidden md:block">{userEmail}</span>
@@ -577,7 +604,96 @@ export default function CRMPage() {
         </div>
       </nav>
 
-      <main className="flex-1 px-6 md:px-8 py-8 max-w-7xl mx-auto w-full">
+      {/* Body: optional side map + main content */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── Map side panel ── */}
+        {mapOpen && (
+          <div className="w-[400px] flex-shrink-0 border-r border-gray-200 flex flex-col bg-white overflow-hidden">
+
+            {/* Map */}
+            <div className="flex-1 p-3 min-h-0">
+              <LeadsMap
+                leads={filtered}
+                selectedId={mapLead?.id ?? null}
+                onSelect={setMapLead}
+              />
+            </div>
+
+            {/* Lead detail card */}
+            {mapLead ? (
+              <div className="border-t border-gray-200 p-4 space-y-3 flex-shrink-0 max-h-64 overflow-y-auto">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-bold text-sm text-gray-900">{mapLead.business_name}</div>
+                    {(mapLead.city || mapLead.category) && (
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {[mapLead.category, mapLead.city].filter(Boolean).join(' · ')}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => setMapLead(null)} className="text-gray-400 hover:text-gray-700 flex-shrink-0">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-1.5">
+                  {mapLead.address && (
+                    <div className="flex items-start gap-2 text-xs text-gray-600">
+                      <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                      {mapLead.address}
+                    </div>
+                  )}
+                  {mapLead.phone && (
+                    <a href={`tel:${mapLead.phone}`} className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900">
+                      <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      {mapLead.phone}
+                    </a>
+                  )}
+                  {mapLead.email && (
+                    <a href={`mailto:${mapLead.email}`} className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900 truncate">
+                      <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{mapLead.email}</span>
+                    </a>
+                  )}
+                  {mapLead.website_url && (
+                    <a href={mapLead.website_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-xs text-violet-600 hover:text-violet-700 truncate">
+                      <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{mapLead.website_url.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                    </a>
+                  )}
+                  {mapLead.source?.startsWith('http') && (
+                    <a href={mapLead.source} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700">
+                      <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                      Voir sur Google Maps
+                    </a>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <StatusBadge status={mapLead.status} onChange={s => { handleStatusChange(mapLead.id, s); setMapLead(p => p ? { ...p, status: s } : p) }} />
+                  <button onClick={() => { setEditingLead(mapLead); setMapLead(null) }}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+                    <Edit2 className="w-3 h-3" /> Modifier
+                  </button>
+                </div>
+
+                {mapLead.notes && (
+                  <p className="text-xs text-gray-400 italic">{mapLead.notes}</p>
+                )}
+              </div>
+            ) : (
+              <div className="border-t border-gray-100 px-4 py-3 flex-shrink-0">
+                <p className="text-xs text-gray-400">Clique sur un marqueur pour voir les détails</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Scrollable main content ── */}
+        <main className="flex-1 overflow-y-auto px-6 md:px-8 py-8">
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {[
@@ -683,161 +799,139 @@ export default function CRMPage() {
           </div>
         ) : (
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 border-b border-gray-200 text-xs text-gray-500 font-medium">
-              <div className="flex items-center">
-                <input type="checkbox"
-                  checked={filtered.length > 0 && selected.size === filtered.length}
-                  ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < filtered.length }}
-                  onChange={toggleSelectAll}
-                  className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer"
-                />
-              </div>
-              <div>Business</div>
-              <div>Site web / CMS</div>
-              <div>Contact</div>
-              <div>Statut</div>
-              <div>Site Adorable</div>
-              <div />
-            </div>
-
-            <div className="divide-y divide-gray-100">
-              {filtered.map(lead => (
-                <div key={lead.id}
-                  className={`grid grid-cols-[auto_2fr_1.5fr_1fr_1fr_1fr_auto] gap-3 px-4 py-3 items-center transition-colors group ${
-                    selected.has(lead.id) ? 'bg-violet-50' : 'hover:bg-gray-50'
-                  }`}>
-
-                  {/* Checkbox */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[1100px]">
+                {/* Table header */}
+                <div className="grid grid-cols-[auto_200px_140px_160px_130px_160px_130px_120px_100px_auto] gap-x-3 px-4 py-3 border-b border-gray-200 text-xs text-gray-500 font-medium">
                   <div className="flex items-center">
                     <input type="checkbox"
-                      checked={selected.has(lead.id)}
-                      onChange={() => toggleSelect(lead.id)}
+                      checked={filtered.length > 0 && selected.size === filtered.length}
+                      ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < filtered.length }}
+                      onChange={toggleSelectAll}
                       className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer"
                     />
                   </div>
-
-                  {/* Business name */}
-                  <div>
-                    <div className="font-medium text-sm text-gray-900 leading-tight">{lead.business_name}</div>
-                    {lead.city && (
-                      <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                        <span>{lead.city}</span>
-                        {lead.category && <><span>·</span><span>{lead.category}</span></>}
-                      </div>
-                    )}
-                    {lead.notes && (
-                      <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[180px]">{lead.notes}</div>
-                    )}
-                  </div>
-
-                  {/* Website */}
-                  <div onClick={e => e.stopPropagation()}>
-                    {lead.website_url ? (
-                      <div className="flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                        <a href={lead.website_url} target="_blank" rel="noopener noreferrer"
-                          className="text-xs text-violet-600 hover:text-violet-700 truncate max-w-[150px] transition-colors"
-                          title={lead.website_url}>
-                          {lead.website_url.replace(/^https?:\/\/(www\.)?/, '')}
-                        </a>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                    {lead.cms && (
-                      <div className={`text-xs mt-0.5 flex items-center gap-1 ${CMS_COLOR[lead.cms] ?? 'text-gray-500'}`}>
-                        <LayoutTemplate className="w-3 h-3" />
-                        {lead.cms}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Contact */}
-                  <div onClick={e => e.stopPropagation()} className="space-y-0.5">
-                    {lead.email ? (
-                      <a href={`mailto:${lead.email}`}
-                        className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 transition-colors truncate max-w-[130px]"
-                        title={lead.email}>
-                        <Mail className="w-3 h-3 flex-shrink-0 text-green-500" />
-                        <span className="truncate">{lead.email}</span>
-                      </a>
-                    ) : (
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <Mail className="w-3 h-3" /> —
-                      </span>
-                    )}
-                    {lead.phone && (
-                      <a href={`tel:${lead.phone}`}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors">
-                        <Phone className="w-3 h-3 flex-shrink-0" />
-                        <span>{lead.phone}</span>
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Status */}
-                  <div onClick={e => e.stopPropagation()}>
-                    <StatusBadge
-                      status={lead.status}
-                      onChange={s => handleStatusChange(lead.id, s)}
-                    />
-                  </div>
-
-                  {/* Linked site */}
-                  <div onClick={e => e.stopPropagation()}>
-                    {lead.sites ? (
-                      <div className="flex items-center gap-1.5">
-                        <a
-                          href={lead.sites.deployed_url ?? `/editor/${lead.sites.id}`}
-                          target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition-colors max-w-[120px] truncate"
-                          title={lead.sites.name}>
-                          <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{lead.sites.name}</span>
-                        </a>
-                        <a href={`/editor/${lead.sites.id}`}
-                          className="text-gray-600 hover:text-gray-300 transition-colors">
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setEditingLead(lead)}
-                        className="flex items-center gap-1 text-xs text-gray-600 hover:text-violet-400 transition-colors">
-                        <Link2 className="w-3.5 h-3.5" />
-                        Lier un site
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setEditingLead(lead)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors"
-                      title="Modifier">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(lead.id)} disabled={deletingId === lead.id}
-                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors"
-                      title="Supprimer">
-                      {deletingId === lead.id
-                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        : <Trash2 className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
+                  <div>Business</div>
+                  <div>Catégorie</div>
+                  <div>Site web / CMS</div>
+                  <div>Téléphone</div>
+                  <div>Email</div>
+                  <div>Adresse</div>
+                  <div>Statut</div>
+                  <div>Google Maps</div>
+                  <div>Actions</div>
                 </div>
-              ))}
-            </div>
 
-            {/* Footer count */}
-            <div className="px-4 py-3 border-t border-gray-200 text-xs text-gray-400">
-              {filtered.length} lead{filtered.length !== 1 ? 's' : ''}
-              {statusFilter !== 'all' || search ? ` (filtrés sur ${leads.length})` : ''}
+                <div className="divide-y divide-gray-100">
+                  {filtered.map(lead => (
+                    <div key={lead.id}
+                      className={`grid grid-cols-[auto_200px_140px_160px_130px_160px_130px_120px_100px_auto] gap-x-3 px-4 py-3 items-center transition-colors group ${
+                        selected.has(lead.id) ? 'bg-violet-50' : 'hover:bg-gray-50'
+                      }`}>
+
+                      {/* Checkbox */}
+                      <div className="flex items-center">
+                        <input type="checkbox"
+                          checked={selected.has(lead.id)}
+                          onChange={() => toggleSelect(lead.id)}
+                          className="w-3.5 h-3.5 rounded accent-violet-500 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Business */}
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm text-gray-900 truncate">{lead.business_name}</div>
+                        {lead.city && <div className="text-xs text-gray-500 truncate">{lead.city}</div>}
+                        {lead.notes && <div className="text-xs text-gray-400 truncate">{lead.notes}</div>}
+                      </div>
+
+                      {/* Category */}
+                      <div className="text-xs text-gray-600 truncate">{lead.category || <span className="text-gray-300">—</span>}</div>
+
+                      {/* Website / CMS */}
+                      <div onClick={e => e.stopPropagation()} className="min-w-0">
+                        {lead.website_url ? (
+                          <a href={lead.website_url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700 truncate"
+                            title={lead.website_url}>
+                            <Globe className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{lead.website_url.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                          </a>
+                        ) : <span className="text-xs text-gray-300">—</span>}
+                        {lead.cms && (
+                          <div className={`text-xs mt-0.5 flex items-center gap-1 ${CMS_COLOR[lead.cms] ?? 'text-gray-500'}`}>
+                            <LayoutTemplate className="w-3 h-3 flex-shrink-0" />{lead.cms}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Phone */}
+                      <div onClick={e => e.stopPropagation()}>
+                        {lead.phone
+                          ? <a href={`tel:${lead.phone}`} className="text-xs text-gray-600 hover:text-gray-900 transition-colors">{lead.phone}</a>
+                          : <span className="text-xs text-gray-300">—</span>}
+                      </div>
+
+                      {/* Email */}
+                      <div onClick={e => e.stopPropagation()} className="min-w-0">
+                        {lead.email
+                          ? <a href={`mailto:${lead.email}`} className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 transition-colors truncate" title={lead.email}>
+                              <Mail className="w-3 h-3 flex-shrink-0 text-green-500" />
+                              <span className="truncate">{lead.email}</span>
+                            </a>
+                          : <span className="text-xs text-gray-300">—</span>}
+                      </div>
+
+                      {/* Address */}
+                      <div className="text-xs text-gray-600 truncate" title={lead.address ?? ''}>
+                        {lead.address || <span className="text-gray-300">—</span>}
+                      </div>
+
+                      {/* Status */}
+                      <div onClick={e => e.stopPropagation()}>
+                        <StatusBadge status={lead.status} onChange={s => handleStatusChange(lead.id, s)} />
+                      </div>
+
+                      {/* Google Maps source */}
+                      <div onClick={e => e.stopPropagation()}>
+                        {lead.source?.startsWith('http') ? (
+                          <a href={lead.source} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors">
+                            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                            Maps
+                          </a>
+                        ) : (
+                          <span className="text-xs text-gray-400">{lead.source || '—'}</span>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setEditingLead(lead)}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(lead.id)} disabled={deletingId === lead.id}
+                          className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors">
+                          {deletingId === lead.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer count */}
+                <div className="px-4 py-3 border-t border-gray-200 text-xs text-gray-400">
+                  {filtered.length} lead{filtered.length !== 1 ? 's' : ''}
+                  {statusFilter !== 'all' || search ? ` (filtrés sur ${leads.length})` : ''}
+                </div>
+              </div>
             </div>
           </div>
         )}
       </main>
+
+      </div>{/* end flex body */}
 
       {/* Modals */}
       {(showAddLead || editingLead) && (

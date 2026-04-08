@@ -127,16 +127,17 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
         <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-pink-100 rounded-full blur-[100px] opacity-40 pointer-events-none" />
         <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-[-0.03em] max-w-4xl mb-7 text-gray-950">
-          Ton site web,
+          Ton commerce mérite
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500">
-            en une phrase.
+            un beau site web.
           </span>
         </h1>
 
         <p className="relative text-lg md:text-xl text-gray-500 max-w-lg leading-relaxed mb-10">
-          Décris ton activité. Adorable génère un site professionnel complet en
-          quelques secondes. Modifie-le en conversant — sans toucher au code.
+          Boulangerie, salon, café, restaurant… Décris ton activité en quelques
+          mots et Adorable crée ton site professionnel en moins d'une minute —
+          sans agence, sans code.
         </p>
 
         <div className="relative flex flex-col sm:flex-row gap-3 mb-4">
@@ -155,7 +156,7 @@ export default function LandingPage() {
           </a>
         </div>
         <p className="text-xs text-gray-400">
-          Sans CB · Prêt en moins de 1 minute
+          Sans CB · Prêt en moins de 1 minute · Aucune compétence technique requise
         </p>
       </section>
 
@@ -171,7 +172,7 @@ export default function LandingPage() {
       <div className="flex items-center justify-center gap-8 md:gap-16 px-6 py-6 border-y border-gray-100">
         {[
           { value: "< 1 min", label: "pour créer" },
-          { value: "1 200+", label: "sites générés" },
+          { value: "1 200+", label: "commerces en ligne" },
           { value: "0€", label: "pour commencer" },
           { value: "4.9 ★", label: "satisfaction" },
         ].map(({ value, label }) => (
@@ -192,7 +193,7 @@ export default function LandingPage() {
             Trois étapes, c'est tout.
           </h2>
           <p className="text-gray-500 max-w-sm mx-auto">
-            Pas de formation, pas d'agence, pas de semaines d'attente.
+            Pas de formation, pas d'agence, pas de semaines d'attente. Juste toi et ton activité.
           </p>
         </div>
 
@@ -200,22 +201,22 @@ export default function LandingPage() {
           {[
             {
               n: "01",
-              title: "Décris ton activité",
-              desc: "Ton nom, ton métier, tes services. En français, naturellement. Plus tu es précis, plus le résultat est bluffant.",
+              title: "Décris ton commerce",
+              desc: "Ton nom, ton adresse, tes horaires, tes spécialités. En français, comme tu parlerais à un client. Trente secondes suffisent.",
               color: "bg-violet-50 border-violet-100",
               accent: "text-violet-600",
             },
             {
               n: "02",
-              title: "L'IA construit le site",
-              desc: "En quelques secondes, un site complet apparaît — hero, services, témoignages, contact — adapté à ton secteur.",
+              title: "L'IA crée ton site",
+              desc: "En quelques secondes, un site complet apparaît — présentation, services, horaires, galerie photos, formulaire de contact.",
               color: "bg-pink-50 border-pink-100",
               accent: "text-pink-600",
             },
             {
               n: "03",
-              title: "Publie et affine",
-              desc: 'Un clic pour mettre en ligne. Dis "change la couleur", "ajoute une FAQ" — l\'IA modifie en temps réel.',
+              title: "Publie et mets à jour",
+              desc: 'Un clic pour mettre en ligne. Dis "ajoute les horaires de Noël" ou "change la photo" — l\'IA s\'en charge.',
               color: "bg-amber-50 border-amber-100",
               accent: "text-amber-600",
             },
@@ -244,12 +245,12 @@ export default function LandingPage() {
 
         <div className="absolute inset-0 flex flex-col items-center justify-center z-20 text-center px-6 pointer-events-none">
           <h2 className="text-4xl md:text-6xl font-black text-gray-950 leading-tight tracking-tight mb-4">
-            Restaurant, portfolio, SaaS,
+            Boulangerie, coiffeur,
             <br className="hidden md:block" />
-            boutique, cabinet, coach…
+            café, restaurant, artisan…
           </h2>
           <p className="text-gray-500 text-lg max-w-md">
-            Adorable crée un design sur-mesure à chaque métier. Jamais un
+            Adorable crée un design sur-mesure pour chaque commerce. Jamais un
             template générique.
           </p>
         </div>
@@ -320,13 +321,14 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#fafaf9] via-violet-50/60 to-[#fafaf9] pointer-events-none" />
         <div className="relative max-w-2xl mx-auto text-center">
           <h2 className="text-5xl md:text-6xl font-black tracking-tight text-gray-950 mb-5 leading-tight">
-            Ton site est à<br />
+            Ton commerce mérite
+            <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-500">
-              30 secondes.
+              d'être en ligne.
             </span>
           </h2>
           <p className="text-gray-500 mb-10 text-lg max-w-sm mx-auto">
-            Rejoins les créateurs qui ont déjà lancé avec Adorable.
+            Rejoins les commerçants qui ont déjà leur site avec Adorable.
           </p>
           <Link
             href="/login"
