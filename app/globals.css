@@ -3,27 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  /* Dark mode (default) */
-  :root, .dark {
-    --background:    0 0% 3%;
-    --foreground:    0 0% 98%;
-    --card:          0 0% 6%;
-    --card-foreground: 0 0% 98%;
-    --border:        0 0% 12%;
-    --input:         0 0% 12%;
-    --ring:          263 70% 60%;
-    --primary:       263 70% 60%;
-    --primary-foreground: 0 0% 100%;
-    --muted:         0 0% 10%;
-    --muted-foreground: 0 0% 50%;
-    --accent:        0 0% 10%;
-    --accent-foreground: 0 0% 98%;
-    --destructive:   0 62% 40%;
-    --radius:        0.5rem;
-  }
-
-  /* Light mode */
-  .light {
+  /* Light mode (default) */
+  :root, .light {
     --background:    0 0% 98%;
     --foreground:    0 0% 8%;
     --card:          0 0% 100%;
@@ -40,6 +21,25 @@
     --destructive:   0 62% 50%;
     --radius:        0.5rem;
   }
+
+  /* Dark mode */
+  .dark {
+    --background:    0 0% 3%;
+    --foreground:    0 0% 98%;
+    --card:          0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --border:        0 0% 12%;
+    --input:         0 0% 12%;
+    --ring:          263 70% 60%;
+    --primary:       263 70% 60%;
+    --primary-foreground: 0 0% 100%;
+    --muted:         0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+    --accent:        0 0% 10%;
+    --accent-foreground: 0 0% 98%;
+    --destructive:   0 62% 40%;
+    --radius:        0.5rem;
+  }
 }
 
 @layer base {
@@ -50,8 +50,37 @@
   ::-webkit-scrollbar-thumb { @apply bg-gray-700 rounded-full; }
 }
 
-/* Light mode surface overrides — swap dark grays to light equivalents */
-.light body { background: #f8f8fc; color: #111; }
+/* ── Dark mode overrides — flip hardcoded light Tailwind classes ─────────────── */
+.dark body                        { background: #0f0f13 !important; color: #f5f5f5 !important; }
+.dark .bg-\[#fafaf9\]             { background-color: #0f0f13 !important; }
+.dark .bg-white                   { background-color: #1a1a24 !important; }
+.dark .bg-gray-50                 { background-color: #14141e !important; }
+.dark .bg-gray-100                { background-color: #1e1e2a !important; }
+.dark .bg-gray-200                { background-color: #252532 !important; }
+.dark .border-gray-100            { border-color: rgba(255,255,255,0.06) !important; }
+.dark .border-gray-200            { border-color: rgba(255,255,255,0.10) !important; }
+.dark .border-gray-300            { border-color: rgba(255,255,255,0.15) !important; }
+.dark .divide-gray-100 > * + *    { border-color: rgba(255,255,255,0.06) !important; }
+.dark .text-gray-950              { color: #f5f5f5 !important; }
+.dark .text-gray-900              { color: #ececec !important; }
+.dark .text-gray-700              { color: #c0c0c0 !important; }
+.dark .text-gray-600              { color: #a0a0a0 !important; }
+.dark .text-gray-500              { color: #808080 !important; }
+.dark .text-gray-400              { color: #666 !important; }
+.dark .hover\:text-gray-900:hover { color: #fff !important; }
+.dark .hover\:bg-gray-50:hover    { background-color: #1e1e2a !important; }
+.dark .hover\:bg-gray-100:hover   { background-color: #252532 !important; }
+.dark .hover\:bg-gray-200:hover   { background-color: #2e2e3e !important; }
+.dark input, .dark textarea, .dark select {
+  background-color: #1a1a24 !important;
+  color: #ececec !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+.dark input::placeholder, .dark textarea::placeholder { color: #555 !important; }
+.dark ::-webkit-scrollbar-thumb  { background: #3a3a50; }
+
+/* ── Legacy light-mode overrides (kept for backwards compat) ─────────────────── */
+.light body { background: #fafaf9; color: #111; }
 .light .bg-gray-950 { background-color: #f0f0f8 !important; }
 .light .bg-gray-900 { background-color: #f7f7fc !important; }
 .light .bg-gray-800 { background-color: #eeeef6 !important; }
@@ -61,9 +90,6 @@
 .light .border-white\/10 { border-color: rgba(0,0,0,0.12) !important; }
 .light .border-white\/20 { border-color: rgba(0,0,0,0.18) !important; }
 .light .text-white  { color: #111 !important; }
-.light .text-gray-400 { color: #555 !important; }
-.light .text-gray-500 { color: #666 !important; }
-.light .text-gray-600 { color: #777 !important; }
 .light .bg-white\/3  { background-color: rgba(0,0,0,0.03) !important; }
 .light .bg-white\/5  { background-color: rgba(0,0,0,0.04) !important; }
 .light .bg-white\/8  { background-color: rgba(0,0,0,0.06) !important; }
@@ -72,11 +98,8 @@
 .light .hover\:bg-white\/5:hover  { background-color: rgba(0,0,0,0.05) !important; }
 .light .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.07) !important; }
 .light .bg-gray-950\/95 { background-color: rgba(240,240,248,0.95) !important; }
-
-/* Chat panel light mode fixes */
 .light .text-gray-200 { color: #222 !important; }
 .light .text-gray-300 { color: #333 !important; }
-.light .text-gray-700 { color: #888 !important; }
 .light .placeholder-gray-600::placeholder { color: #999 !important; }
 .light .border-white\/6 { border-color: rgba(0,0,0,0.08) !important; }
 .light textarea { color: #111 !important; }
