@@ -476,6 +476,24 @@ function StatusBadge({ status, onChange }: { status: Lead['status']; onChange?: 
   )
 }
 
+// ─── Has/No toggle for boolean column filters ─────────────────────────────────
+function HasToggle({ value, onChange }: {
+  value: 'all' | 'yes' | 'no'
+  onChange: (v: 'all' | 'yes' | 'no') => void
+}) {
+  const next = value === 'all' ? 'yes' : value === 'yes' ? 'no' : 'all'
+  return (
+    <button onClick={() => onChange(next)}
+      className={`h-6 px-2 rounded text-[10px] font-semibold border transition-colors w-full ${
+        value === 'all' ? 'bg-transparent border-gray-200 text-gray-400'
+        : value === 'yes' ? 'bg-green-50 border-green-300 text-green-700'
+        : 'bg-red-50 border-red-300 text-red-600'
+      }`}>
+      {value === 'all' ? 'Tous' : value === 'yes' ? '✓ Oui' : '✗ Non'}
+    </button>
+  )
+}
+
 // ─── Main CRM page ────────────────────────────────────────────────────────────
 export default function CRMPage() {
   const router = useRouter()
@@ -494,6 +512,29 @@ export default function CRMPage() {
   const [bulkDeleting,    setBulkDeleting]     = useState(false)
   const [mapOpen,         setMapOpen]          = useState(true)
   const [mapLead,         setMapLead]          = useState<Lead | null>(null)
+  const [colFilters, setColFilters] = useState({
+    business:     '',
+    category:     '',
+    address:      '',
+    arrondissement: '',
+    postcode:     '',
+    phone:        'all' as 'all'|'yes'|'no',
+    minRating:    '',
+    minReviews:   '',
+    email:        'all' as 'all'|'yes'|'no',
+    website:      'all' as 'all'|'yes'|'no',
+    instagram:    'all' as 'all'|'yes'|'no',
+    facebook:     'all' as 'all'|'yes'|'no',
+    outreach:     '',
+    maps:         'all' as 'all'|'yes'|'no',
+  })
+  const setCF = <K extends keyof typeof colFilters>(k: K, v: typeof colFilters[K]) =>
+    setColFilters(p => ({ ...p, [k]: v }))
+  const hasColFilters = Object.entries(colFilters).some(([k, v]) =>
+    k.startsWith('phone') || k.startsWith('email') || k.startsWith('website') ||
+    k.startsWith('instagram') || k.startsWith('facebook') || k.startsWith('maps')
+      ? v !== 'all' : v !== ''
+  )
 
   // Load user & sites — redirect non-admins
   useEffect(() => {
@@ -530,6 +571,12 @@ export default function CRMPage() {
 
   // Filtered leads
   const filtered = useMemo(() => {
+    const cf = colFilters
+    const txt = (val: string | null | undefined, q: string) =>
+      !q || (val ?? '').toLowerCase().includes(q.toLowerCase())
+    const has = (val: unknown, mode: 'all'|'yes'|'no') =>
+      mode === 'all' ? true : mode === 'yes' ? !!val : !val
+
     let result = leads
     if (statusFilter !== 'all') result = result.filter(l => l.status === statusFilter)
     if (search) {
@@ -542,8 +589,23 @@ export default function CRMPage() {
         l.category?.toLowerCase().includes(q)
       )
     }
+    // Column filters
+    if (cf.business)       result = result.filter(l => txt(l.business_name, cf.business))
+    if (cf.category)       result = result.filter(l => txt(l.category, cf.category))
+    if (cf.address)        result = result.filter(l => txt(l.address, cf.address))
+    if (cf.arrondissement) result = result.filter(l => txt(l.arrondissement ?? l.city, cf.arrondissement))
+    if (cf.postcode)       result = result.filter(l => txt(l.postcode ?? l.departement, cf.postcode))
+    if (cf.outreach)       result = result.filter(l => txt(l.outreach_status, cf.outreach))
+    if (cf.minRating)      result = result.filter(l => (l.rating ?? 0) >= parseFloat(cf.minRating))
+    if (cf.minReviews)     result = result.filter(l => (l.reviews ?? 0) >= parseInt(cf.minReviews))
+    if (cf.phone    !== 'all') result = result.filter(l => has(l.phone, cf.phone))
+    if (cf.email    !== 'all') result = result.filter(l => has(l.email, cf.email))
+    if (cf.website  !== 'all') result = result.filter(l => has(l.website_url, cf.website))
+    if (cf.instagram !== 'all') result = result.filter(l => has(l.instagram, cf.instagram))
+    if (cf.facebook !== 'all') result = result.filter(l => has(l.facebook, cf.facebook))
+    if (cf.maps     !== 'all') result = result.filter(l => has(l.google_maps_url, cf.maps))
     return result
-  }, [leads, statusFilter, search])
+  }, [leads, statusFilter, search, colFilters])
 
   const handleSaveLead = async (data: Partial<Lead>) => {
     if (editingLead) {
@@ -876,6 +938,62 @@ export default function CRMPage() {
                   <div>Facebook</div>
                   <div>Statut</div>
                   <div>Maps</div>
+                  <div className="flex items-center justify-end">
+                    {hasColFilters && (
+                      <button onClick={() => setColFilters({
+                        business:'',category:'',address:'',arrondissement:'',postcode:'',
+                        phone:'all',minRating:'',minReviews:'',email:'all',website:'all',
+                        instagram:'all',facebook:'all',outreach:'',maps:'all',
+                      })} className="text-[10px] text-violet-500 hover:text-violet-700 whitespace-nowrap">
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Filter row ── */}
+                <div className="grid grid-cols-[auto_180px_110px_140px_120px_150px_160px_90px_80px_110px_90px_90px_120px_120px_110px_110px_auto] gap-x-2 px-4 py-1.5 border-b border-gray-100 bg-gray-50">
+                  <div />
+                  {/* Business */}
+                  <input value={colFilters.business} onChange={e => setCF('business', e.target.value)}
+                    placeholder="Filtrer…" className="col-filter" />
+                  {/* Category */}
+                  <input value={colFilters.category} onChange={e => setCF('category', e.target.value)}
+                    placeholder="Filtrer…" className="col-filter" />
+                  {/* Address */}
+                  <input value={colFilters.address} onChange={e => setCF('address', e.target.value)}
+                    placeholder="Filtrer…" className="col-filter" />
+                  {/* Arrond */}
+                  <input value={colFilters.arrondissement} onChange={e => setCF('arrondissement', e.target.value)}
+                    placeholder="Filtrer…" className="col-filter" />
+                  {/* CP/Dépt */}
+                  <input value={colFilters.postcode} onChange={e => setCF('postcode', e.target.value)}
+                    placeholder="Filtrer…" className="col-filter" />
+                  {/* Phone toggle */}
+                  <HasToggle value={colFilters.phone} onChange={v => setCF('phone', v)} />
+                  {/* Min rating */}
+                  <input type="number" min="0" max="5" step="0.1"
+                    value={colFilters.minRating} onChange={e => setCF('minRating', e.target.value)}
+                    placeholder="≥ note" className="col-filter" />
+                  {/* Min reviews */}
+                  <input type="number" min="0"
+                    value={colFilters.minReviews} onChange={e => setCF('minReviews', e.target.value)}
+                    placeholder="≥ avis" className="col-filter" />
+                  {/* Horaires — no filter */}
+                  <div />
+                  {/* Email toggle */}
+                  <HasToggle value={colFilters.email} onChange={v => setCF('email', v)} />
+                  {/* Website toggle */}
+                  <HasToggle value={colFilters.website} onChange={v => setCF('website', v)} />
+                  {/* Instagram toggle */}
+                  <HasToggle value={colFilters.instagram} onChange={v => setCF('instagram', v)} />
+                  {/* Facebook toggle */}
+                  <HasToggle value={colFilters.facebook} onChange={v => setCF('facebook', v)} />
+                  {/* Outreach status */}
+                  <input value={colFilters.outreach} onChange={e => setCF('outreach', e.target.value)}
+                    placeholder="Filtrer…" className="col-filter" />
+                  {/* Maps toggle */}
+                  <HasToggle value={colFilters.maps} onChange={v => setCF('maps', v)} />
                   <div />
                 </div>
 

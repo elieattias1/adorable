@@ -109,6 +109,15 @@ html.dark, .dark body             { background-color: #0f0f13 !important; color:
 .light textarea { color: #111 !important; }
 .light textarea::placeholder { color: #999 !important; }
 
+/* CRM column filter input */
+.col-filter {
+  @apply w-full h-6 px-1.5 rounded border border-gray-200 bg-white text-[11px] text-gray-700
+         placeholder-gray-300 focus:outline-none focus:border-violet-400 transition-colors;
+}
+.dark .col-filter {
+  @apply bg-gray-800 border-white/10 text-gray-200 placeholder-gray-600;
+}
+
 @layer utilities {
   .gradient-text {
     @apply bg-gradient-to-r from-violet-400 via-pink-400 to-blue-400 bg-clip-text text-transparent;
