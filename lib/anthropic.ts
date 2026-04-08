@@ -1266,12 +1266,19 @@ export function assembleSections(
 export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: 'write_code',
-    description: `Writes or rewrites the complete React page component (App.tsx).
-Use this tool for:
-- Creating the initial site
-- Full redesigns or global theme changes (dark/light, color palette, typography)
-- Large structural changes (multiple sections added/removed)
-- When the current code is too far from the target
+    description: `Writes or rewrites the COMPLETE React page component (App.tsx).
+
+⚠️  ONLY use this for:
+- Creating the initial site (no existing code)
+- Full redesigns: user says "recommence", "refais tout", "change complètement le style"
+- Global theme changes (dark↔light, complete color palette swap)
+
+🚫 NEVER use this for:
+- Nav changes (add/remove/reorder links) → use edit_code
+- Text/title/price changes → use edit_code
+- Color tweaks → use edit_code
+- Adding or removing a single element → use edit_code or add_section/remove_section
+- Any targeted change → use edit_code
 
 The code runs in a browser iframe with:
 - React 18 + TypeScript
@@ -1300,14 +1307,19 @@ The code runs in a browser iframe with:
 
   {
     name: 'edit_code',
-    description: `Makes targeted search/replace edits to the existing code.
-Use this for:
-- Changing text, titles, prices, descriptions
-- Swapping a color class (bg-violet-600 → bg-blue-600)
-- Adding or modifying a single section
-- Small layout or spacing tweaks
+    description: `Makes targeted search/replace edits to the existing code. This is your DEFAULT tool for modifications.
 
-Each edit finds an exact string in the current code and replaces it.`,
+Use this for (non-exhaustive — when in doubt, use this):
+- Navigation: adding, removing, reordering, renaming nav links or buttons
+- Changing any text, title, price, label, description
+- Swapping a color or Tailwind class
+- Adding/removing a single element (button, badge, icon, link)
+- Changing the order of items in a list or section
+- Any layout or spacing tweak within a section
+- Moving an element from one place to another
+
+Each edit is a search/replace: find an exact string in the current code and replace it.
+Use multiple edits in one call for related changes.`,
     input_schema: {
       type: 'object',
       properties: {
@@ -1503,16 +1515,30 @@ Dis-moi laquelle tu veux ou décris une autre modification !"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ` : `
 COMPORTEMENT D'AGENT :
-Réfléchis brièvement avant d'agir — 1-2 phrases max.
+Avant d'agir, demande-toi : "Est-ce que je peux faire ça avec edit_code ?" Si oui → edit_code. Sinon → outil le plus ciblé.
 Après chaque modification, propose UNE suggestion concrète de prochaine étape.
 `}
-CHOIX D'OUTIL — préfère toujours l'outil le plus ciblé :
-→ write_code    : création initiale, refonte complète, changement de thème global, restructuration majeure
-→ edit_code     : texte, couleurs, ajustements visuels, swapper des URLs d'images
-→ remove_section: supprimer une section entière (ex: "enlève la FAQ") → BEAUCOUP plus rapide que write_code
-→ add_section   : ajouter une nouvelle section sans réécrire le site → BEAUCOUP plus rapide que write_code
-→ search_unsplash : trouver de vraies photos contextuelles, puis les placer avec edit_code
-→ scrape_website  : quand l'utilisateur dit "copie ce site" ou donne une URL de référence — scrape d'abord, puis write_code
+CHOIX D'OUTIL — règle d'or : utilise TOUJOURS l'outil le moins destructif possible.
+
+⛔ write_code est INTERDIT pour :
+  - Modifier la navigation (ajouter/supprimer/déplacer des liens)
+  - Changer un texte, un titre, une description, un prix
+  - Modifier une couleur ou une classe Tailwind
+  - Ajouter/supprimer un bouton, une icône, un élément isolé
+  - Changer l'ordre d'éléments dans une liste ou une section
+  → Pour TOUS ces cas : edit_code obligatoire
+
+✅ write_code uniquement si :
+  - Création initiale d'un site vierge
+  - Refonte complète du design (l'utilisateur dit explicitement "recommence", "refais tout", "change complètement")
+  - Changement de thème global (dark → light, changement de palette entière)
+  - 5+ sections à restructurer simultanément
+
+→ edit_code     : navigation, textes, couleurs, boutons, ordre d'éléments, tout changement ciblé
+→ remove_section: supprimer une section entière (ex: "enlève la FAQ", "supprime les témoignages")
+→ add_section   : ajouter une nouvelle section sans réécrire le site
+→ search_unsplash : trouver de vraies photos, puis les placer avec edit_code
+→ scrape_website  : quand l'utilisateur donne une URL de référence ("inspire-toi de ce site")
 → ask_user        : seulement si vraiment impossible de deviner — préfère une décision créative
 
 CONTRAINTE DE CODE :
