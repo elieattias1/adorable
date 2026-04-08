@@ -9,7 +9,7 @@ import SiteCard from '@/components/dashboard/SiteCard'
 import PlanBanner from '@/components/dashboard/PlanBanner'
 import NewSiteModal, { PaywallModal } from '@/components/dashboard/NewSiteModal'
 import SubmissionsModal from '@/components/dashboard/SubmissionsModal'
-import { Zap, Plus, LogOut, Crown, Loader2, Settings2, User, CreditCard, Check, Eye, EyeOff, ExternalLink, X } from 'lucide-react'
+import { Zap, Plus, LogOut, Crown, Loader2, Settings2, User, CreditCard, Check, Eye, EyeOff, ExternalLink, X, Building2 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { isAdminUserClient } from '@/lib/admin'
 import { Toast, type ToastState } from '@/components/ui/Toast'
@@ -355,6 +355,13 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-amber-400">Admin</span>
             </div>
           )}
+
+          <a href="/dashboard/crm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm"
+            title="CRM Leads">
+            <Building2 className="w-4 h-4" />
+            <span className="hidden sm:inline">CRM</span>
+          </a>
 
           <ThemeToggle />
 

@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerSupabaseClient, supabaseAdmin } from '@/lib/supabase'
+
+// GET /api/leads — list all leads for current user
+export async function GET(req: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const status = req.nextUrl.searchParams.get('status')
+
+  let query = supabaseAdmin
+    .from('leads')
+    .select('*, sites(id, name, deployed_url, is_published)')
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+
+  if (status && status !== 'all') {
+    query = query.eq('status', status)
+  }
+
+  const { data, error } = await query
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ leads: data ?? [] })
+}
+
+// POST /api/leads — create a single lead
+export async function POST(req: NextRequest) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const {
+    business_name, website_url, email, phone, address, category, city,
+    status, notes, cms, page_title, meta_description, og_image, source,
+  } = body
+
+  if (!business_name?.trim()) {
+    return NextResponse.json({ error: 'business_name is required' }, { status: 400 })
+  }
+
+  const { data: lead, error } = await supabaseAdmin
+    .from('leads')
+    .insert({
+      user_id: user.id,
+      business_name: business_name.trim(),
+      website_url:   website_url?.trim() || null,
+      email:         email?.trim()       || null,
+      phone:         phone?.trim()       || null,
+      address:       address?.trim()     || null,
+      category:      category?.trim()    || null,
+      city:          city?.trim()        || null,
+      status:        status              || 'new',
+      notes:         notes?.trim()       || null,
+      cms:           cms                 || null,
+      page_title:    page_title          || null,
+      meta_description: meta_description || null,
+      og_image:      og_image            || null,
+      source:        source              || 'manual',
+    })
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ lead }, { status: 201 })
+}
+
+// POST /api/leads/bulk — handled in /api/leads/bulk/route.ts
