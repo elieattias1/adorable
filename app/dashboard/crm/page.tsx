@@ -57,11 +57,35 @@ function parseCSV(text: string): Record<string, string>[] {
   }).filter(r => Object.values(r).some(v => v))
 }
 
+// ─── Extract lat/lng from a Google Maps URL ───────────────────────────────────
+// Handles the !3d{lat}!4d{lng} format used in Google Maps data URLs
+function extractCoordsFromMapsUrl(url: string): { lat: number; lng: number } | null {
+  if (!url) return null
+  // !3d{lat}!4d{lng}  — most common in /data= URLs
+  const m = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/)
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) }
+  // /@{lat},{lng},{zoom}
+  const m2 = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  if (m2) return { lat: parseFloat(m2[1]), lng: parseFloat(m2[2]) }
+  return null
+}
+
 // ─── CSV column mapping ───────────────────────────────────────────────────────
 function mapCsvRow(row: Record<string, string>): Partial<Lead> {
   const g  = (...keys: string[]) => keys.map(k => row[k]).find(v => v) || undefined
   const gn = (...keys: string[]) => { const v = g(...keys); return v ? parseFloat(v) || undefined : undefined }
   const gb = (...keys: string[]) => { const v = g(...keys); return v ? v === 'true' || v === '1' || v === 'yes' : undefined }
+
+  const mapsUrl = g('google_maps_url', 'maps_url', 'google_maps')
+
+  // Prefer explicit lat/lng columns; fall back to extracting from google_maps_url
+  let lat = gn('latitude', 'lat')
+  let lng = gn('longitude', 'lng', 'lon')
+  if ((lat == null || lng == null) && mapsUrl) {
+    const coords = extractCoordsFromMapsUrl(mapsUrl)
+    if (coords) { lat = coords.lat; lng = coords.lng }
+  }
+
   return {
     business_name:   g('name','business_name','nom','business','company') || 'Unknown',
     website_url:     g('website','website_url','url','site','web') || undefined,
@@ -71,7 +95,6 @@ function mapCsvRow(row: Record<string, string>): Partial<Lead> {
     city:            g('city','ville') || undefined,
     category:        g('category','catégorie','type') || undefined,
     cms:             g('cms') || undefined,
-    // Extended Google Maps columns
     arrondissement:  g('arrondissement') || undefined,
     postcode:        g('postcode','postal_code','code_postal','zip') || undefined,
     departement:     g('departement','département') || undefined,
@@ -80,12 +103,12 @@ function mapCsvRow(row: Record<string, string>): Partial<Lead> {
     opening_hours:   g('opening_hours','horaires') || undefined,
     instagram:       g('instagram') || undefined,
     facebook:        g('facebook') || undefined,
-    latitude:        gn('latitude','lat'),
-    longitude:       gn('longitude','lng','lon'),
-    google_maps_url: g('google_maps_url','maps_url','google_maps') || undefined,
+    latitude:        lat,
+    longitude:       lng,
+    google_maps_url: mapsUrl,
     has_website:     gb('has_website'),
     outreach_status: g('outreach_status') || undefined,
-    source:          'csv_import',
+    source:          g('source') || 'csv_import',
   }
 }
 
@@ -577,7 +600,10 @@ export default function CRMPage() {
   }
 
   const mappableCount = useMemo(() =>
-    leads.filter(l => l.latitude != null && l.longitude != null).length
+    leads.filter(l =>
+      (l.latitude != null && l.longitude != null) ||
+      (l.google_maps_url != null && /!3d|@-?\d/.test(l.google_maps_url))
+    ).length
   , [leads])
 
   return (

@@ -4,6 +4,21 @@ import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
 import type { Lead } from '@/hooks/useLeads'
 
+// Extract coordinates from a Google Maps URL when lat/lng columns are empty
+function getCoordsFromMapsUrl(url: string): [number, number] | null {
+  const m = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/)
+  if (m) return [parseFloat(m[1]), parseFloat(m[2])]
+  const m2 = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+  if (m2) return [parseFloat(m2[1]), parseFloat(m2[2])]
+  return null
+}
+
+function getCoords(lead: Lead): [number, number] | null {
+  if (lead.latitude != null && lead.longitude != null) return [lead.latitude, lead.longitude]
+  if (lead.google_maps_url) return getCoordsFromMapsUrl(lead.google_maps_url)
+  return null
+}
+
 interface Props {
   leads: Lead[]
   selectedId: string | null
@@ -15,7 +30,7 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
   const mapRef       = useRef<import('leaflet').Map | null>(null)
   const markersRef   = useRef<Map<string, import('leaflet').Marker>>(new Map())
 
-  const mappable = leads.filter(l => l.latitude != null && l.longitude != null)
+  const mappable = leads.filter(l => getCoords(l) != null)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -40,8 +55,8 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
       const bounds: [number, number][] = []
 
       leads.forEach(lead => {
-        if (lead.latitude == null || lead.longitude == null) return
-        const coords: [number, number] = [lead.latitude, lead.longitude]
+        const coords = getCoords(lead)
+        if (!coords) return
         const marker = L.marker(coords)
           .addTo(map)
           .on('click', () => onSelect(lead))
@@ -81,10 +96,10 @@ export default function LeadsMap({ leads, selectedId, onSelect }: Props) {
       const currentIds  = new Set<string>()
 
       leads.forEach(lead => {
-        if (lead.latitude == null || lead.longitude == null) return
+        const coords = getCoords(lead)
+        if (!coords) return
         currentIds.add(lead.id)
         if (!existingIds.has(lead.id)) {
-          const coords: [number, number] = [lead.latitude, lead.longitude]
           const marker = L.marker(coords).addTo(map).on('click', () => onSelect(lead))
           markersRef.current.set(lead.id, marker)
         }
