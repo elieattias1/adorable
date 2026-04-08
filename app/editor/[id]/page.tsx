@@ -155,6 +155,8 @@ function EditorPage() {
       let   buffer  = ''
       let   accumulatedText  = ''
       let   accumulatedSteps: import('@/components/editor/ChatPanel').AgentStep[] = []
+      let   generationDone   = false
+      let   generationError  = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -166,77 +168,91 @@ function EditorPage() {
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
-          try {
-            const data = JSON.parse(line.slice(6))
+          let data: any
+          try { data = JSON.parse(line.slice(6)) } catch { continue }
 
-            if (data.error) {
-              if (data.upgrade) showToast(data.error, 'error')
-              throw new Error(data.error)
+          if (data.error) {
+            generationError = data.error
+            if (data.upgrade) showToast(data.error, 'error')
+            else              showToast(data.error, 'error')
+            break
+          }
+
+          if (data.chunk) {
+            accumulatedText += data.chunk
+            setStreamingText(accumulatedText)
+          }
+
+          if (data.tool_start) {
+            accumulatedSteps = [...accumulatedSteps, data.tool_start]
+            setCurrentSteps([...accumulatedSteps])
+          }
+
+          // Sequential generation: a new section is starting
+          if (data.section_start) {
+            accumulatedSteps = [...accumulatedSteps, {
+              name:  'write_section',
+              icon:  '🔨',
+              label: data.section_start.label,
+              done:  false,
+            }]
+            setCurrentSteps([...accumulatedSteps])
+          }
+
+          // Section finished — mark the last step as done
+          if (data.section_done !== undefined) {
+            accumulatedSteps = accumulatedSteps.map((s, i) =>
+              i === accumulatedSteps.length - 1 ? { ...s, done: true, icon: data.section_skipped ? '⚠️' : '✓' } : s
+            )
+            setCurrentSteps([...accumulatedSteps])
+          }
+
+          // Live streaming: code being written token by token
+          if (data.code_stream) {
+            setStreamingCode(data.code_stream)
+          }
+
+          // Tool / section finished → clear overlay, update preview
+          if (data.code_update) {
+            setStreamingCode('')
+            setSiteCode(data.code_update)
+          }
+
+          if (data.done) {
+            generationDone = true
+            if (data.code) setSiteCode(data.code)
+            if (data.upgrade) showToast('Limite de 5 versions atteinte — passe à Pro pour des versions illimitées', 'error')
+
+            const aiMsg: ChatMessage = {
+              id:         `ai-${Date.now()}`,
+              role:       'assistant',
+              content:    data.ask || data.note || 'Site mis à jour ✓',
+              created_at: new Date().toISOString(),
+              steps:      accumulatedSteps.length > 0 ? accumulatedSteps : undefined,
             }
-
-            if (data.chunk) {
-              accumulatedText += data.chunk
-              setStreamingText(accumulatedText)
-            }
-
-            if (data.tool_start) {
-              accumulatedSteps = [...accumulatedSteps, data.tool_start]
-              setCurrentSteps([...accumulatedSteps])
-            }
-
-            // Sequential generation: a new section is starting
-            if (data.section_start) {
-              accumulatedSteps = [...accumulatedSteps, {
-                name:  'write_section',
-                icon:  '🔨',
-                label: data.section_start.label,
-                done:  false,
-              }]
-              setCurrentSteps([...accumulatedSteps])
-            }
-
-            // Section finished — mark the last step as done
-            if (data.section_done !== undefined) {
-              accumulatedSteps = accumulatedSteps.map((s, i) =>
-                i === accumulatedSteps.length - 1 ? { ...s, done: true, icon: data.section_skipped ? '⚠️' : '✓' } : s
-              )
-              setCurrentSteps([...accumulatedSteps])
-            }
-
-            // Live streaming: code being written token by token
-            if (data.code_stream) {
-              setStreamingCode(data.code_stream)
-            }
-
-            // Tool / section finished → clear overlay, update preview
-            if (data.code_update) {
-              setStreamingCode('')
-              setSiteCode(data.code_update)
-            }
-
-            if (data.done) {
-              if (data.code) setSiteCode(data.code)
-              if (data.upgrade) showToast('Limite de 5 versions atteinte — passe à Pro pour des versions illimitées', 'error')
-
-              const aiMsg: ChatMessage = {
-                id:         `ai-${Date.now()}`,
-                role:       'assistant',
-                content:    data.ask || data.note || 'Site mis à jour ✓',
-                created_at: new Date().toISOString(),
-                steps:      accumulatedSteps.length > 0 ? accumulatedSteps : undefined,
-              }
-              setMessages(prev => [...prev, aiMsg])
-
-              const { data: newVersions } = await supabase
-                .from('versions').select('id, note, created_at')
-                .eq('site_id', siteId).order('created_at', { ascending: false }).limit(50)
-              if (newVersions) setVersions(newVersions as Version[])
-            }
-          } catch (parseErr: any) {
-            if (parseErr.message && parseErr.message !== 'Unexpected token') throw parseErr
+            setMessages(prev => [...prev, aiMsg])
           }
         }
       }
+
+      // ── After stream: sync state from DB ────────────────────────────────
+      if (generationDone) {
+        // Reload versions list
+        const { data: newVersions } = await supabase
+          .from('versions').select('id, note, created_at')
+          .eq('site_id', siteId).order('created_at', { ascending: false }).limit(50)
+        if (newVersions) setVersions(newVersions as Version[])
+
+        // Reload site html from DB as source of truth (catches any sync issues)
+        const { data: freshSite } = await supabase.from('sites').select('html').eq('id', siteId).single()
+        if (freshSite?.html) setSiteCode(freshSite.html)
+      }
+
+      if (generationError) {
+        // Remove the optimistic user message since generation failed before saving
+        setMessages(prev => prev.filter(m => m.id !== userMsg.id))
+      }
+
     } catch (err: any) {
       setMessages(prev => prev.filter(m => m.id !== userMsg.id))
       showToast(err.message || 'Erreur lors de la génération', 'error')

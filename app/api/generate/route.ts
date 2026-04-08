@@ -382,32 +382,43 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // ── Save site code first (most critical) ─────────────────────────
+        let versionLimitHit = false
+        if (finalCode) {
+          const { error: siteErr } = await supabaseAdmin
+            .from('sites')
+            .update({ html: finalCode, updated_at: new Date().toISOString() })
+            .eq('id', siteId)
+          if (siteErr) console.error(`${tag} ❌ site save error:`, siteErr)
+          else         console.log(`${tag} 💾 saved  codeLen=${finalCode.length}`)
+
+          try {
+            const { isAdminUser } = await import('@/lib/admin')
+            const { PLANS }       = await import('@/lib/stripe')
+            const { data: profile } = await supabaseAdmin.from('profiles').select('plan').eq('id', user.id).single()
+            const plan        = (profile?.plan ?? 'free') as keyof typeof PLANS
+            const maxVersions = isAdminUser(user.id) ? Infinity : (PLANS[plan] ?? PLANS.free).maxVersionsPerSite
+            const { count }   = await supabaseAdmin.from('versions').select('id', { count: 'exact', head: true }).eq('site_id', siteId)
+
+            if (maxVersions === Infinity || (count ?? 0) < maxVersions) {
+              await supabaseAdmin.from('versions').insert({ site_id: siteId, user_id: user.id, html: finalCode, note: finalNote })
+            } else {
+              versionLimitHit = true
+            }
+          } catch (vErr) {
+            console.error(`${tag} ⚠️  version save error (non-blocking):`, vErr)
+          }
+        }
+
         // ── Save messages ─────────────────────────────────────────────────
         const savedUserContent = image ? `${message} [image: ${image.url}]` : message
         const savedNote = askQuestion ? `[Question] ${askQuestion}` : finalNote
-        await Promise.all([
+        const [umRes, amRes] = await Promise.all([
           supabaseAdmin.from('messages').insert({ site_id: siteId, user_id: user.id, role: 'user',      content: savedUserContent }),
           supabaseAdmin.from('messages').insert({ site_id: siteId, user_id: user.id, role: 'assistant', content: savedNote }),
         ])
-
-        // ── Save version + update DB ──────────────────────────────────────
-        let versionLimitHit = false
-        if (finalCode) {
-          const { isAdminUser } = await import('@/lib/admin')
-          const { PLANS }       = await import('@/lib/stripe')
-          const { data: profile } = await supabaseAdmin.from('profiles').select('plan').eq('id', user.id).single()
-          const plan      = (profile?.plan ?? 'free') as keyof typeof PLANS
-          const maxVersions = isAdminUser(user.id) ? Infinity : (PLANS[plan] ?? PLANS.free).maxVersionsPerSite
-          const { count } = await supabaseAdmin.from('versions').select('id', { count: 'exact', head: true }).eq('site_id', siteId)
-
-          if (maxVersions === Infinity || (count ?? 0) < maxVersions) {
-            await supabaseAdmin.from('versions').insert({ site_id: siteId, user_id: user.id, html: finalCode, note: finalNote })
-          } else {
-            versionLimitHit = true
-          }
-          await supabaseAdmin.from('sites').update({ html: finalCode, updated_at: new Date().toISOString() }).eq('id', siteId)
-          console.log(`${tag} 💾 saved  codeLen=${finalCode.length}`)
-        }
+        if (umRes.error) console.error(`${tag} ❌ user msg save error:`, umRes.error)
+        if (amRes.error) console.error(`${tag} ❌ ai msg save error:`,   amRes.error)
 
         // ── Done ──────────────────────────────────────────────────────────
         safeSend({
