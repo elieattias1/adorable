@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { scrapeUrl, formatScrapeForAgent } from './scrape'
 
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -1394,6 +1395,29 @@ Much faster than write_code for additions — use this instead.`,
   },
 
   {
+    name: 'scrape_website',
+    description: `Scrapes an external website and returns its content, structure, and design metadata.
+Use when the user wants to:
+- Copy or replicate a website ("fais un site comme ça", "copie ce site", "inspire-toi de X")
+- Import content or branding from a URL
+- Use an existing site as a visual or structural reference
+
+Returns: title, nav links, headings, CTA texts, body content, color palette, fonts, and cleaned HTML.
+After scraping, use write_code to create a similar site inspired by the data.
+If the site cannot be scraped (blocked, offline, invalid URL), the error is explained to the user.`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Full URL to scrape, e.g. https://example.com. Will add https:// automatically if missing.',
+        },
+      },
+      required: ['url'],
+    },
+  },
+
+  {
     name: 'search_unsplash',
     description: `Searches Unsplash for relevant photos and returns their direct CDN URLs.
 Use BEFORE swapping images with edit_code to get contextually correct photos.
@@ -1483,8 +1507,9 @@ CHOIX D'OUTIL — préfère toujours l'outil le plus ciblé :
 → edit_code     : texte, couleurs, ajustements visuels, swapper des URLs d'images
 → remove_section: supprimer une section entière (ex: "enlève la FAQ") → BEAUCOUP plus rapide que write_code
 → add_section   : ajouter une nouvelle section sans réécrire le site → BEAUCOUP plus rapide que write_code
-→ search_unsplash: trouver de vraies photos contextuelles, puis les placer avec edit_code
-→ ask_user      : seulement si vraiment impossible de deviner — préfère une décision créative
+→ search_unsplash : trouver de vraies photos contextuelles, puis les placer avec edit_code
+→ scrape_website  : quand l'utilisateur dit "copie ce site" ou donne une URL de référence — scrape d'abord, puis write_code
+→ ask_user        : seulement si vraiment impossible de deviner — préfère une décision créative
 
 CONTRAINTE DE CODE :
 - Max 1 000 lignes pour la création initiale, 600 pour les éditions
@@ -1693,6 +1718,24 @@ export async function executeTool(
         return { code: result, note: toolInput.note }
       }
 
+      case 'scrape_website': {
+        const url = (toolInput.url as string)?.trim()
+        if (!url) return { error: 'URL manquante' }
+        try { new URL(url.startsWith('http') ? url : `https://${url}`) } catch {
+          return { error: `URL invalide : "${url}"` }
+        }
+
+        const result = await scrapeUrl(url)
+        if (!result.ok) {
+          return { error: `Impossible de scraper ${url} : ${result.error}` }
+        }
+
+        const formatted = formatScrapeForAgent(result, url)
+        return {
+          info: `${formatted}\n\n─────\nScraping terminé. Utilise write_code pour recréer ce site en t'inspirant du contenu, des titres, des couleurs et de la structure ci-dessus.`,
+        }
+      }
+
       case 'search_unsplash': {
         const query      = toolInput.query as string
         const count      = Math.min(Math.max(Number(toolInput.count ?? 4), 1), 6)
@@ -1740,6 +1783,8 @@ export function getToolMeta(toolName: string, input: Record<string, any>): { ico
       return { icon: '✏️', label: `Modification : ${input.note || (input.edits?.length + ' edit(s)')}` }
     case 'ask_user':
       return { icon: '💬', label: 'Question de clarification' }
+    case 'scrape_website':
+      return { icon: '🌐', label: `Scraping : ${input.url}` }
     case 'remove_section':
       return { icon: '🗑️', label: `Suppression : ${input.component || 'section'}` }
     case 'add_section':
