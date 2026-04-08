@@ -27,8 +27,9 @@ node_modules/
 *.tsbuildinfo
 next-env.d.ts
 
-# scraper data (screenshots, metadata, output)
-scraper/
+# scraper — ignore output (screenshots, HTML, datasets) but keep scripts
+scraper/node_modules/
+scraper/output/
 
 # misc
 .DS_Store

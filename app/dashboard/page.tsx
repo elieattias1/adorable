@@ -103,11 +103,11 @@ function ProfileModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={handleBackdrop}
     >
-      <div className="bg-gray-950 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-          <h2 className="font-bold text-base">Mon profil</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/8 transition-all">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 className="font-bold text-base text-gray-950">Mon profil</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -115,13 +115,13 @@ function ProfileModal({
         <div className="p-6 space-y-6">
           {/* Auth section */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <User className="w-3.5 h-3.5" /> Compte
             </h3>
-            <div className="bg-gray-900 border border-white/8 rounded-xl p-4 space-y-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">Email</label>
-                <div className="px-3.5 py-2.5 rounded-xl bg-white/4 border border-white/8 text-sm text-gray-300">
+                <div className="px-3.5 py-2.5 rounded-xl bg-white border border-gray-200 text-sm text-gray-700">
                   {userEmail || '—'}
                 </div>
               </div>
@@ -135,12 +135,12 @@ function ProfileModal({
                       onChange={e => setNewPassword(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handlePasswordChange()}
                       placeholder="Minimum 6 caractères"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/4 border border-white/8 focus:border-violet-500/60 text-sm outline-none text-white placeholder-gray-600 pr-10 transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-gray-200 focus:border-violet-500 text-sm outline-none text-gray-900 placeholder-gray-400 pr-10 transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -160,21 +160,21 @@ function ProfileModal({
 
           {/* Billing section */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2 mb-3">
               <CreditCard className="w-3.5 h-3.5" /> Abonnement
             </h3>
 
             {/* Paid user: show current plan + portal CTA */}
             {isPro && !isAdmin && (
-              <div className="bg-violet-950/30 border border-violet-700/30 rounded-xl p-4 mb-4 flex items-center justify-between gap-4">
+              <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Plan actuel</p>
-                  <p className="font-bold text-sm capitalize">{currentPlan} <span className="text-gray-500 font-normal">— actif</span></p>
+                  <p className="font-bold text-sm capitalize text-gray-900">{currentPlan} <span className="text-gray-500 font-normal">— actif</span></p>
                   <p className="text-[11px] text-gray-500 mt-1">Modifie, change ou annule ton abonnement directement via Stripe.</p>
                 </div>
                 <button
                   onClick={openPortal}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/8 hover:bg-white/12 border border-white/10 text-sm font-semibold transition-all whitespace-nowrap"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 transition-all whitespace-nowrap"
                 >
                   Gérer <ExternalLink className="w-3.5 h-3.5" />
                 </button>
@@ -191,10 +191,10 @@ function ProfileModal({
                     key={plan.id}
                     className={`relative rounded-xl border p-4 flex flex-col gap-3 ${
                       isCurrent
-                        ? 'border-green-600/50 bg-green-950/20'
+                        ? 'border-green-300 bg-green-50'
                         : plan.highlighted
-                        ? 'border-violet-600/50 bg-violet-950/20'
-                        : 'border-white/8 bg-white/3'
+                        ? 'border-violet-300 bg-violet-50'
+                        : 'border-gray-200 bg-gray-50'
                     }`}
                   >
                     {isCurrent && (
@@ -217,7 +217,7 @@ function ProfileModal({
 
                     <ul className="flex-1 space-y-1.5">
                       {plan.features.map((f: string) => (
-                        <li key={f} className="flex items-start gap-1.5 text-xs text-gray-400">
+                        <li key={f} className="flex items-start gap-1.5 text-xs text-gray-500">
                           <Check className="w-3 h-3 text-green-500 flex-shrink-0 mt-0.5" />
                           {f}
                         </li>
@@ -323,18 +323,18 @@ export default function DashboardPage() {
   const isPro    = profile?.plan === 'pro' || profile?.plan === 'starter'
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-[#fafaf9] text-gray-900 flex flex-col">
       <Suspense fallback={null}>
         <UpgradeChecker onUpgraded={() => setToast({ msg: 'Bienvenue sur Pro ! 🎉 Ton abonnement est actif.', type: 'success' })} />
       </Suspense>
 
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-white/5 flex-shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
-            <Zap className="w-4 h-4" />
+      <nav className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold text-lg">Adorable</span>
+          <span className="font-black text-lg tracking-tight text-gray-950">adorable</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -342,22 +342,22 @@ export default function DashboardPage() {
           {profile && !isAdmin && (
             <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
               isPro
-                ? 'bg-violet-950/50 border-violet-700/50 text-violet-300'
-                : 'bg-white/5 border-white/10 text-gray-400'
+                ? 'bg-violet-50 border-violet-200 text-violet-700'
+                : 'bg-gray-100 border-gray-200 text-gray-500'
             }`}>
               {isPro && <Crown className="w-3 h-3" />}
               {isPro ? 'Pro' : 'Gratuit'}
             </div>
           )}
           {isAdmin && (
-            <div className="flex items-center gap-1 bg-amber-950/50 border border-amber-700/40 rounded-lg px-2 py-1">
-              <Settings2 className="w-3 h-3 text-amber-400" />
-              <span className="text-xs font-semibold text-amber-400">Admin</span>
+            <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+              <Settings2 className="w-3 h-3 text-amber-600" />
+              <span className="text-xs font-semibold text-amber-600">Admin</span>
             </div>
           )}
 
           <a href="/dashboard/crm"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all text-sm"
             title="CRM Leads">
             <Building2 className="w-4 h-4" />
             <span className="hidden sm:inline">CRM</span>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
           {/* Avatar — click to open profile */}
           <button
             onClick={() => setShowProfile(true)}
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-violet-500/60 transition-all"
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-xs font-bold text-white hover:ring-2 hover:ring-violet-500/60 transition-all"
             title="Mon profil"
           >
             {initials}
@@ -377,7 +377,7 @@ export default function DashboardPage() {
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all text-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all text-sm"
           >
             {loggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
           </button>
@@ -412,11 +412,11 @@ export default function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-gray-900 rounded-xl overflow-hidden border border-white/5 animate-pulse">
-                <div className="h-36 bg-gray-800" />
+              <div key={i} className="bg-white rounded-xl overflow-hidden border border-gray-200 animate-pulse">
+                <div className="h-36 bg-gray-100" />
                 <div className="p-3 space-y-2">
-                  <div className="h-3 bg-gray-800 rounded w-3/4" />
-                  <div className="h-2.5 bg-gray-800 rounded w-1/2" />
+                  <div className="h-3 bg-gray-100 rounded w-3/4" />
+                  <div className="h-2.5 bg-gray-100 rounded w-1/2" />
                 </div>
               </div>
             ))}
@@ -440,7 +440,7 @@ export default function DashboardPage() {
             <div className="flex gap-3 mt-10 flex-wrap justify-center">
               {[['🍽️','Restaurant'],['🎨','Portfolio'],['🛍️','Boutique'],['⚡','SaaS'],['✍️','Blog'],['🏢','Business']].map(([e,l]) => (
                 <button key={l} onClick={() => setShowNewSite(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/4 border border-white/8 text-xs text-gray-400 hover:text-white hover:border-violet-500/40 hover:bg-violet-500/10 transition-all">
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-xs text-gray-500 hover:text-gray-900 hover:border-violet-400 hover:bg-violet-50 transition-all">
                   <span>{e}</span> {l}
                 </button>
               ))}
@@ -461,7 +461,7 @@ export default function DashboardPage() {
             ))}
             <button
               onClick={() => setShowNewSite(true)}
-              className="flex flex-col items-center justify-center gap-2 h-[172px] rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/50 text-gray-600 hover:text-violet-400 transition-all group"
+              className="flex flex-col items-center justify-center gap-2 h-[172px] rounded-xl border-2 border-dashed border-gray-200 hover:border-violet-400 text-gray-400 hover:text-violet-500 transition-all group"
             >
               <div className="w-10 h-10 rounded-xl border-2 border-dashed border-current flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="w-5 h-5" />
