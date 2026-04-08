@@ -9,24 +9,24 @@ export const metadata = {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>
-      <div className="text-gray-400 text-sm leading-relaxed space-y-3">{children}</div>
+      <h2 className="text-xl font-bold mb-4 text-gray-950">{title}</h2>
+      <div className="text-gray-500 text-sm leading-relaxed space-y-3">{children}</div>
     </section>
   );
 }
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-[#fafaf9] text-gray-900">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-white/5 bg-gray-950/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-gray-200/60 bg-[#fafaf9]/90 backdrop-blur-xl">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-black text-lg">Adorable</span>
+          <span className="font-black text-lg tracking-tight text-gray-950">adorable</span>
         </Link>
-        <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
+        <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
           Se connecter
         </Link>
       </nav>
@@ -40,15 +40,15 @@ export default function PrivacyPage() {
 
         <Section title="1. Qui sommes-nous ?">
           <p>
-            Le présent service est exploité par la société <strong className="text-white">Adorable</strong> (ci-après «&nbsp;nous&nbsp;»), joignable à l'adresse{" "}
-            <a href="mailto:hello@adorable.click" className="text-violet-400 hover:underline">
+            Le présent service est exploité par la société <strong className="text-gray-900">Adorable</strong> (ci-après «&nbsp;nous&nbsp;»), joignable à l'adresse{" "}
+            <a href="mailto:hello@adorable.click" className="text-violet-600 hover:underline">
               hello@adorable.click
             </a>
             .
           </p>
           <p>
             Adorable est un service de création de sites web par intelligence artificielle, accessible à l'adresse{" "}
-            <span className="text-white">adorable.click</span>.
+            <span className="text-gray-900">adorable.click</span>.
           </p>
         </Section>
 
@@ -56,19 +56,19 @@ export default function PrivacyPage() {
           <p>Nous collectons les données suivantes :</p>
           <ul className="list-disc list-inside space-y-1.5 ml-2">
             <li>
-              <strong className="text-white">Données de compte :</strong> adresse e-mail, mot de passe (hashé), date d'inscription, fournisseur d'authentification (email/Google).
+              <strong className="text-gray-900">Données de compte :</strong> adresse e-mail, mot de passe (hashé), date d'inscription, fournisseur d'authentification (email/Google).
             </li>
             <li>
-              <strong className="text-white">Données de contenu :</strong> textes, images et informations que vous saisissez pour créer votre site.
+              <strong className="text-gray-900">Données de contenu :</strong> textes, images et informations que vous saisissez pour créer votre site.
             </li>
             <li>
-              <strong className="text-white">Données de paiement :</strong> gérées exclusivement par Stripe. Nous ne stockons aucune information bancaire.
+              <strong className="text-gray-900">Données de paiement :</strong> gérées exclusivement par Stripe. Nous ne stockons aucune information bancaire.
             </li>
             <li>
-              <strong className="text-white">Données de navigation :</strong> adresse IP, type de navigateur, pages visitées, durée de session, à des fins d'analyse et de sécurité.
+              <strong className="text-gray-900">Données de navigation :</strong> adresse IP, type de navigateur, pages visitées, durée de session, à des fins d'analyse et de sécurité.
             </li>
             <li>
-              <strong className="text-white">Données de formulaires :</strong> les réponses soumises via les formulaires de contact générés sur vos sites sont stockées dans notre base de données et vous sont transmises par e-mail.
+              <strong className="text-gray-900">Données de formulaires :</strong> les réponses soumises via les formulaires de contact générés sur vos sites sont stockées dans notre base de données et vous sont transmises par e-mail.
             </li>
           </ul>
         </Section>
@@ -92,19 +92,19 @@ export default function PrivacyPage() {
           <p>Nous ne vendons jamais vos données. Elles peuvent être partagées avec les sous-traitants suivants, strictement dans le cadre de la fourniture du service :</p>
           <ul className="list-disc list-inside space-y-1.5 ml-2">
             <li>
-              <strong className="text-white">Supabase</strong> — base de données et authentification (États-Unis, couverture SCCs)
+              <strong className="text-gray-900">Supabase</strong> — base de données et authentification (États-Unis, couverture SCCs)
             </li>
             <li>
-              <strong className="text-white">Vercel</strong> — hébergement des sites publiés (États-Unis, couverture SCCs)
+              <strong className="text-gray-900">Vercel</strong> — hébergement des sites publiés (États-Unis, couverture SCCs)
             </li>
             <li>
-              <strong className="text-white">Stripe</strong> — traitement des paiements (États-Unis, certifié PCI-DSS)
+              <strong className="text-gray-900">Stripe</strong> — traitement des paiements (États-Unis, certifié PCI-DSS)
             </li>
             <li>
-              <strong className="text-white">Resend</strong> — envoi d'e-mails transactionnels (États-Unis, couverture SCCs)
+              <strong className="text-gray-900">Resend</strong> — envoi d'e-mails transactionnels (États-Unis, couverture SCCs)
             </li>
             <li>
-              <strong className="text-white">Anthropic</strong> — génération de contenu par IA (États-Unis, couverture SCCs)
+              <strong className="text-gray-900">Anthropic</strong> — génération de contenu par IA (États-Unis, couverture SCCs)
             </li>
           </ul>
         </Section>
@@ -120,21 +120,21 @@ export default function PrivacyPage() {
         <Section title="6. Vos droits (RGPD)">
           <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
           <ul className="list-disc list-inside space-y-1.5 ml-2">
-            <li><strong className="text-white">Accès</strong> — obtenir une copie de vos données</li>
-            <li><strong className="text-white">Rectification</strong> — corriger des données inexactes</li>
-            <li><strong className="text-white">Effacement</strong> — demander la suppression de vos données («&nbsp;droit à l'oubli&nbsp;»)</li>
-            <li><strong className="text-white">Portabilité</strong> — recevoir vos données dans un format structuré</li>
-            <li><strong className="text-white">Opposition</strong> — vous opposer à certains traitements</li>
-            <li><strong className="text-white">Limitation</strong> — limiter le traitement de vos données</li>
+            <li><strong className="text-gray-900">Accès</strong> — obtenir une copie de vos données</li>
+            <li><strong className="text-gray-900">Rectification</strong> — corriger des données inexactes</li>
+            <li><strong className="text-gray-900">Effacement</strong> — demander la suppression de vos données («&nbsp;droit à l'oubli&nbsp;»)</li>
+            <li><strong className="text-gray-900">Portabilité</strong> — recevoir vos données dans un format structuré</li>
+            <li><strong className="text-gray-900">Opposition</strong> — vous opposer à certains traitements</li>
+            <li><strong className="text-gray-900">Limitation</strong> — limiter le traitement de vos données</li>
           </ul>
           <p>
             Pour exercer ces droits, contactez-nous à{" "}
-            <a href="mailto:hello@adorable.click" className="text-violet-400 hover:underline">
+            <a href="mailto:hello@adorable.click" className="text-violet-600 hover:underline">
               hello@adorable.click
             </a>
             . Vous disposez également du droit d'introduire une réclamation auprès de la{" "}
-            <strong className="text-white">CNIL</strong> (Commission Nationale de l'Informatique et des Libertés) à l'adresse{" "}
-            <a href="https://www.cnil.fr" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+            <strong className="text-gray-900">CNIL</strong> (Commission Nationale de l'Informatique et des Libertés) à l'adresse{" "}
+            <a href="https://www.cnil.fr" className="text-violet-600 hover:underline" target="_blank" rel="noopener">
               cnil.fr
             </a>
             .
@@ -165,7 +165,7 @@ export default function PrivacyPage() {
         <Section title="10. Contact">
           <p>
             Pour toute question relative à la protection de vos données :{" "}
-            <a href="mailto:hello@adorable.click" className="text-violet-400 hover:underline">
+            <a href="mailto:hello@adorable.click" className="text-violet-600 hover:underline">
               hello@adorable.click
             </a>
           </p>
@@ -173,20 +173,20 @@ export default function PrivacyPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 px-6 md:px-12 py-8">
+      <footer className="border-t border-gray-200 px-6 md:px-12 py-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-gray-950 flex items-center justify-center">
               <Zap className="w-3 h-3 text-white" />
             </div>
-            <span className="font-black text-sm">Adorable</span>
+            <span className="font-black text-sm text-gray-950">adorable</span>
           </div>
-          <div className="flex gap-6 text-xs text-gray-600">
-            <Link href="/terms" className="hover:text-gray-400 transition-colors">CGU</Link>
-            <Link href="/privacy" className="hover:text-gray-400 transition-colors">Confidentialité</Link>
-            <a href="mailto:hello@adorable.click" className="hover:text-gray-400 transition-colors">Contact</a>
+          <div className="flex gap-6 text-xs text-gray-400">
+            <Link href="/terms" className="hover:text-gray-700 transition-colors">CGU</Link>
+            <Link href="/privacy" className="hover:text-gray-700 transition-colors">Confidentialité</Link>
+            <a href="mailto:hello@adorable.click" className="hover:text-gray-700 transition-colors">Contact</a>
           </div>
-          <p className="text-xs text-gray-700">© 2025 Adorable · Fait avec ⚡ en France</p>
+          <p className="text-xs text-gray-400">© 2025 Adorable · Fait en France</p>
         </div>
       </footer>
     </div>

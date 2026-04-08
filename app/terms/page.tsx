@@ -9,24 +9,24 @@ export const metadata = {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>
-      <div className="text-gray-400 text-sm leading-relaxed space-y-3">{children}</div>
+      <h2 className="text-xl font-bold mb-4 text-gray-950">{title}</h2>
+      <div className="text-gray-500 text-sm leading-relaxed space-y-3">{children}</div>
     </section>
   );
 }
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-[#fafaf9] text-gray-900">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-white/5 bg-gray-950/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-gray-200/60 bg-[#fafaf9]/90 backdrop-blur-xl">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-black text-lg">Adorable</span>
+          <span className="font-black text-lg tracking-tight text-gray-950">adorable</span>
         </Link>
-        <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
+        <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
           Se connecter
         </Link>
       </nav>
@@ -41,24 +41,24 @@ export default function TermsPage() {
         </div>
 
         {/* Mentions légales */}
-        <div className="bg-white/3 border border-white/8 rounded-2xl p-6 mb-12">
-          <h2 className="text-base font-bold mb-4 text-white">Mentions légales</h2>
-          <div className="text-sm text-gray-400 space-y-1.5">
-            <p><strong className="text-white">Éditeur du service :</strong> Adorable</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-12">
+          <h2 className="text-base font-bold mb-4 text-gray-950">Mentions légales</h2>
+          <div className="text-sm text-gray-500 space-y-1.5">
+            <p><strong className="text-gray-900">Éditeur du service :</strong> Adorable</p>
             <p>
-              <strong className="text-white">Contact :</strong>{" "}
-              <a href="mailto:hello@adorable.click" className="text-violet-400 hover:underline">
+              <strong className="text-gray-900">Contact :</strong>{" "}
+              <a href="mailto:hello@adorable.click" className="text-violet-600 hover:underline">
                 hello@adorable.click
               </a>
             </p>
-            <p><strong className="text-white">Site web :</strong> adorable.click</p>
+            <p><strong className="text-gray-900">Site web :</strong> adorable.click</p>
             <p>
-              <strong className="text-white">Hébergement :</strong> Vercel Inc., 340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis —{" "}
-              <a href="https://vercel.com" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+              <strong className="text-gray-900">Hébergement :</strong> Vercel Inc., 340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis —{" "}
+              <a href="https://vercel.com" className="text-violet-600 hover:underline" target="_blank" rel="noopener">
                 vercel.com
               </a>
             </p>
-            <p className="pt-2 text-xs text-gray-600">
+            <p className="pt-2 text-xs text-gray-400">
               Directeur de la publication : l&apos;équipe Adorable
             </p>
           </div>
@@ -67,7 +67,7 @@ export default function TermsPage() {
         <Section title="1. Objet">
           <p>
             Les présentes Conditions Générales d&apos;Utilisation (ci-après «&nbsp;CGU&nbsp;») régissent l&apos;accès et l&apos;utilisation du service Adorable, plateforme de création de sites web par intelligence artificielle, accessible à l&apos;adresse{" "}
-            <span className="text-white">adorable.click</span> (ci-après «&nbsp;le Service&nbsp;»).
+            <span className="text-gray-900">adorable.click</span> (ci-après «&nbsp;le Service&nbsp;»).
           </p>
           <p>
             L&apos;utilisation du Service implique l&apos;acceptation sans réserve des présentes CGU. Si vous n&apos;acceptez pas ces conditions, vous ne devez pas utiliser le Service.
@@ -101,7 +101,7 @@ export default function TermsPage() {
           </ul>
           <p>
             Toute utilisation non autorisée de votre compte doit nous être signalée immédiatement à{" "}
-            <a href="mailto:hello@adorable.click" className="text-violet-400 hover:underline">
+            <a href="mailto:hello@adorable.click" className="text-violet-600 hover:underline">
               hello@adorable.click
             </a>
             .
@@ -112,8 +112,8 @@ export default function TermsPage() {
           <p>Le Service est proposé selon trois formules :</p>
 
           <div className="space-y-4 mt-2">
-            <div className="bg-white/3 border border-white/8 rounded-xl p-4">
-              <p className="font-semibold text-white mb-1">Gratuit — 0&nbsp;€/mois</p>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="font-semibold text-gray-950 mb-1">Gratuit — 0&nbsp;€/mois</p>
               <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
                 <li>1 site</li>
                 <li>20 générations IA par jour</li>
@@ -121,8 +121,8 @@ export default function TermsPage() {
                 <li>Hébergement sur sous-domaine Adorable</li>
               </ul>
             </div>
-            <div className="bg-white/3 border border-white/8 rounded-xl p-4">
-              <p className="font-semibold text-white mb-1">Starter — 6&nbsp;€ HT/mois</p>
+            <div className="bg-white border border-gray-200 rounded-xl p-4">
+              <p className="font-semibold text-gray-950 mb-1">Starter — 6&nbsp;€ HT/mois</p>
               <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
                 <li>5 sites</li>
                 <li>100 générations IA par jour</li>
@@ -130,8 +130,8 @@ export default function TermsPage() {
                 <li>Hébergement sur sous-domaine Adorable</li>
               </ul>
             </div>
-            <div className="bg-white/3 border border-violet-600/40 rounded-xl p-4">
-              <p className="font-semibold text-white mb-1">Pro — 19&nbsp;€ HT/mois</p>
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+              <p className="font-semibold text-gray-950 mb-1">Pro — 19&nbsp;€ HT/mois</p>
               <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
                 <li>Sites illimités</li>
                 <li>IA illimitée</li>
@@ -151,7 +151,7 @@ export default function TermsPage() {
 
         <Section title="5. Paiement">
           <p>
-            Les paiements sont traités par <strong className="text-white">Stripe</strong>, prestataire de paiement sécurisé certifié PCI-DSS. En souscrivant à une offre payante, vous autorisez Stripe à débiter le moyen de paiement renseigné selon la périodicité choisie.
+            Les paiements sont traités par <strong className="text-gray-900">Stripe</strong>, prestataire de paiement sécurisé certifié PCI-DSS. En souscrivant à une offre payante, vous autorisez Stripe à débiter le moyen de paiement renseigné selon la périodicité choisie.
           </p>
           <p>
             En cas d&apos;échec de paiement, l&apos;accès aux fonctionnalités payantes peut être suspendu jusqu&apos;à régularisation. Aucun remboursement n&apos;est effectué pour les périodes entamées, sauf disposition légale contraire.
@@ -169,13 +169,13 @@ export default function TermsPage() {
 
         <Section title="7. Propriété intellectuelle">
           <p>
-            <strong className="text-white">Contenu généré par l&apos;IA :</strong> Le code HTML/CSS et le contenu des sites générés par le Service vous sont cédés librement. Vous êtes libre de les utiliser, modifier et publier.
+            <strong className="text-gray-900">Contenu généré par l&apos;IA :</strong> Le code HTML/CSS et le contenu des sites générés par le Service vous sont cédés librement. Vous êtes libre de les utiliser, modifier et publier.
           </p>
           <p>
-            <strong className="text-white">Contenu apporté par l&apos;utilisateur :</strong> Vous conservez la propriété de tout contenu que vous fournissez (textes, images, marques, logos). Vous nous accordez une licence non exclusive pour héberger et afficher ce contenu dans le cadre de la fourniture du Service.
+            <strong className="text-gray-900">Contenu apporté par l&apos;utilisateur :</strong> Vous conservez la propriété de tout contenu que vous fournissez (textes, images, marques, logos). Vous nous accordez une licence non exclusive pour héberger et afficher ce contenu dans le cadre de la fourniture du Service.
           </p>
           <p>
-            <strong className="text-white">Service et marque Adorable :</strong> Le code source, le design, la marque et les éléments graphiques du Service sont la propriété exclusive d&apos;Adorable et protégés par le droit de la propriété intellectuelle. Toute reproduction sans autorisation est interdite.
+            <strong className="text-gray-900">Service et marque Adorable :</strong> Le code source, le design, la marque et les éléments graphiques du Service sont la propriété exclusive d&apos;Adorable et protégés par le droit de la propriété intellectuelle. Toute reproduction sans autorisation est interdite.
           </p>
         </Section>
 
@@ -233,7 +233,7 @@ export default function TermsPage() {
           </p>
           <p>
             Conformément à l&apos;article 14 du Règlement (UE) n°&nbsp;524/2013, vous pouvez également recourir à la plateforme de résolution des litiges en ligne de la Commission européenne :{" "}
-            <a href="https://ec.europa.eu/consumers/odr" className="text-violet-400 hover:underline" target="_blank" rel="noopener">
+            <a href="https://ec.europa.eu/consumers/odr" className="text-violet-600 hover:underline" target="_blank" rel="noopener">
               ec.europa.eu/consumers/odr
             </a>
             .
@@ -243,7 +243,7 @@ export default function TermsPage() {
         <Section title="14. Contact">
           <p>
             Pour toute question relative aux présentes CGU :{" "}
-            <a href="mailto:hello@adorable.click" className="text-violet-400 hover:underline">
+            <a href="mailto:hello@adorable.click" className="text-violet-600 hover:underline">
               hello@adorable.click
             </a>
           </p>
@@ -251,20 +251,20 @@ export default function TermsPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 px-6 md:px-12 py-8">
+      <footer className="border-t border-gray-200 px-6 md:px-12 py-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-gray-950 flex items-center justify-center">
               <Zap className="w-3 h-3 text-white" />
             </div>
-            <span className="font-black text-sm">Adorable</span>
+            <span className="font-black text-sm text-gray-950">adorable</span>
           </div>
-          <div className="flex gap-6 text-xs text-gray-600">
-            <Link href="/terms" className="hover:text-gray-400 transition-colors">CGU</Link>
-            <Link href="/privacy" className="hover:text-gray-400 transition-colors">Confidentialité</Link>
-            <a href="mailto:hello@adorable.click" className="hover:text-gray-400 transition-colors">Contact</a>
+          <div className="flex gap-6 text-xs text-gray-400">
+            <Link href="/terms" className="hover:text-gray-700 transition-colors">CGU</Link>
+            <Link href="/privacy" className="hover:text-gray-700 transition-colors">Confidentialité</Link>
+            <a href="mailto:hello@adorable.click" className="hover:text-gray-700 transition-colors">Contact</a>
           </div>
-          <p className="text-xs text-gray-700">© 2025 Adorable · Fait avec ⚡ en France</p>
+          <p className="text-xs text-gray-400">© 2025 Adorable · Fait en France</p>
         </div>
       </footer>
     </div>

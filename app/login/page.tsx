@@ -61,14 +61,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-[#fafaf9] text-gray-900 flex flex-col font-sans">
       {/* Nav */}
-      <nav className="flex items-center px-6 md:px-12 py-4 border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center">
-            <Zap className="w-4 h-4" />
+      <nav className="flex items-center px-6 md:px-12 py-4 border-b border-gray-200/60">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold text-lg">Adorable</span>
+          <span className="font-black text-lg tracking-tight text-gray-950">adorable</span>
         </Link>
       </nav>
 
@@ -77,41 +77,40 @@ export default function LoginPage() {
         <div className="w-full md:w-[440px] flex-shrink-0 flex flex-col justify-center px-8 py-12">
           <div className="max-w-sm mx-auto w-full">
             <div className="mb-8">
-              <h1 className="text-3xl font-black mb-2">
+              <h1 className="text-3xl font-black mb-2 text-gray-950">
                 {mode === 'login' ? 'Bienvenue 👋' : mode === 'signup' ? 'Crée ton compte' : 'Mot de passe oublié'}
               </h1>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 {mode === 'login'
                   ? 'Connecte-toi pour accéder à tes sites.'
                   : mode === 'signup'
                   ? 'Un site offert, sans CB.'
-                  : 'On t\'envoie un lien pour réinitialiser ton mot de passe.'}
+                  : "On t'envoie un lien pour réinitialiser ton mot de passe."}
               </p>
             </div>
 
             {sent ? (
-              <div className="bg-green-950/50 border border-green-700 rounded-2xl p-6 text-center">
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
                 <div className="text-2xl mb-2">📬</div>
-                <h3 className="font-bold mb-1">Vérifie tes emails !</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="font-bold mb-1 text-gray-950">Vérifie tes emails !</h3>
+                <p className="text-sm text-gray-500">
                   {mode === 'forgot'
                     ? <>Un lien de réinitialisation a été envoyé à <strong>{email}</strong>.</>
                     : <>Un lien de confirmation t'a été envoyé à <strong>{email}</strong>.</>}
                 </p>
                 {mode === 'forgot' && (
-                  <button onClick={() => { setSent(false); setMode('login') }} className="mt-4 text-xs text-violet-400 hover:underline">
+                  <button onClick={() => { setSent(false); setMode('login') }} className="mt-4 text-xs text-violet-600 hover:underline">
                     Retour à la connexion
                   </button>
                 )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Google SSO — hidden in forgot mode */}
                 <button
                   type="button"
                   onClick={handleGoogle}
                   style={{ display: mode === 'forgot' ? 'none' : undefined }}
-                  className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium"
+                  className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm"
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -123,26 +122,26 @@ export default function LoginPage() {
                 </button>
 
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-white/10" />
-                  <span className="text-xs text-gray-500">ou</span>
-                  <div className="flex-1 h-px bg-white/10" />
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400">ou</span>
+                  <div className="flex-1 h-px bg-gray-200" />
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-400 mb-1.5 block">Email</label>
+                  <label className="text-xs text-gray-500 mb-1.5 block font-medium">Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
                     placeholder="toi@exemple.com"
-                    className="w-full bg-white/5 border border-white/10 focus:border-violet-500 rounded-xl px-4 py-3 text-white outline-none transition-colors text-sm"
+                    className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-all text-sm"
                   />
                 </div>
 
                 {mode !== 'forgot' && (
                   <div>
-                    <label className="text-xs text-gray-400 mb-1.5 block">Mot de passe</label>
+                    <label className="text-xs text-gray-500 mb-1.5 block font-medium">Mot de passe</label>
                     <input
                       type="password"
                       value={password}
@@ -150,13 +149,13 @@ export default function LoginPage() {
                       required
                       minLength={8}
                       placeholder="••••••••"
-                      className="w-full bg-white/5 border border-white/10 focus:border-violet-500 rounded-xl px-4 py-3 text-white outline-none transition-colors text-sm"
+                      className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-all text-sm"
                     />
                   </div>
                 )}
 
                 {error && (
-                  <div className="bg-red-950/60 border border-red-800 rounded-xl px-4 py-3 text-red-300 text-sm">
+                  <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-600 text-sm">
                     {error}
                   </div>
                 )}
@@ -164,23 +163,23 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-bold text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-gray-950 hover:bg-gray-800 text-white font-bold text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : mode === 'forgot' ? 'Envoyer le lien' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
                 </button>
 
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center justify-between text-xs text-gray-400">
                   {mode === 'login' ? (
-                    <button type="button" onClick={() => { setError(null); setSent(false); setMode('forgot') }} className="hover:text-white transition-colors">
+                    <button type="button" onClick={() => { setError(null); setSent(false); setMode('forgot') }} className="hover:text-gray-700 transition-colors">
                       Mot de passe oublié ?
                     </button>
                   ) : <span />}
                   <button
                     type="button"
                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                    className="hover:text-white transition-colors"
+                    className="hover:text-gray-700 transition-colors"
                   >
                     {mode === 'login' ? "Pas de compte ? S'inscrire" : 'Déjà inscrit ? Se connecter'}
                   </button>
@@ -188,37 +187,39 @@ export default function LoginPage() {
               </form>
             )}
 
-            <p className="text-center text-xs text-gray-600 mt-6">
+            <p className="text-center text-xs text-gray-400 mt-6">
               En continuant, tu acceptes nos{' '}
-              <a href="/terms" className="text-gray-400 hover:underline">CGU</a>
+              <a href="/terms" className="text-gray-600 hover:underline">CGU</a>
               {' '}et notre{' '}
-              <a href="/privacy" className="text-gray-400 hover:underline">Politique de confidentialité</a>.
+              <a href="/privacy" className="text-gray-600 hover:underline">Politique de confidentialité</a>.
             </p>
           </div>
         </div>
 
         {/* Right: Marquee showcase (desktop only) */}
-        <div className="hidden md:flex flex-1 flex-col justify-center border-l border-white/5 overflow-hidden relative bg-gray-950">
-          {/* Top fade */}
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-gray-950 to-transparent z-10 pointer-events-none" />
-          {/* Bottom fade */}
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-gray-950 to-transparent z-10 pointer-events-none" />
+        <div className="hidden md:flex flex-1 flex-col justify-center border-l border-gray-200 overflow-hidden relative bg-[#fafaf9]">
+          <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#fafaf9] to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[#fafaf9] to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#fafaf9] to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#fafaf9] to-transparent z-10 pointer-events-none" />
 
           <MarqueeSection />
 
-          {/* Center overlay text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
-            <div className="bg-gray-950/70 backdrop-blur-md rounded-2xl px-8 py-6 border border-white/8 text-center">
-              <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Propulsé par l'IA</p>
-              <h2 className="text-2xl font-black mb-1">
-                Décris. <span className="gradient-text">Adorable construit.</span>
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-6 border border-gray-200 text-center shadow-lg">
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Propulsé par l'IA</p>
+              <h2 className="text-2xl font-black mb-1 text-gray-950">
+                Décris.{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-500">
+                  Adorable construit.
+                </span>
               </h2>
               <p className="text-xs text-gray-500">Restaurant, portfolio, SaaS, boutique…</p>
-              <div className="flex gap-6 mt-5 pt-4 border-t border-white/8 justify-center">
+              <div className="flex gap-6 mt-5 pt-4 border-t border-gray-100 justify-center">
                 {[['< 1 min', 'pour créer'], ['∞', 'modifs'], ['0€', 'pour commencer']].map(([v, l]) => (
                   <div key={v} className="text-center">
-                    <div className="text-base font-black gradient-text">{v}</div>
-                    <div className="text-[10px] text-gray-500">{l}</div>
+                    <div className="text-base font-black text-gray-950">{v}</div>
+                    <div className="text-[10px] text-gray-400">{l}</div>
                   </div>
                 ))}
               </div>
