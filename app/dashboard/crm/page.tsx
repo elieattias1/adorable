@@ -460,13 +460,17 @@ export default function CRMPage() {
 
   // Stats
   const stats = useMemo(() => {
-    const total = leads.length
-    const counts = Object.fromEntries(
-      Object.keys(STATUS_CONFIG).map(s => [s, leads.filter(l => l.status === s).length])
-    )
-    const withWebsite = leads.filter(l => l.website_url).length
-    const withEmail   = leads.filter(l => l.email).length
-    return { total, withWebsite, withEmail, ...counts }
+    const count = (s: string) => leads.filter(l => l.status === s).length
+    return {
+      total:       leads.length,
+      withWebsite: leads.filter(l => l.website_url).length,
+      withEmail:   leads.filter(l => l.email).length,
+      new:         count('new'),
+      contacted:   count('contacted'),
+      building:    count('building'),
+      built:       count('built'),
+      closed:      count('closed'),
+    }
   }, [leads])
 
   // Filtered leads
