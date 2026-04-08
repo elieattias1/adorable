@@ -142,7 +142,7 @@ export default function LandingPage() {
         <div className="relative flex flex-col sm:flex-row gap-3 mb-4">
           <Link
             href="/login"
-            className="flex items-center justify-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-8 py-4 rounded-2xl text-sm transition-all shadow-lg hover:-translate-y-0.5"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white font-bold px-8 py-4 rounded-2xl text-sm transition-all shadow-lg shadow-violet-500/30 hover:-translate-y-0.5"
           >
             <Zap className="w-4 h-4" />
             Créer mon site gratuitement
@@ -330,7 +330,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-bold px-10 py-4 rounded-2xl text-base transition-all shadow-xl hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white font-bold px-10 py-4 rounded-2xl text-base transition-all shadow-xl shadow-violet-500/30 hover:-translate-y-0.5"
           >
             <Zap className="w-5 h-5" />
             Créer mon site gratuitement
