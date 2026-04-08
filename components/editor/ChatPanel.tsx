@@ -16,11 +16,12 @@ export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
-  imageUrl?: string
+  imageUrl?: string        // legacy single image (from DB history)
+  imageUrls?: string[]     // new: multi-image
   created_at: string
-  steps?: AgentStep[]       // tool calls made during this response
-  isThinking?: boolean      // streaming in progress
-  askOptions?: string[]     // if agent asked a question
+  steps?: AgentStep[]
+  isThinking?: boolean
+  askOptions?: string[]
 }
 
 // ─── Context-aware suggestions by site type ───────────────────────────────────
@@ -112,14 +113,15 @@ function getSuggestions(siteType?: string): string[] {
 }
 
 const ACCEPTED = 'image/jpeg,image/png,image/webp,image/gif'
-const MAX_MB = 5
+const MAX_MB   = 5
+const MAX_IMGS = 4
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ChatPanelProps {
   messages: ChatMessage[]
   isGenerating: boolean
-  onSend: (message: string, imageFile?: File) => void
+  onSend: (message: string, imageFiles?: File[]) => void
   streamingText?: string
   currentSteps?: AgentStep[]
   siteType?: string
