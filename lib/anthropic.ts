@@ -1142,6 +1142,7 @@ export function buildSectionPrompt(
   section:       SectionSpec,
   previousCode:  string,
   formEndpoint:  string | null,
+  syntaxError?:  string | null,
 ): string {
   const d = manifest.design
   const photosLine = manifest.unsplashUrls.length > 0
@@ -1191,7 +1192,12 @@ Utilise exactement : fetch('${formEndpoint}', { method: 'POST', ... })` : ''}
 8. Sections spacieuses : py-20 minimum
 9. Responsive : 1 colonne mobile, 2-3 colonnes desktop
 
-Appelle write_section avec le code complet de ${section.component}.`
+${syntaxError ? `━━ ERREUR DE SYNTAXE À CORRIGER (tentative précédente rejetée) ━━
+${syntaxError}
+
+⚠️  Le code ci-dessus a été REJETÉ par le parser. Réécris ${section.component} en corrigeant cette erreur.
+Causes fréquentes : apostrophes dans des strings single-quotées (utilise des backticks \`...\` ou échappe avec \\'), virgules manquantes, JSX mal fermé.
+` : ''}Appelle write_section avec le code complet de ${section.component}.`
 }
 
 // ─── Section assembler ────────────────────────────────────────────────────────

@@ -12,7 +12,24 @@ import {
 import { checkRateLimit } from '@/lib/rate-limit'
 import { scrapeUrl, extractUrl } from '@/lib/scrape-url'
 import { getRelevantTemplates, buildTemplateContext } from '@/lib/scraped-templates'
+import { parse as babelParse } from '@babel/parser'
 import type Anthropic from '@anthropic-ai/sdk'
+
+// ─── TSX syntax validator ──────────────────────────────────────────────────────
+// Returns null if valid, a short error string if not.
+function validateTSX(code: string): string | null {
+  try {
+    babelParse(code, {
+      sourceType: 'module',
+      plugins:    ['typescript', 'jsx'],
+      errorRecovery: false,
+    })
+    return null
+  } catch (err: any) {
+    const loc = err.loc ? ` (${err.loc.line}:${err.loc.column})` : ''
+    return `${err.message?.split('\n')[0] ?? 'Syntax error'}${loc}`
+  }
+}
 
 export const maxDuration = 300
 
@@ -111,63 +128,89 @@ async function runSequentialGeneration(opts: {
   const completed: Array<{ component: string; code: string }> = []
   let previousCode = ''
 
+  const MAX_SECTION_RETRIES = 2
+
   for (const section of manifest.sections) {
     console.log(`${tag} 🔨 section ${section.id} (${section.component})`)
     safeSend({ section_start: { id: section.id, component: section.component, label: section.spec.split('.')[0] } })
 
-    try {
-      const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint)
+    let syntaxError: string | null = null
+    let accepted = false
 
-      const sectionStream = anthropic.messages.stream({
-        model:       'claude-sonnet-4-6',
-        max_tokens:  3000,
-        system:      sectionPrompt,
-        tools:       [SECTION_TOOL],
-        tool_choice: { type: 'tool', name: 'write_section' },
-        messages:    [{ role: 'user', content: `Écris le composant ${section.component} maintenant.` }],
-      })
-
-      let sectionPartialJson = ''
-      let lastStreamedLen = 0
-
-      sectionStream.on('streamEvent', (event: any) => {
-        if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
-          sectionPartialJson += event.delta.partial_json ?? ''
-          const partial = extractPartialCode(sectionPartialJson)
-          if (partial && partial.length - lastStreamedLen > 200) {
-            lastStreamedLen = partial.length
-            safeSend({ code_stream: partial })
-          }
+    for (let attempt = 0; attempt <= MAX_SECTION_RETRIES; attempt++) {
+      try {
+        if (attempt > 0) {
+          console.log(`${tag}   🔁 retry ${attempt} for ${section.id} — error: ${syntaxError}`)
+          safeSend({ section_retry: { id: section.id, attempt, error: syntaxError?.slice(0, 120) } })
         }
-      })
 
-      const sectionResponse = await sectionStream.finalMessage()
-      const sectionBlock = sectionResponse.content.find(
-        b => b.type === 'tool_use' && b.name === 'write_section'
-      )
+        const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint, syntaxError)
 
-      if (sectionBlock && sectionBlock.type === 'tool_use') {
+        const sectionStream = anthropic.messages.stream({
+          model:       'claude-sonnet-4-6',
+          max_tokens:  3000,
+          system:      sectionPrompt,
+          tools:       [SECTION_TOOL],
+          tool_choice: { type: 'tool', name: 'write_section' },
+          messages:    [{ role: 'user', content: `Écris le composant ${section.component} maintenant.` }],
+        })
+
+        let sectionPartialJson = ''
+        let lastStreamedLen = 0
+
+        sectionStream.on('streamEvent', (event: any) => {
+          if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
+            sectionPartialJson += event.delta.partial_json ?? ''
+            const partial = extractPartialCode(sectionPartialJson)
+            if (partial && partial.length - lastStreamedLen > 200) {
+              lastStreamedLen = partial.length
+              safeSend({ code_stream: partial })
+            }
+          }
+        })
+
+        const sectionResponse = await sectionStream.finalMessage()
+        const sectionBlock = sectionResponse.content.find(
+          b => b.type === 'tool_use' && b.name === 'write_section'
+        )
+
+        if (!sectionBlock || sectionBlock.type !== 'tool_use') {
+          console.warn(`${tag}   ⚠️  ${section.id} returned no tool block`)
+          break
+        }
+
         const input = sectionBlock.input as { code?: string }
         const code  = (input.code ?? '').trim()
-        if (code) {
-          completed.push({ component: section.component, code })
-          previousCode = completed.map(s => s.code).join('\n\n')
-          const partialAssembled = assembleSections(completed)
-          safeSend({ code_update: partialAssembled, section_done: section.id })
-          console.log(`${tag}   ✅ ${section.id}  lines=${code.split('\n').length}`)
-        } else {
-          console.warn(`${tag}   ⚠️  ${section.id} returned empty code — skipping`)
-          safeSend({ section_done: section.id, section_skipped: true })
+        if (!code) {
+          console.warn(`${tag}   ⚠️  ${section.id} returned empty code`)
+          break
         }
-      } else {
-        console.warn(`${tag}   ⚠️  ${section.id} returned no tool block — skipping`)
-        safeSend({ section_done: section.id, section_skipped: true })
+
+        // ── Syntax validation ──────────────────────────────────────────
+        syntaxError = validateTSX(code)
+        if (syntaxError) {
+          console.warn(`${tag}   ⚠️  ${section.id} syntax error (attempt ${attempt + 1}): ${syntaxError}`)
+          if (attempt < MAX_SECTION_RETRIES) continue   // retry with error in prompt
+          // Final attempt still invalid — accept it anyway (Babel in preview may be more lenient)
+          console.warn(`${tag}   ⚠️  ${section.id} accepting despite syntax error after ${MAX_SECTION_RETRIES + 1} attempts`)
+        } else {
+          console.log(`${tag}   ✅ ${section.id}  lines=${code.split('\n').length}${attempt > 0 ? ` (fixed on attempt ${attempt + 1})` : ''}`)
+        }
+
+        completed.push({ component: section.component, code })
+        previousCode = completed.map(s => s.code).join('\n\n')
+        safeSend({ code_update: assembleSections(completed), section_done: section.id })
+        accepted = true
+        break
+
+      } catch (sectionErr) {
+        console.error(`${tag}   ❌ ${section.id} attempt ${attempt + 1} threw:`, sectionErr)
+        if (attempt >= MAX_SECTION_RETRIES) break
       }
-    } catch (sectionErr) {
-      // One section failing must NOT abort the whole generation
-      console.error(`${tag}   ❌ ${section.id} error:`, sectionErr)
+    }
+
+    if (!accepted) {
       safeSend({ section_done: section.id, section_skipped: true })
-      // Continue to next section with whatever context we have
     }
   }
 
