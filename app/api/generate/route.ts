@@ -54,15 +54,22 @@ function extractPartialCode(partialJson: string): string | null {
     .replace(/\\\\/g, '\\')
 }
 
+const ImageSchema = z.object({
+  base64:   z.string(),
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  url:      z.string().url(),
+})
+
 const GenerateSchema = z.object({
   siteId:  z.string().uuid(),
   message: z.string().max(2000),
-  image: z.object({
-    base64:   z.string(),
-    mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
-    url:      z.string().url(),
-  }).optional(),
-}).refine(d => d.message.trim().length > 0 || d.image !== undefined, { message: 'Message or image required' })
+  // legacy single-image field (kept for backward compat)
+  image:  ImageSchema.optional(),
+  // new multi-image field
+  images: z.array(ImageSchema).max(4).optional(),
+}).refine(d => d.message.trim().length > 0 || d.image !== undefined || (d.images && d.images.length > 0), {
+  message: 'Message or image required',
+})
 
 // ─── Sequential initial generation ───────────────────────────────────────────
 // Phase 1: manifest call (fast, ~300 tokens, forced JSON)
@@ -251,7 +258,9 @@ export async function POST(req: NextRequest) {
 
         // ── Validate ──────────────────────────────────────────────────────
         const body = await req.json()
-        const { siteId, message, image } = GenerateSchema.parse(body)
+        const { siteId, message, image, images: imagesRaw } = GenerateSchema.parse(body)
+        // Normalise: merge legacy `image` + new `images` into one array
+        const allImages = [...(imagesRaw ?? []), ...(image ? [image] : [])].slice(0, 4)
 
         // ── Rate limit ────────────────────────────────────────────────────
         const { allowed, limit } = await checkRateLimit(user.id)
@@ -297,12 +306,14 @@ export async function POST(req: NextRequest) {
           type ImageBlock = { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
           const userContent: (TextBlock | ImageBlock)[] = []
 
-          if (image) {
-            userContent.push({ type: 'image', source: { type: 'base64', media_type: image.mimeType, data: image.base64 } })
+          if (allImages.length > 0) {
+            for (const img of allImages) {
+              userContent.push({ type: 'image', source: { type: 'base64', media_type: img.mimeType, data: img.base64 } })
+            }
             userContent.push({ type: 'text', text: [
               message ? `Instruction : ${message}` : '',
-              `URL publique de l'image : ${image.url}`,
-              `Utilise cette image dans le site si pertinent.`,
+              `URLs publiques : ${allImages.map(img => img.url).join(', ')}`,
+              `Utilise ${allImages.length > 1 ? 'ces images' : 'cette image'} dans le site si pertinent.`,
             ].filter(Boolean).join('\n') })
           } else {
             const detectedUrl = extractUrl(message)
@@ -314,7 +325,7 @@ export async function POST(req: NextRequest) {
           let currentCode = site.html || ''
           const agentMessages: Anthropic.MessageParam[] = [
             ...(history || []).map(h => ({ role: h.role as 'user' | 'assistant', content: h.content })),
-            { role: 'user', content: image ? userContent : (userContent[0] as TextBlock).text },
+            { role: 'user', content: allImages.length > 0 ? userContent : (userContent[0] as TextBlock).text },
           ]
 
           for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {

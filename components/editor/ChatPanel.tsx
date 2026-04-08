@@ -121,7 +121,7 @@ const MAX_IMGS = 4
 interface ChatPanelProps {
   messages: ChatMessage[]
   isGenerating: boolean
-  onSend: (message: string, imageFile?: File) => void
+  onSend: (message: string, imageFiles?: File[]) => void
   streamingText?: string
   currentSteps?: AgentStep[]
   siteType?: string
@@ -240,10 +240,10 @@ export default function ChatPanel({
   siteType,
 }: ChatPanelProps) {
   const suggestions = getSuggestions(siteType)
-  const [input,       setInput]       = useState('')
-  const [imageFile,   setImageFile]   = useState<File | null>(null)
-  const [previewUrl,  setPreviewUrl]  = useState<string | null>(null)
-  const [imgError,    setImgError]    = useState<string | null>(null)
+  const [input,        setInput]        = useState('')
+  const [imageFiles,   setImageFiles]   = useState<File[]>([])
+  const [previewUrls,  setPreviewUrls]  = useState<string[]>([])
+  const [imgError,     setImgError]     = useState<string | null>(null)
   const bottomRef    = useRef<HTMLDivElement>(null)
   const textareaRef  = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -253,31 +253,40 @@ export default function ChatPanel({
   }, [messages, isGenerating, streamingText, currentSteps])
 
   useEffect(() => {
-    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }
-  }, [previewUrl])
+    return () => { previewUrls.forEach(u => URL.revokeObjectURL(u)) }
+  }, [previewUrls])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > MAX_MB * 1024 * 1024) { setImgError(`Image trop grande (max ${MAX_MB} Mo)`); return }
-    setImgError(null)
-    setImageFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
+    const picked = Array.from(e.target.files ?? [])
+    if (!picked.length) return
+    const tooBig = picked.find(f => f.size > MAX_MB * 1024 * 1024)
+    if (tooBig) { setImgError(`"${tooBig.name}" dépasse ${MAX_MB} Mo`); e.target.value = ''; return }
+    const combined = [...imageFiles, ...picked].slice(0, MAX_IMGS)
+    setImgError(imageFiles.length + picked.length > MAX_IMGS ? `Maximum ${MAX_IMGS} images` : null)
+    setImageFiles(combined)
+    setPreviewUrls(combined.map((f, i) => previewUrls[i] ?? URL.createObjectURL(f)))
     e.target.value = ''
   }
 
-  const clearImage = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setImageFile(null); setPreviewUrl(null); setImgError(null)
+  const removeImage = (idx: number) => {
+    URL.revokeObjectURL(previewUrls[idx])
+    setImageFiles(prev => prev.filter((_, i) => i !== idx))
+    setPreviewUrls(prev => prev.filter((_, i) => i !== idx))
+    setImgError(null)
+  }
+
+  const clearImages = () => {
+    previewUrls.forEach(u => URL.revokeObjectURL(u))
+    setImageFiles([]); setPreviewUrls([]); setImgError(null)
   }
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault()
     const msg = input.trim()
-    if ((!msg && !imageFile) || isGenerating) return
-    onSend(msg, imageFile ?? undefined)
+    if ((!msg && imageFiles.length === 0) || isGenerating) return
+    onSend(msg, imageFiles.length > 0 ? imageFiles : undefined)
     setInput('')
-    clearImage()
+    clearImages()
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
   }
 
@@ -291,7 +300,7 @@ export default function ChatPanel({
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
   }
 
-  const canSend = (input.trim().length > 0 || imageFile !== null) && !isGenerating
+  const canSend = (input.trim().length > 0 || imageFiles.length > 0) && !isGenerating
 
   return (
     <div className="flex flex-col h-full bg-gray-900 border-l border-white/8">
@@ -331,26 +340,34 @@ export default function ChatPanel({
         )}
 
         {/* Message history */}
-        {messages.map(msg => (
-          <div key={msg.id}>
-            {msg.role === 'user' ? (
-              <div className="flex justify-end">
-                <div className="max-w-[85%] flex flex-col gap-1.5 items-end">
-                  {msg.imageUrl && (
-                    <img src={msg.imageUrl} alt="image jointe" className="rounded-xl max-h-40 object-cover rounded-br-sm" />
-                  )}
-                  {msg.content && (
-                    <div className="text-sm px-3.5 py-2.5 rounded-2xl rounded-br-sm bg-gradient-to-br from-violet-600 to-pink-600 text-white leading-relaxed">
-                      {msg.content}
-                    </div>
-                  )}
+        {messages.map(msg => {
+          const displayUrls = msg.imageUrls?.length ? msg.imageUrls : msg.imageUrl ? [msg.imageUrl] : []
+          return (
+            <div key={msg.id}>
+              {msg.role === 'user' ? (
+                <div className="flex justify-end">
+                  <div className="max-w-[85%] flex flex-col gap-1.5 items-end">
+                    {displayUrls.length > 0 && (
+                      <div className={`flex gap-1.5 flex-wrap justify-end ${displayUrls.length > 1 ? 'max-w-[220px]' : ''}`}>
+                        {displayUrls.map((url, i) => (
+                          <img key={i} src={url} alt={`image ${i + 1}`}
+                            className={`object-cover rounded-xl rounded-br-sm border border-white/10 ${displayUrls.length === 1 ? 'max-h-48 max-w-full' : 'h-20 w-20'}`} />
+                        ))}
+                      </div>
+                    )}
+                    {msg.content && (
+                      <div className="text-sm px-3.5 py-2.5 rounded-2xl rounded-br-sm bg-gradient-to-br from-violet-600 to-pink-600 text-white leading-relaxed">
+                        {msg.content}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <AssistantMessage msg={msg} onSendOption={onSend} />
-            )}
-          </div>
-        ))}
+              ) : (
+                <AssistantMessage msg={msg} onSendOption={onSend} />
+              )}
+            </div>
+          )
+        })}
 
         {/* Live agent thinking (while generating) */}
         {isGenerating && (
@@ -380,23 +397,37 @@ export default function ChatPanel({
 
       {/* Input */}
       <form onSubmit={handleSubmit} className="flex-shrink-0 p-3 border-t border-white/8">
-        {previewUrl && (
-          <div className="relative inline-flex mb-2 ml-1">
-            <img src={previewUrl} alt="preview" className="h-20 w-20 object-cover rounded-xl border border-white/10" />
-            <button type="button" onClick={clearImage}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-800 border border-white/20 flex items-center justify-center hover:bg-gray-700 transition-colors">
-              <X className="w-3 h-3" />
-            </button>
+        {/* Image previews */}
+        {previewUrls.length > 0 && (
+          <div className="flex gap-2 flex-wrap mb-2 ml-1">
+            {previewUrls.map((url, i) => (
+              <div key={i} className="relative">
+                <img src={url} alt={`preview ${i + 1}`} className="h-16 w-16 object-cover rounded-xl border border-white/10" />
+                <button type="button" onClick={() => removeImage(i)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-800 border border-white/20 flex items-center justify-center hover:bg-gray-700 transition-colors">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+            {previewUrls.length < MAX_IMGS && (
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isGenerating}
+                className="h-16 w-16 rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 hover:border-white/40 transition-colors">
+                <ImagePlus className="w-4 h-4" />
+                <span className="text-[9px] mt-0.5">{previewUrls.length}/{MAX_IMGS}</span>
+              </button>
+            )}
           </div>
         )}
         {imgError && <p className="text-xs text-red-400 mb-1.5 ml-1">{imgError}</p>}
 
         <div className="flex items-end gap-2 bg-white/5 border border-white/10 focus-within:border-violet-500/60 rounded-xl px-3 py-2 transition-colors">
-          <input ref={fileInputRef} type="file" accept={ACCEPTED} onChange={handleFileChange} className="hidden" />
-          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isGenerating}
-            className="flex-shrink-0 text-gray-500 hover:text-gray-300 disabled:opacity-40 transition-colors pb-0.5" title="Joindre une image">
-            <ImagePlus className="w-4 h-4" />
-          </button>
+          <input ref={fileInputRef} type="file" accept={ACCEPTED} multiple onChange={handleFileChange} className="hidden" />
+          {previewUrls.length === 0 && (
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isGenerating}
+              className="flex-shrink-0 text-gray-500 hover:text-gray-300 disabled:opacity-40 transition-colors pb-0.5" title="Joindre des images">
+              <ImagePlus className="w-4 h-4" />
+            </button>
+          )}
           <textarea
             ref={textareaRef}
             value={input}
@@ -406,7 +437,7 @@ export default function ChatPanel({
             disabled={isGenerating}
             rows={1}
             maxLength={2000}
-            placeholder={isGenerating ? 'L\'agent réfléchit…' : imageFile ? 'Décris ce que tu veux faire avec cette image…' : 'Modifie le site…'}
+            placeholder={isGenerating ? 'L\'agent réfléchit…' : imageFiles.length > 0 ? `Décris comment utiliser ${imageFiles.length > 1 ? 'ces images' : 'cette image'}…` : 'Modifie le site…'}
             className="flex-1 bg-transparent text-white text-sm outline-none resize-none placeholder-gray-600 leading-relaxed"
             style={{ minHeight: '24px', maxHeight: '120px' }}
           />

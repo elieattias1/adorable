@@ -102,16 +102,14 @@ function EditorPage() {
   }
 
   // ─── Send message (streaming) ─────────────────────────────────────────────
-  const handleSend = async (message: string, imageFile?: File) => {
+  const handleSend = async (message: string, imageFiles?: File[]) => {
     if (isGenerating) return
-
-    let imageData: { url: string; base64: string; mimeType: string } | undefined
 
     const userMsg: ChatMessage = {
       id:         `tmp-${Date.now()}`,
       role:       'user',
       content:    message,
-      imageUrl:   imageFile ? URL.createObjectURL(imageFile) : undefined,
+      imageUrls:  imageFiles?.map(f => URL.createObjectURL(f)),
       created_at: new Date().toISOString(),
     }
     setMessages(prev => [...prev, userMsg])
@@ -121,14 +119,15 @@ function EditorPage() {
     setCurrentSteps([])
 
     try {
-      if (imageFile) {
-        imageData = await uploadImage(imageFile)
-      }
+      // Upload all images in parallel
+      const uploadedImages = imageFiles && imageFiles.length > 0
+        ? await Promise.all(imageFiles.map(f => uploadImage(f)))
+        : undefined
 
       const res = await fetch('/api/generate', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ siteId, message, image: imageData }),
+        body:    JSON.stringify({ siteId, message, images: uploadedImages }),
       })
 
       if (!res.body) throw new Error('Pas de réponse du serveur')
