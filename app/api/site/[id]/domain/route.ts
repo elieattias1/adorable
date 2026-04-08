@@ -4,6 +4,9 @@ import { addCustomDomain } from '@/lib/deploy'
 
 type Params = { params: Promise<{ id: string }> }
 
+// The main Vercel project that serves adorable.click
+const MAIN_PROJECT = process.env.VERCEL_MAIN_PROJECT || 'sitebot'
+
 // POST /api/site/[id]/domain — add a custom domain
 export async function POST(req: NextRequest, { params }: Params) {
   const supabase = await createServerSupabaseClient()
@@ -23,11 +26,10 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (!site) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   try {
-    // The Vercel project name is deterministic from siteId
-    const projectName = `sitebot-${id.slice(0, 8)}`
-    await addCustomDomain(projectName, domain)
+    // Add to the MAIN Vercel project so Vercel accepts SSL for this domain
+    await addCustomDomain(MAIN_PROJECT, domain)
   } catch (err: any) {
-    // Domain already added is not an error
+    // "already added" is not an error
     if (!err.message?.includes('already')) {
       console.error('[domain] addCustomDomain:', err.message)
       return NextResponse.json({ error: err.message }, { status: 500 })
@@ -57,11 +59,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   if (site.custom_domain) {
     try {
-      const projectName = `sitebot-${id.slice(0, 8)}`
       const VERCEL_API = 'https://api.vercel.com'
       const TEAM = process.env.VERCEL_TEAM_ID
       const teamQ = TEAM ? `?teamId=${TEAM}` : ''
-      await fetch(`${VERCEL_API}/v9/projects/${projectName}/domains/${site.custom_domain}${teamQ}`, {
+      await fetch(`${VERCEL_API}/v9/projects/${MAIN_PROJECT}/domains/${site.custom_domain}${teamQ}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${process.env.VERCEL_ACCESS_TOKEN}` },
       })
@@ -90,15 +91,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   if (!site.custom_domain) return NextResponse.json({ domain: null })
 
-  // Check with Vercel API
-  const projectName = `sitebot-${id.slice(0, 8)}`
+  // Check verification status via Vercel
   const VERCEL_API = 'https://api.vercel.com'
   const TEAM = process.env.VERCEL_TEAM_ID
   const teamQ = TEAM ? `?teamId=${TEAM}` : ''
 
   try {
     const res = await fetch(
-      `${VERCEL_API}/v9/projects/${projectName}/domains/${site.custom_domain}${teamQ}`,
+      `${VERCEL_API}/v9/projects/${MAIN_PROJECT}/domains/${site.custom_domain}${teamQ}`,
       { headers: { Authorization: `Bearer ${process.env.VERCEL_ACCESS_TOKEN}` } }
     )
     const data = await res.json()
@@ -111,10 +111,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return NextResponse.json({
       domain: site.custom_domain,
       verified,
-      apexName: data.apexName,
-      cname: data.cname,
+      cname: 'cname.vercel-dns.com',
     })
   } catch {
-    return NextResponse.json({ domain: site.custom_domain, verified: false })
+    return NextResponse.json({ domain: site.custom_domain, verified: false, cname: 'cname.vercel-dns.com' })
   }
 }

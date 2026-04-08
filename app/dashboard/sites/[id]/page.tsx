@@ -576,14 +576,14 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
     <div className="space-y-4">
       {current ? (
         <div className="space-y-3">
-          <div className={`flex items-center gap-3 p-4 rounded-xl border ${current.verified ? 'bg-green-50 border-green-200' : 'bg-yellow-950/20 border-yellow-800/40'}`}>
-            <Globe2 className={`w-4 h-4 flex-shrink-0 ${current.verified ? 'text-green-400' : 'text-yellow-500'}`} />
+          <div className={`flex items-center gap-3 p-4 rounded-xl border ${current.verified ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+            <Globe2 className={`w-4 h-4 flex-shrink-0 ${current.verified ? 'text-green-600' : 'text-yellow-600'}`} />
             <div className="flex-1 min-w-0">
-              <div className={`font-semibold text-sm ${current.verified ? 'text-green-300' : 'text-yellow-300'}`}>
+              <div className={`font-semibold text-sm ${current.verified ? 'text-green-700' : 'text-yellow-700'}`}>
                 {current.verified ? '✓ Actif' : '⏳ En attente DNS'} — {current.domain}
               </div>
               {!current.verified && (
-                <div className="text-xs text-yellow-700 mt-0.5">Le DNS peut prendre jusqu'à 48h à se propager</div>
+                <div className="text-xs text-yellow-600 mt-0.5">Le DNS peut prendre jusqu'à 48h à se propager</div>
               )}
             </div>
             <button onClick={remove} disabled={removing} className="text-xs text-gray-500 hover:text-red-400 transition-colors">
@@ -595,13 +595,13 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
             <div className="bg-gray-100 rounded-xl p-4 space-y-3">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Instructions DNS</p>
               <p className="text-xs text-gray-500 leading-relaxed">Ajoutez ce CNAME chez votre registrar (Namecheap, OVH, Cloudflare…) :</p>
-              <div className="bg-white rounded-lg p-3 font-mono text-xs text-gray-300 space-y-1">
+              <div className="bg-gray-50 rounded-lg p-3 font-mono text-xs text-gray-700 space-y-1">
                 <div><span className="text-gray-500">Type</span>  CNAME</div>
                 <div><span className="text-gray-500">Nom </span>  {current.domain}</div>
                 <div><span className="text-gray-500">Valeur</span> cname.vercel-dns.com</div>
               </div>
               <button onClick={check} disabled={checking}
-                className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-700 transition-colors">
                 {checking ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                 Vérifier la propagation
               </button>
@@ -610,7 +610,7 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-xs text-gray-500 leading-relaxed">Connectez votre domaine (ex: <span className="text-gray-300">monsite.fr</span>) pour remplacer l'URL Vercel par défaut.</p>
+          <p className="text-xs text-gray-500 leading-relaxed">Connectez votre domaine (ex: <span className="text-gray-700 font-medium">monsite.fr</span>) pour le faire pointer sur ce site.</p>
           <div className="flex gap-2">
             <input
               value={domain} onChange={e => setDomain(e.target.value)}
