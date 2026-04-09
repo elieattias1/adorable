@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, Suspense } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import CodePreview from '@/components/editor/CodePreview'
@@ -23,9 +23,12 @@ function isReactCode(content: string): boolean {
 
 // ─── Editor page ───────────────────────────────────────────────────────────────
 function EditorPage() {
-  const params   = useParams()
-  const siteId   = params.id as string
-  const supabase = createClient()
+  const params       = useParams()
+  const searchParams = useSearchParams()
+  const siteId       = params.id as string
+  const supabase     = createClient()
+  const initMsg      = searchParams.get('init')
+  const autoSentRef  = useRef(false)
 
   const [site,          setSite]          = useState<Site | null>(null)
   const [siteCode,      setSiteCode]      = useState<string>('')
@@ -77,6 +80,16 @@ function EditorPage() {
 
     setLoading(false)
   }
+
+  // ─── Auto-trigger generation from ?init= param ────────────────────────────
+  useEffect(() => {
+    if (loading || !initMsg || autoSentRef.current) return
+    if (site && !site.html) {
+      autoSentRef.current = true
+      handleSend(initMsg)
+    }
+  }, [loading, site, initMsg])
+
 
   // ─── Upload image ─────────────────────────────────────────────────────────
   const uploadImage = async (file: File): Promise<{ url: string; base64: string; mimeType: string }> => {
