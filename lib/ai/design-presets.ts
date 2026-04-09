@@ -90,7 +90,16 @@ DESIGN SYSTEM — Boulangerie Artisanale (dark warm) :
 • Texte : text-[#f9efd7] titres, text-[#c4a882] corps
 • Typo : Playfair Display italic pour noms de produits, Inter pour descriptions
 • Hero : IMAGE PLEIN ÉCRAN h-screen, overlay gradient from-[#120900]/80, texte centré
-• Photos : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop`,
+• Photos : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop
+
+SECTIONS BOULANGERIE — utilise ces sections dans cet ordre :
+1. NavSection — logo artisanal + liens (Nos pains, Viennoiseries, Notre histoire, Horaires) + CTA "Commander"
+2. HeroSection — plein écran avec photo de pain doré, titre Playfair italic grand, sous-titre "Artisan boulanger depuis [année]", CTA
+3. ProduitsVedettesSection — grille 3 colonnes de 6 produits phares (baguette tradition, pain au levain, croissant, pain au chocolat…) avec nom + prix
+4. NotreHistoireSection — split 50/50 : texte gauche (histoire du boulanger, savoir-faire, passion) + photo fournil droite
+5. HorairesAdresseSection — tableau des horaires semaine + weekend, adresse avec Google Maps embed, téléphone
+6. TestimonialsSection — 3 avis Google avec étoiles, prénom client, texte court
+7. FooterSection — adresse, horaires résumés, liens réseaux sociaux, copyright`,
     },
     {
       id: 'patisserie-light',
@@ -105,7 +114,41 @@ DESIGN SYSTEM — Pâtisserie Parisienne (mode CLAIR, luxueux) :
 • Typo : Playfair Display italic grand (text-6xl+) pour le nom/hero, Inter léger pour descriptions
 • Hero : MINIMAL CENTRÉ — fond crème, logo élaboré, titre Playfair italic géant, sous-titre discret, CTA ambre
 • Nav : fond blanc, liens en Inter 500 spacing-wide, aucun arrière-plan coloré
-• Photos : https://images.unsplash.com/photo-1587314168485-3236d6710814?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1612203985729-70726954388c?w=800&h=600&fit=crop`,
+• Photos : https://images.unsplash.com/photo-1587314168485-3236d6710814?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1612203985729-70726954388c?w=800&h=600&fit=crop
+
+SECTIONS PÂTISSERIE — utilise ces sections dans cet ordre :
+1. NavSection — logo fin + liens (Pâtisseries, Gâteaux, Commandes, À propos) + CTA "Commander en ligne"
+2. HeroSection — split CLAIR : titre Playfair italic "L'art de la pâtisserie" + sous-titre élégant, photo de gâteau signature
+3. CollectionSection — grille 3x2 de créations du moment avec belles photos, noms poétiques, prix
+4. SavoirFaireSection — texte artisanal + 3 icônes (ingrédients locaux, fait main, sans conservateur)
+5. CommandesSection — CTA pour commandes spéciales (anniversaire, mariage) + délai + formulaire contact
+6. HorairesAdresseSection — horaires + adresse + carte
+7. FooterSection`,
+    },
+    {
+      id: 'boulangerie-moderne',
+      keywords: ['boulangerie', 'boulanger', 'pain', 'viennoiserie', 'croissant', 'café', 'quartier', 'local', 'petit-déjeuner', 'déjeuner'],
+      preset: `
+DESIGN SYSTEM — Boulangerie de Quartier (mode CLAIR, chaleureux) :
+• Fond : #fffbf5 (blanc chaud, comme du papier d'emballage)
+• Accent : #c2410c (orange brique/terracotta) — CTA, badges prix, soulignements
+• Secondaire : #92400e (caramel foncé) pour les titres secondaires
+• Surfaces : bg-white border border-orange-100 rounded-2xl shadow-sm
+• Texte : text-stone-900 titres, text-stone-600 corps, text-orange-700 prix
+• Typo : Playfair Display 700 pour titres de sections, Inter 400/500 pour tout le reste
+• Hero : SPLIT horizontal — gauche : titre grand "Votre boulangerie de quartier" + horaires aujourd'hui + CTA, droite : photo devanture ou produits
+• Nav : fond blanc border-b border-orange-100, logo avec icône pain, liens sobres, CTA "Horaires & Adresse"
+• Photos : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop
+
+SECTIONS BOULANGERIE DE QUARTIER — utilise ces sections dans cet ordre :
+1. NavSection — logo + "Boulangerie [Nom]" + liens (Nos produits, Notre histoire, Horaires) + CTA orange "Nous trouver"
+2. HeroSection — SPLIT 50/50 : gauche texte (titre chaleureux "Fait avec amour, chaque matin" + horaires d'ouverture du jour en badge + bouton "Voir nos produits"), droite grande photo de devanture ou baguettes dorées
+3. ProduitsSection — grille 2x3 des spécialités avec photo, nom et prix. Inclure : Baguette Tradition (1,20€), Croissant au beurre (1,40€), Pain au levain (4,50€), Pain au chocolat (1,50€), Tarte aux pommes (3,80€), Sandwich du jour (5,50€)
+4. NotreHistoireSection — section narrative : "Depuis [année], nous faisons lever la pâte chaque nuit…" + photo du boulanger en action + 3 valeurs (Artisanal, Local, Passion)
+5. SpecialitesDuMomentSection — bannière horizontale "Les incontournables du moment" avec 3 produits en highlight visuel fort
+6. HorairesEtAdresseSection — tableau horaires (Lun–Dim), adresse complète avec lien Google Maps, numéro de téléphone, note "Fermé le mercredi"
+7. AvisClientsSection — 3 faux avis Google style (5 étoiles, prénom + initiale, texte court et chaleureux)
+8. FooterSection — adresse, horaires condensés, Instagram/Facebook, "Fait à [ville] avec ❤️"`,
     },
   ],
 

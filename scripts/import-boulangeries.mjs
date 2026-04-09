@@ -66,7 +66,25 @@ const allSlugs = fs.readdirSync(META_DIR)
   .map(f => f.replace('.json', ''))
   .filter(s => !ONLY_SLUG || s === ONLY_SLUG)
 
-console.log(`\n🥐  Importing ${allSlugs.length} boulangeries${DRY_RUN ? ' (DRY RUN)' : ''}${SKIP_VISION ? ' (no vision)' : ''}\n`)
+console.log(`\n🥐  Processing ${allSlugs.length} boulangeries${DRY_RUN ? ' (DRY RUN)' : ''}${SKIP_VISION ? ' (no vision)' : ''}\n`)
+
+// ── Check which slugs already exist in DB ─────────────────────────────────────
+const { data: existing } = await supabase
+  .from('templates')
+  .select('slug')
+  .in('slug', allSlugs)
+
+const existingSlugs = new Set((existing ?? []).map(r => r.slug))
+const newSlugs = allSlugs.filter(s => !existingSlugs.has(s))
+
+if (existingSlugs.size > 0) {
+  console.log(`  ✓ ${existingSlugs.size} already in DB — skipping`)
+}
+if (newSlugs.length === 0) {
+  console.log('  ✅ Nothing new to import.\n')
+  process.exit(0)
+}
+console.log(`  → ${newSlugs.length} new to import\n`)
 
 // ── Check which columns exist ─────────────────────────────────────────────────
 const { error: colProbe } = await supabase.from('templates').select('quality_score,html_url,has_cookies_wall').limit(1)
@@ -147,9 +165,9 @@ async function upload(localPath, storagePath, contentType) {
 // ── Main loop ─────────────────────────────────────────────────────────────────
 let ok = 0, skipped = 0, failed = 0
 
-for (const slug of allSlugs) {
+for (const slug of newSlugs) {
   const idx = ok + skipped + failed + 1
-  process.stdout.write(`  [${idx}/${allSlugs.length}] ${slug.padEnd(45)} `)
+  process.stdout.write(`  [${idx}/${newSlugs.length}] ${slug.padEnd(45)} `)
 
   // Load metadata
   const metaPath = path.join(META_DIR, `${slug}.json`)
