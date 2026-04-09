@@ -17,6 +17,8 @@ export interface Database {
           stripe_subscription_id:  string | null
           subscription_status:     string | null
           subscription_ends_at:    string | null
+          notification_email:      string | null
+          notification_phone:      string | null
           created_at:              string
           updated_at:              string
         }
@@ -30,6 +32,8 @@ export interface Database {
           stripe_subscription_id?: string | null
           subscription_status?:    string | null
           subscription_ends_at?:   string | null
+          notification_email?:     string | null
+          notification_phone?:     string | null
           created_at?:             string
           updated_at?:             string
         }
@@ -43,6 +47,8 @@ export interface Database {
           stripe_subscription_id?: string | null
           subscription_status?:    string | null
           subscription_ends_at?:   string | null
+          notification_email?:     string | null
+          notification_phone?:     string | null
           created_at?:             string
           updated_at?:             string
         }
