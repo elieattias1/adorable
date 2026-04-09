@@ -28,22 +28,28 @@ const STATUS_COLORS: Record<string, string> = {
 
 function makeIcon(L: typeof import('leaflet'), status: string, selected = false) {
   const color = STATUS_COLORS[status] ?? '#8b5cf6'
-  const size  = selected ? 14 : 10
-  const ring  = selected ? `0 0 0 3px ${color}40, 0 2px 6px rgba(0,0,0,0.25)` : '0 1px 4px rgba(0,0,0,0.25)'
-  const html  = `<div style="
+  const size  = selected ? 34 : 26
+  const fs    = selected ? 16 : 13
+  const ring  = selected
+    ? `0 0 0 3px ${color}50, 0 3px 10px rgba(0,0,0,0.3)`
+    : '0 2px 6px rgba(0,0,0,0.22)'
+  const html = `<div style="
     width:${size}px;height:${size}px;
     background:${color};
     border-radius:50%;
-    border:2px solid white;
+    border:2.5px solid white;
     box-shadow:${ring};
+    display:flex;align-items:center;justify-content:center;
+    font-size:${fs}px;line-height:1;
     transition:all 0.15s;
-  "></div>`
+    cursor:pointer;
+  ">🥐</div>`
   return L.divIcon({
     html,
     className: '',
     iconSize:    [size, size],
     iconAnchor:  [size / 2, size / 2],
-    popupAnchor: [0, -(size + 6)],
+    popupAnchor: [0, -(size / 2 + 8)],
   })
 }
 
