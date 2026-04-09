@@ -872,9 +872,7 @@ export default function SiteDashboardPage() {
       },
       { rootMargin: '-10% 0px -65% 0px', threshold: 0 }
     )
-    const sectionIds = data?.site?.type === 'bakery'
-      ? [...SECTIONS.map(s => s.id), 'boutique']
-      : SECTIONS.map(s => s.id)
+    const sectionIds = [...SECTIONS.map(s => s.id), 'boutique']
     sectionIds.forEach(id => {
       const el = document.getElementById(id)
       if (el) observer.observe(el)
@@ -941,12 +939,8 @@ export default function SiteDashboardPage() {
 
   if (!data) return null
   const unreadCount = submissions.filter(s => !s.read_at).length
-  const isBakery = data.site.type === 'bakery'
-
-  // Build sections list, inserting "Boutique" for bakery sites after "forms"
-  const sections = isBakery
-    ? [...SECTIONS.slice(0, 3), { id: 'boutique', label: 'Commandes', icon: ShoppingBag }, ...SECTIONS.slice(3)]
-    : SECTIONS
+  // Always show Commandes section (available for all site types)
+  const sections = [...SECTIONS.slice(0, 3), { id: 'boutique', label: 'Commandes', icon: ShoppingBag }, ...SECTIONS.slice(3)]
 
   return (
     <div className="min-h-screen bg-[#fafaf9] text-gray-900">
@@ -1043,14 +1037,10 @@ export default function SiteDashboardPage() {
             <FormsSection siteId={siteId} />
           </section>
 
-          {isBakery && (
-            <>
-              <div className="border-t border-gray-200" />
-              <section id="boutique">
-                <BoutiqueSection siteId={siteId} />
-              </section>
-            </>
-          )}
+          <div className="border-t border-gray-200" />
+          <section id="boutique">
+            <BoutiqueSection siteId={siteId} />
+          </section>
 
           <div className="border-t border-gray-200" />
 

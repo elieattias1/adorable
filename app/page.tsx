@@ -1,4 +1,5 @@
 import MarqueeSection from "@/components/MarqueeSection";
+import TypewriterWord from "@/components/TypewriterWord";
 import { ArrowRight, Check, Zap } from "lucide-react";
 import Link from "next/link";
 
@@ -127,7 +128,7 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
         <div className="absolute top-20 right-1/4 w-[300px] h-[300px] bg-pink-100 rounded-full blur-[100px] opacity-40 pointer-events-none" />
         <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-[-0.03em] max-w-4xl mb-7 text-gray-950">
-          Votre commerce mérite
+          Votre <TypewriterWord /> mérite
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500">
             un beau site web.
@@ -323,7 +324,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#fafaf9] via-violet-50/60 to-[#fafaf9] pointer-events-none" />
         <div className="relative max-w-2xl mx-auto text-center">
           <h2 className="text-5xl md:text-6xl font-black tracking-tight text-gray-950 mb-5 leading-tight">
-            Ton commerce mérite
+            Ton <TypewriterWord /> mérite
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-500">
               d'être en ligne.
