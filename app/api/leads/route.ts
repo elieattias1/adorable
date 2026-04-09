@@ -9,20 +9,32 @@ export async function GET(req: NextRequest) {
 
   const status = req.nextUrl.searchParams.get('status')
 
-  let query = supabaseAdmin
-    .from('leads')
-    .select('*, sites(id, name, deployed_url, is_published)')
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false })
+  // Supabase caps results at 1000 per request — paginate to get all rows
+  const PAGE = 1000
+  let all: unknown[] = []
+  let from = 0
 
-  if (status && status !== 'all') {
-    query = query.eq('status', status)
+  while (true) {
+    let query = supabaseAdmin
+      .from('leads')
+      .select('*, sites(id, name, deployed_url, is_published)')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .range(from, from + PAGE - 1)
+
+    if (status && status !== 'all') {
+      query = query.eq('status', status)
+    }
+
+    const { data, error } = await query
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!data || data.length === 0) break
+    all = all.concat(data)
+    if (data.length < PAGE) break
+    from += PAGE
   }
 
-  const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  return NextResponse.json({ leads: data ?? [] })
+  return NextResponse.json({ leads: all })
 }
 
 // POST /api/leads — create a single lead
