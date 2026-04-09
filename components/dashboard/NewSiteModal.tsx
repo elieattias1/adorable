@@ -82,9 +82,17 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
   }, [open])
 
   const activeFilter = BUSINESS_FILTERS.find(f => f.label === activeIndustry) ?? BUSINESS_FILTERS[0]
-  const visible = activeFilter.industries.length === 0
+  const filtered = activeFilter.industries.length === 0
     ? templates
     : templates.filter(t => activeFilter.industries.includes(t.industry))
+  // Deduplicate: one card per distinct screenshot_url (same chain / same photo can appear multiple times)
+  const seenScreenshots = new Set<string>()
+  const visible = filtered.filter(t => {
+    const key = t.screenshot_url ?? t.slug
+    if (seenScreenshots.has(key)) return false
+    seenScreenshots.add(key)
+    return true
+  })
 
   const reset = () => {
     setName(''); setError(null); setSelectedSlug(null); setActiveIndustry('Tous')

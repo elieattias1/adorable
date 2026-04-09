@@ -65,63 +65,90 @@ const WRITE_SITE_TOOL = {
   },
 }
 
+// ── Anonymized name pool ───────────────────────────────────────────────────────
+const ANON_NAMES = [
+  'Boulangerie Artisanale', 'Au Pain Doré', 'La Fournée', 'Maison du Pain',
+  'Le Fournil', 'Pains & Saveurs', 'La Mie Dorée', 'Au Levain', 'Le Pétrin',
+  'Boulangerie du Quartier', 'Pain de Tradition', "L'Artisan Boulanger",
+  'La Boulange', 'Au Bon Pain', 'Le Fournil Artisanal',
+]
+
 // ── System prompt ──────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `Tu es un expert en réplication visuelle de sites web en React + Tailwind CSS.
+const SYSTEM_PROMPT = `Tu es un expert en création de sites web de boulangeries artisanales en React + Tailwind CSS.
 
-Tu vas recevoir :
-- Le screenshot d'un vrai site web
-- Optionnellement son HTML source
+Tu vas recevoir le screenshot d'une vraie boulangerie parisienne.
+Ton objectif : t'inspirer de son STYLE VISUEL (palette, typographie, ambiance) pour créer
+un site complet et anonymisé pour une boulangerie fictive.
 
-Ta mission est de répliquer ce site en React + Tailwind CSS pour notre moteur de rendu.
-
-═══ CONTRAINTES DU MOTEUR DE RENDU ════════════════════════════════════
-• React 18 — useState / useEffect autorisés
-• Tailwind CSS v3 — UNIQUEMENT des classes Tailwind pour le style (pas de CSS inline sauf variables)
-• lucide-react — pour les icônes (import { IconName } from 'lucide-react')
-• PAS d'autres dépendances externes
-• Pas de TypeScript — JavaScript JSX pur
-• Pas d'images locales — utilise les URLs Unsplash ou placeholder via https://picsum.photos
-• Google Fonts via @import dans un <style> tag ou via className (Tailwind ne charge pas les fonts)
-• Les formulaires : fetch('/api/forms/preview', { method: 'POST', ... })
+═══ ANONYMISATION OBLIGATOIRE ═══════════════════════════════════════
+⚠️  INTERDIT d'utiliser le vrai nom, adresse, téléphone, email, Instagram, URLs réels.
+• Nom → le nom fictif fourni dans la demande
+• Adresse → "12 rue du Marché, 75011 Paris"
+• Téléphone → "01 42 00 00 00"
+• Email → "bonjour@[slug-fictif].fr"
+• Instagram → "@boulangerie_artisanale"
+• Photos → uniquement des URLs Unsplash (liste ci-dessous)
 ══════════════════════════════════════════════════════════════════════
 
-═══ FORMAT REQUIS ════════════════════════════════════════════════════
-Le code doit suivre exactement ce format :
+═══ PHOTOS UNSPLASH AUTORISÉES ══════════════════════════════════════
+Utilise UNIQUEMENT ces URLs (une seule fois chacune) :
+Hero        : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
+Baguette    : https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&h=800&fit=crop
+Croissant   : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop
+Pain choc.  : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop
+Pain levain : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=800&fit=crop
+Brioche     : https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=800&h=800&fit=crop
+Éclair      : https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop
+Macaron     : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop
+Tarte citron: https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Mille-feuille: https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=800&fit=crop
+Intérieur   : https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&h=800&fit=crop
+Boulanger   : https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=800&h=800&fit=crop
+Sandwich    : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+══════════════════════════════════════════════════════════════════════
 
+═══ SECTIONS REQUISES (7 obligatoires) ══════════════════════════════
+1. NavSection      — logo + liens (Accueil, Nos pains, À propos, Horaires, Commander)
+2. HeroSection     — grande image hero + accroche unique + CTA "Commander maintenant"
+3. ProduitsSection — grille 3 colonnes, 6 produits avec photo/nom/prix (en euros)
+4. NotreHistoireSection — texte artisanal + photo intérieur, savoir-faire
+5. HorairesSection — tableau horaires + adresse + plan (iframe Google Maps fictif OK)
+6. AvisSection     — 3 avis clients fictifs avec prénom + note étoiles
+7. FooterSection   — liens + réseaux sociaux fictifs + copyright
+══════════════════════════════════════════════════════════════════════
+
+═══ CONTRAINTES TECHNIQUES ══════════════════════════════════════════
+• React 18 — useState / useEffect autorisés
+• Tailwind CSS v3 UNIQUEMENT (pas de CSS inline)
+• lucide-react pour les icônes
+• Pas de TypeScript — JSX pur
+• Responsive : mobile-first, breakpoints md:/lg:
+• py-20 minimum sur chaque section
+• Formulaire de commande : fetch('/api/forms/preview', { method: 'POST', ... })
+══════════════════════════════════════════════════════════════════════
+
+═══ FORMAT DU CODE ══════════════════════════════════════════════════
 \`\`\`
 import { useState, useEffect } from 'react'
 import { SomeIcon } from 'lucide-react'
 
-function NavSection() {
-  return ( ... )
-}
-
-function HeroSection() {
-  return ( ... )
-}
-
-// ... autres sections ...
+function NavSection() { ... }
+function HeroSection() { ... }
+// ... 5 autres sections ...
 
 export default function App() {
   return (
     <div>
       <NavSection />
       <HeroSection />
-      // ... autres sections ...
+      ...
     </div>
   )
 }
 \`\`\`
-
-RÈGLES :
-1. Chaque section est une fonction nommée (PascalCase)
-2. UN SEUL export default function App() à la fin
-3. Toutes les imports en haut du fichier
-4. Contenu réaliste — reprend fidèlement les textes/couleurs/layout du screenshot
-5. Si le screenshot montre des produits avec des prix → reproduis-les
-6. Si le screenshot montre des horaires, adresse, téléphone → reproduis-les
-7. Responsive : mobile-first avec breakpoints md:/lg:
-8. Qualité professionnelle — reproduis fidèlement le style visuel
+• Chaque section = une fonction nommée PascalCase
+• UN SEUL export default function App() à la fin
+• Tous les imports en haut
 ══════════════════════════════════════════════════════════════════════
 
 Appelle write_react_site avec le code complet.`
@@ -158,7 +185,7 @@ async function fetchHtml(url, maxChars = 12000) {
 }
 
 // ── Replicate one site ─────────────────────────────────────────────────────────
-async function replicateSite(refSite) {
+async function replicateSite(refSite, anonName) {
   if (!refSite.screenshot_url) throw new Error('no screenshot_url')
 
   const screenshot = await fetchScreenshot(refSite.screenshot_url)
@@ -166,26 +193,21 @@ async function replicateSite(refSite) {
   // Build message content
   const contentParts = []
 
-  // Vision: screenshot
+  // Vision: screenshot (style reference only — content will be anonymized)
   contentParts.push({
     type: 'image',
     source: { type: 'base64', media_type: screenshot.mediaType, data: screenshot.base64 },
   })
 
-  // Text: description + optional HTML
-  let textContent = `Voici le screenshot du site "${refSite.name}" (${refSite.industry}).
-URL : ${refSite.url}
-Site type : ${refSite.site_type}
+  // Text: ask for full anonymized website inspired by the screenshot style
+  const textContent = `Voici le screenshot d'une vraie boulangerie parisienne de référence.
 
-Reproduis fidèlement ce site en React + Tailwind CSS selon les contraintes du moteur de rendu.`
+Inspire-toi de son STYLE VISUEL (palette de couleurs, typographie, ambiance, mise en page)
+pour créer un site complet pour la boulangerie fictive : "${anonName}".
 
-  // Append HTML if available
-  if (refSite.html_url) {
-    const html = await fetchHtml(refSite.html_url)
-    if (html) {
-      textContent += `\n\n━━ HTML SOURCE (extrait) ━━\n${html}`
-    }
-  }
+⚠️ N'utilise PAS le vrai nom de la boulangerie du screenshot — utilise UNIQUEMENT "${anonName}".
+⚠️ Génère les 7 sections obligatoires (Nav, Hero, Produits, Histoire, Horaires, Avis, Footer).
+⚠️ Contenu fictif mais réaliste : produits typiques, prix cohérents, horaires d'une vraie boulangerie.`
 
   contentParts.push({ type: 'text', text: textContent })
 
@@ -250,15 +272,16 @@ console.log(`\n🔁  Replicating ${sites.length} reference sites (min score: ${M
 let ok = 0, failed = 0
 
 for (let i = 0; i < sites.length; i++) {
-  const site = sites[i]
-  const tag  = `[${String(i + 1).padStart(3, '0')}/${sites.length}]`
+  const site     = sites[i]
+  const anonName = ANON_NAMES[i % ANON_NAMES.length]
+  const tag      = `[${String(i + 1).padStart(3, '0')}/${sites.length}]`
 
-  process.stdout.write(`${tag} ${site.name.padEnd(40)} `)
+  process.stdout.write(`${tag} ${site.name.padEnd(35)} → "${anonName}" `)
 
   if (DRY_RUN) { console.log('(dry run)'); ok++; continue }
 
   try {
-    const reactCode = await replicateSite(site)
+    const reactCode = await replicateSite(site, anonName)
 
     const { error: upsertErr } = await supabase
       .from('reference_sites')

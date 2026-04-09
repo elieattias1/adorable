@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { createClient } from '@/lib/supabase-browser'
 import { Toast, type ToastState } from '@/components/ui/Toast'
 import ShopPanel from '@/components/dashboard/ShopPanel'
+import OrdersPanel from '@/components/dashboard/OrdersPanel'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -422,9 +423,7 @@ const INTEGRATIONS: Integration[] = [
   { id: 'googleTagManager', name: 'Google Tag Manager', category: 'Analytics', logo: '🏷️', desc: 'Gérez tous vos tags sans modifier le code.', fields: [{ key: 'containerId', label: 'Container ID', placeholder: 'GTM-XXXXXXX' }] },
   { id: 'plausible', name: 'Plausible Analytics', category: 'Analytics', logo: '📈', desc: 'Analytics léger, sans cookies, RGPD-friendly.', fields: [{ key: 'domain', label: 'Domaine', placeholder: 'monsite.fr' }] },
   { id: 'hotjar', name: 'Hotjar', category: 'Analytics', logo: '🔥', desc: 'Heatmaps et enregistrements de sessions.', fields: [{ key: 'siteId', label: 'Site ID', placeholder: '1234567' }] },
-  { id: 'stripe', name: 'Stripe', category: 'Paiements', logo: '💳', desc: 'Lien de paiement Stripe sur votre site.', fields: [{ key: 'paymentLink', label: 'Lien de paiement', placeholder: 'https://buy.stripe.com/...' }], docs: 'https://dashboard.stripe.com/payment-links' },
-  { id: 'paypal', name: 'PayPal', category: 'Paiements', logo: '🅿️', desc: 'Bouton PayPal pour dons ou paiements simples.', fields: [{ key: 'email', label: 'Email PayPal Business', placeholder: 'contact@entreprise.fr', type: 'email' }] },
-  { id: 'calendly', name: 'Calendly', category: 'Réservations', logo: '📅', desc: 'Widget de prise de rendez-vous intégré.', fields: [{ key: 'url', label: 'URL Calendly', placeholder: 'https://calendly.com/votre-nom' }], howto: 'Créez un event type sur Calendly et copiez l\'URL.' },
+{ id: 'calendly', name: 'Calendly', category: 'Réservations', logo: '📅', desc: 'Widget de prise de rendez-vous intégré.', fields: [{ key: 'url', label: 'URL Calendly', placeholder: 'https://calendly.com/votre-nom' }], howto: 'Créez un event type sur Calendly et copiez l\'URL.' },
   { id: 'doctolib', name: 'Doctolib', category: 'Réservations', logo: '🏥', desc: 'Bouton de prise de rendez-vous médical.', fields: [{ key: 'url', label: 'URL Doctolib', placeholder: 'https://www.doctolib.fr/...' }] },
   { id: 'opentable', name: 'OpenTable', category: 'Réservations', logo: '🍽️', desc: 'Widget de réservation de table pour restaurants.', fields: [{ key: 'restaurantId', label: 'Restaurant ID', placeholder: '123456' }], docs: 'https://restaurant.opentable.com' },
   { id: 'acuity', name: 'Acuity Scheduling', category: 'Réservations', logo: '🗓️', desc: 'Planification pour salons, coachs, thérapeutes.', fields: [{ key: 'url', label: 'URL Acuity', placeholder: 'https://app.acuityscheduling.com/...' }] },
@@ -722,6 +721,37 @@ function SettingsSection({ site, onSave, onDelete, onUnpublish }: { site: Site; 
   )
 }
 
+// ─── Boutique section (Produits + Commandes tabs) ─────────────────────────────
+
+function BoutiqueSection({ siteId }: { siteId: string }) {
+  const [tab, setTab] = useState<'commandes' | 'produits'>('commandes')
+  return (
+    <div>
+      <h2 className="text-lg font-black mb-1">Commandes</h2>
+      <p className="text-sm text-gray-500 mb-4">Gérez vos commandes et votre catalogue produits.</p>
+      <div className="flex gap-1 mb-6">
+        {(['commandes', 'produits'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              tab === t
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            }`}
+          >
+            {t === 'commandes' ? '📦 Commandes' : '🛍️ Produits'}
+          </button>
+        ))}
+      </div>
+      {tab === 'commandes'
+        ? <OrdersPanel siteId={siteId} />
+        : <div className="border border-gray-200 rounded-2xl overflow-hidden" style={{ height: 600 }}><ShopPanel siteId={siteId} /></div>
+      }
+    </div>
+  )
+}
+
 // ─── Root ──────────────────────────────────────────────────────────────────────
 
 export default function SiteDashboardPage() {
@@ -852,7 +882,7 @@ export default function SiteDashboardPage() {
 
   // Build sections list, inserting "Boutique" for bakery sites after "forms"
   const sections = isBakery
-    ? [...SECTIONS.slice(0, 3), { id: 'boutique', label: 'Boutique & Paiements', icon: ShoppingBag }, ...SECTIONS.slice(3)]
+    ? [...SECTIONS.slice(0, 3), { id: 'boutique', label: 'Commandes', icon: ShoppingBag }, ...SECTIONS.slice(3)]
     : SECTIONS
 
   return (
@@ -954,11 +984,7 @@ export default function SiteDashboardPage() {
             <>
               <div className="border-t border-gray-200" />
               <section id="boutique">
-                <h2 className="text-lg font-black mb-1">Boutique & Paiements</h2>
-                <p className="text-sm text-gray-500 mb-6">Gérez vos produits, suivez vos commandes et configurez les paiements en ligne.</p>
-                <div className="border border-gray-200 rounded-2xl overflow-hidden" style={{ height: 600 }}>
-                  <ShopPanel siteId={siteId} />
-                </div>
+                <BoutiqueSection siteId={siteId} />
               </section>
             </>
           )}
