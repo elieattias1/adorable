@@ -74,27 +74,84 @@ const ANON_NAMES = [
 ]
 
 // ── Design preset for boulangerie (matches lib/ai/design-presets.ts) ───────────
-const BOULANGERIE_PRESET = `
-DESIGN SYSTEM — Boulangerie de Quartier (mode CLAIR, chaleureux) :
-• Fond : #fffbf5 (blanc chaud, comme du papier d'emballage)
-• Accent : #c2410c (orange brique/terracotta) — CTA, badges prix, soulignements
-• Secondaire : #92400e (caramel foncé) pour les titres secondaires
+// NOTE: Rotates between 3 palette/layout variants to ensure visual diversity
+const BOULANGERIE_PRESETS = [
+  // Variant A — CLAIR terracotta (most common)
+  `DESIGN SYSTEM — Boulangerie de Quartier (mode CLAIR, chaleureux) :
+• Fond : #fffbf5 | Accent : #c2410c (terracotta) | Secondaire : #92400e
 • Surfaces : bg-white border border-orange-100 rounded-2xl shadow-sm
 • Texte : text-stone-900 titres, text-stone-600 corps, text-orange-700 prix
-• Typo : Playfair Display 700 pour titres de sections, Inter 400/500 pour tout le reste
-• Hero : SPLIT horizontal — gauche : titre grand + horaires aujourd'hui + CTA, droite : photo devanture ou produits
-• Nav : fond blanc border-b border-orange-100, logo avec icône pain, liens sobres, CTA "Horaires & Adresse"
-• Photos : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop
+• Typo : Playfair Display 700 titres de sections, Inter 400/500 reste
+• Hero : SPLIT 50/50 — titre UNIQUE inventé + badge horaires + CTA, photo produits
 
-SECTIONS BOULANGERIE — utilise ces sections dans cet ordre :
-1. NavSection — logo + "Boulangerie [Nom]" + liens (Nos produits, Notre histoire, Horaires) + CTA orange "Nous trouver"
-2. HeroSection — SPLIT 50/50 : gauche texte (titre chaleureux + horaires du jour en badge + bouton), droite grande photo de baguettes dorées
-3. ProduitsSection — grille 2x3 des spécialités avec photo, nom et prix. Inclure : Baguette Tradition (1,20€), Croissant au beurre (1,40€), Pain au levain (4,50€), Pain au chocolat (1,50€), Tarte aux pommes (3,80€), Sandwich du jour (5,50€)
-4. NotreHistoireSection — section narrative : "Depuis [année], nous faisons lever la pâte chaque nuit…" + photo du boulanger en action + 3 valeurs (Artisanal, Local, Passion)
-5. HorairesEtAdresseSection — tableau horaires (Lun–Dim), adresse complète avec lien Google Maps, numéro de téléphone
-6. AvisClientsSection — 3 avis Google style (5 étoiles, prénom + initiale, texte court et chaleureux)
-7. FooterSection — adresse, horaires condensés, Instagram/Facebook, "Fait à [ville] avec ❤️"
-`
+PHOTOS — utilise chaque URL UNE SEULE FOIS :
+Hero : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
+Baguette : https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&h=800&fit=crop
+Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop
+Pain chocolat : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop
+Pain levain : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=800&fit=crop
+Brioche : https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=800&h=800&fit=crop
+Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop
+Sandwich : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+
+PRODUITS — sélectionne 6 variés (ne pas mettre les mêmes que les autres templates) :
+Pains : Baguette 1,20€ | Levain 4,50€ | Campagne 3,80€
+Viennoiseries : Croissant 1,40€ | Pain chocolat 1,50€ | Brioche 3,20€ | Chausson pommes 1,80€
+Pâtisseries : Tarte citron 4,20€ | Macaron x3 4,50€ | Éclair 3,50€
+Snacks : Sandwich jambon-beurre 4,50€
+
+SECTIONS :
+1. NavSection | 2. HeroSection | 3. ProduitsSection | 4. NotreHistoireSection | 5. HorairesEtAdresseSection | 6. AvisClientsSection | 7. FooterSection`,
+
+  // Variant B — SOMBRE doré artisanal
+  `DESIGN SYSTEM — Boulangerie Artisanale (dark warm) :
+• Fond : #120900 (brun nuit) | Accent : #d4a853 (doré beurre) | Secondaire : #8B4513
+• Surfaces : bg-[#1e1008]/80 border border-[#d4a853]/20 rounded-3xl
+• Texte : text-[#f9efd7] titres, text-[#c4a882] corps
+• Typo : Playfair Display italic titres et produits, Inter descriptions
+• Hero : PLEIN ÉCRAN h-screen, overlay gradient from-[#120900]/80, texte centré
+
+PHOTOS — utilise chaque URL UNE SEULE FOIS :
+Hero : https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=1920&h=1080&fit=crop
+Croissant : https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=800&h=800&fit=crop
+Pain levain : https://images.unsplash.com/photo-1534620808146-d33bb39128b2?w=800&h=800&fit=crop
+Éclair : https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=800&h=800&fit=crop
+Opéra : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop
+Mille-feuille : https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=800&fit=crop
+Brioche : https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=800&fit=crop
+Tarte framboise : https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&h=800&fit=crop
+
+PRODUITS — sélectionne 6 variés axés sur les pâtisseries premium :
+Opéra 5,50€ | Mille-feuille 4,80€ | Éclair chocolat 3,50€ | Pain levain 4,50€ | Croissant 1,40€ | Tarte framboise 4,50€
+
+SECTIONS :
+1. NavSection | 2. HeroSection | 3. ProduitsVedettesSection | 4. NotreHistoireSection | 5. HorairesAdresseSection | 6. AvisClientsSection | 7. FooterSection`,
+
+  // Variant C — BLANC luxueux pâtisserie
+  `DESIGN SYSTEM — Pâtisserie Fine (mode CLAIR, luxueux) :
+• Fond : #fdf9f6 | Accent : #b45309 (ambre caramel) | Secondaire : #fde68a
+• Surfaces : bg-white border border-amber-100 rounded-3xl shadow-md
+• Texte : text-stone-900 titres, text-stone-600 corps
+• Typo : Playfair Display italic géant (text-6xl+) hero, Inter léger descriptions
+• Hero : MINIMAL CENTRÉ — fond crème, titre Playfair italic UNIQUE, photo gâteau signature
+
+PHOTOS — utilise chaque URL UNE SEULE FOIS :
+Hero : https://images.unsplash.com/photo-1587314168485-3236d6710814?w=1920&h=1080&fit=crop
+Macaron : https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=800&fit=crop
+Tarte citron : https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?w=800&h=800&fit=crop
+Opéra : https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=800&h=800&fit=crop
+Chausson : https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=800&fit=crop
+Pain raisins : https://images.unsplash.com/photo-1583338917451-face2751d8d5?w=800&h=800&fit=crop
+Financier : https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=800&h=800&fit=crop
+Baguette : https://images.unsplash.com/photo-1600369671236-e74521d4b6ad?w=800&h=800&fit=crop
+
+PRODUITS — sélectionne 6 variés axés pâtisserie fine et viennoiseries :
+Macaron x3 4,50€ | Tarte citron 4,20€ | Opéra 5,50€ | Chausson pommes 1,80€ | Pain raisins 1,60€ | Financier 2,20€
+
+SECTIONS :
+1. NavSection | 2. HeroSection | 3. CollectionSection | 4. SavoirFaireSection | 5. HorairesAdresseSection | 6. AvisClientsSection | 7. FooterSection`,
+]
 
 // ── Tool schemas (mirrors lib/ai/manifest.ts) ──────────────────────────────────
 const MANIFEST_TOOL = {
@@ -153,10 +210,44 @@ const SECTION_TOOL = {
 
 // ── Assemble sections into a single App component ─────────────────────────────
 function assembleSections(sections) {
-  const imports = `import { useState } from 'react'`
-  const fns     = sections.map(s => s.code).join('\n\n')
-  const calls   = sections.map(s => `  <${s.component} />`).join('\n')
-  return `${imports}\n\n${fns}\n\nexport default function App() {\n  return (\n    <div>\n${calls}\n    </div>\n  )\n}\n`
+  // Parse all imports, merge named imports by module, strip from section bodies
+  const namedByModule = {}  // module → Set of named imports
+  const sideEffects   = []  // side-effect imports (no specifiers)
+
+  const stripped = sections.map(s => {
+    const lines = s.code.split('\n')
+    const body  = []
+    for (const line of lines) {
+      const trimmed = line.trim()
+      // named: import { A, B } from 'module'
+      const namedMatch = trimmed.match(/^import\s*\{([^}]+)\}\s*from\s*['"]([^'"]+)['"]/)
+      if (namedMatch) {
+        const mod     = namedMatch[2]
+        const names   = namedMatch[1].split(',').map(n => n.trim()).filter(Boolean)
+        if (!namedByModule[mod]) namedByModule[mod] = new Set()
+        names.forEach(n => namedByModule[mod].add(n))
+        continue
+      }
+      // side-effect or default import — keep as-is (deduplicate by string)
+      if (/^import\s/.test(trimmed)) {
+        if (!sideEffects.includes(trimmed)) sideEffects.push(trimmed)
+        continue
+      }
+      body.push(line)
+    }
+    return { ...s, code: body.join('\n').replace(/^\n+/, '') }
+  })
+
+  const mergedImports = [
+    ...Object.entries(namedByModule).map(([mod, names]) =>
+      `import { ${[...names].join(', ')} } from '${mod}'`
+    ),
+    ...sideEffects,
+  ].join('\n')
+
+  const fns  = stripped.map(s => s.code).join('\n\n')
+  const calls = stripped.map(s => `  <${s.component} />`).join('\n')
+  return `${mergedImports}\n\n${fns}\n\nexport default function App() {\n  return (\n    <div>\n${calls}\n    </div>\n  )\n}\n`
 }
 
 // ── Generate React code for one reference site ─────────────────────────────────
@@ -164,7 +255,8 @@ async function generateForSite(refSite, anonName, idx) {
   const tag = `[${String(idx).padStart(3,'0')}]`
 
   // ── Phase 1: Manifest (with vision if screenshot available) ───────────────
-  const systemPrompt = `Tu es un expert en design de sites web. Tu analyses une demande et produis un manifest complet.\n\n${BOULANGERIE_PRESET}\n\nRÈGLES :\n- businessName : utilise EXACTEMENT le nom fourni\n- industry : "boulangerie"\n- design : respecte STRICTEMENT les valeurs du design system ci-dessus\n- sections : 6 à 7 sections selon le design system\n- unsplashUrls : utilise les URLs du design system\n\nAppelle create_manifest avec le manifest complet.`
+  const preset = BOULANGERIE_PRESETS[idx % BOULANGERIE_PRESETS.length]
+  const systemPrompt = `Tu es un expert en design de sites web. Tu analyses une demande et produis un manifest complet.\n\n${preset}\n\nRÈGLES :\n- businessName : utilise EXACTEMENT le nom fourni\n- industry : "boulangerie"\n- design : respecte STRICTEMENT les valeurs du design system ci-dessus\n- sections : 6 à 7 sections selon le design system\n- unsplashUrls : utilise les URLs du design system\n\nAppelle create_manifest avec le manifest complet.`
 
   const userContentParts = []
 

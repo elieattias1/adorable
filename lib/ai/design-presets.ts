@@ -80,30 +80,50 @@ DESIGN SYSTEM — Street Food / Fast-Casual :
   bakery: [
     {
       id: 'artisan-dark',
-      keywords: ['artisan', 'artisanal', 'traditionnel', 'four', 'levain', 'bio', 'maison', 'fait maison', 'authentique'],
+      keywords: ['artisan', 'artisanal', 'traditionnel', 'four', 'levain', 'bio', 'maison', 'fait maison', 'authentique', 'campagne'],
       preset: `
-DESIGN SYSTEM — Boulangerie Artisanale (dark warm) :
+DESIGN SYSTEM — Boulangerie Artisanale (dark warm, four à bois) :
 • Fond : #120900 (brun nuit, évoque la farine grillée)
 • Accent : #d4a853 (doré beurre) — CTA, prix, badges
 • Secondaire : #8B4513 (brun pain)
 • Surfaces : bg-[#1e1008]/80 border border-[#d4a853]/20 rounded-3xl
 • Texte : text-[#f9efd7] titres, text-[#c4a882] corps
-• Typo : Playfair Display italic pour noms de produits, Inter pour descriptions
-• Hero : IMAGE PLEIN ÉCRAN h-screen, overlay gradient from-[#120900]/80, texte centré
-• Photos : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop
+• Typo : Playfair Display italic pour titres et noms de produits, Inter pour descriptions
+• Hero : IMAGE PLEIN ÉCRAN h-screen, overlay gradient from-[#120900]/80, texte centré avec badge horaires du jour
+• Nav : bg-[#120900]/95 backdrop-blur, logo Playfair avec icône épis de blé, CTA "Commander" doré
 
-SECTIONS BOULANGERIE — utilise ces sections dans cet ordre :
-1. NavSection — logo artisanal + liens (Nos pains, Viennoiseries, Notre histoire, Horaires) + CTA "Commander"
-2. HeroSection — plein écran avec photo de pain doré, titre Playfair italic grand, sous-titre "Artisan boulanger depuis [année]", CTA
-3. ProduitsVedettesSection — grille 3 colonnes de 6 produits phares (baguette tradition, pain au levain, croissant, pain au chocolat…) avec nom + prix
-4. NotreHistoireSection — split 50/50 : texte gauche (histoire du boulanger, savoir-faire, passion) + photo fournil droite
-5. HorairesAdresseSection — tableau des horaires semaine + weekend, adresse avec Google Maps embed, téléphone
-6. TestimonialsSection — 3 avis Google avec étoiles, prénom client, texte court
-7. FooterSection — adresse, horaires résumés, liens réseaux sociaux, copyright`,
+PHOTOS DISPONIBLES — utilise ces URLs réelles dans les sections :
+Hero/fond : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
+Baguette : https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1600369671236-e74521d4b6ad?w=800&h=800&fit=crop
+Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=800&h=800&fit=crop
+Pain au chocolat : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&h=800&fit=crop
+Pain levain : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=800&h=800&fit=crop
+Éclair : https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=800&h=800&fit=crop
+Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop
+Opéra/gâteau : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop
+Mille-feuille : https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=800&fit=crop
+Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Brioche : https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=800&h=800&fit=crop
+Sandwich : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+
+PRODUITS BOULANGERIE — choisis une sélection VARIÉE parmi ceux-ci (ne les mets pas tous) :
+Pains : Baguette Tradition 1,20€ | Pain au levain 4,50€ | Pain de campagne 3,80€ | Fougasse 3,20€
+Viennoiseries : Croissant au beurre 1,40€ | Pain au chocolat 1,50€ | Brioche 3,20€ | Chausson aux pommes 1,80€ | Pain aux raisins 1,60€
+Pâtisseries : Éclair au chocolat 3,50€ | Tarte au citron meringuée 4,20€ | Opéra 5,50€ | Mille-feuille 4,80€ | Macaron x3 4,50€ | Tarte aux framboises 4,50€
+Snacks : Sandwich jambon-beurre 4,50€ | Quiche lorraine 3,80€
+
+SECTIONS — dans cet ordre :
+1. NavSection
+2. HeroSection — plein écran photo de pain doré ou fournil, titre Playfair italic, badge horaires du jour
+3. ProduitsVedettesSection — sélectionne 6 produits VARIÉS (pas seulement baguette/croissant), chaque produit avec sa vraie photo Unsplash
+4. NotreHistoireSection — split : texte histoire artisan + photo fournil ou boulanger
+5. HorairesAdresseSection — tableau horaires + adresse + Maps
+6. AvisClientsSection — 3 vrais avis style Google
+7. FooterSection`,
     },
     {
       id: 'patisserie-light',
-      keywords: ['pâtisserie', 'pâtissier', 'gâteau', 'cake', 'wedding', 'mariage', 'anniversaire', 'chocolat', 'macaron', 'élégant', 'luxe', 'Paris'],
+      keywords: ['pâtisserie', 'pâtissier', 'gâteau', 'cake', 'wedding', 'mariage', 'anniversaire', 'macaron', 'élégant', 'luxe', 'Paris', 'chocolat'],
       preset: `
 DESIGN SYSTEM — Pâtisserie Parisienne (mode CLAIR, luxueux) :
 • Fond : #fdf9f6 (blanc cassé, papier crème)
@@ -112,43 +132,78 @@ DESIGN SYSTEM — Pâtisserie Parisienne (mode CLAIR, luxueux) :
 • Surfaces : bg-white border border-amber-100 rounded-3xl shadow-md
 • Texte : text-stone-900 titres, text-stone-600 corps
 • Typo : Playfair Display italic grand (text-6xl+) pour le nom/hero, Inter léger pour descriptions
-• Hero : MINIMAL CENTRÉ — fond crème, logo élaboré, titre Playfair italic géant, sous-titre discret, CTA ambre
-• Nav : fond blanc, liens en Inter 500 spacing-wide, aucun arrière-plan coloré
-• Photos : https://images.unsplash.com/photo-1587314168485-3236d6710814?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1612203985729-70726954388c?w=800&h=600&fit=crop
+• Hero : SPLIT CLAIR — gauche : titre Playfair italic "L'art de la pâtisserie" + sous-titre élégant + CTA, droite : photo gâteau signature sur fond crème
+• Nav : fond blanc, liens Inter 500 letter-spacing-wide, aucun arrière-plan coloré
 
-SECTIONS PÂTISSERIE — utilise ces sections dans cet ordre :
-1. NavSection — logo fin + liens (Pâtisseries, Gâteaux, Commandes, À propos) + CTA "Commander en ligne"
-2. HeroSection — split CLAIR : titre Playfair italic "L'art de la pâtisserie" + sous-titre élégant, photo de gâteau signature
-3. CollectionSection — grille 3x2 de créations du moment avec belles photos, noms poétiques, prix
-4. SavoirFaireSection — texte artisanal + 3 icônes (ingrédients locaux, fait main, sans conservateur)
-5. CommandesSection — CTA pour commandes spéciales (anniversaire, mariage) + délai + formulaire contact
-6. HorairesAdresseSection — horaires + adresse + carte
+PHOTOS DISPONIBLES :
+Hero/fond : https://images.unsplash.com/photo-1587314168485-3236d6710814?w=1920&h=1080&fit=crop
+Opéra : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=800&h=800&fit=crop
+Mille-feuille : https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1612203985729-70726954388c?w=800&h=800&fit=crop
+Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=800&fit=crop
+Éclair : https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1587314168485-3236d6710814?w=800&h=800&fit=crop
+Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?w=800&h=800&fit=crop
+Tarte framboise : https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&h=800&fit=crop
+Financier : https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=800&h=800&fit=crop
+Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop
+
+PRODUITS PÂTISSERIE — sélection luxueuse et variée :
+Pièces maîtresses : Opéra 5,50€ | Mille-feuille 4,80€ | Saint-Honoré 6,50€ | Paris-Brest 5,20€
+Petites douceurs : Macaron x3 4,50€ | Éclair au chocolat 3,50€ | Financier amande 2,20€ | Religieuse 3,80€
+Tartes : Tarte au citron meringuée 4,20€ | Tarte aux framboises 4,50€ | Tarte Tatin 4,80€
+Commandes spéciales : Entremets anniversaire (sur commande) | Pièce montée mariage (sur devis)
+
+SECTIONS — dans cet ordre :
+1. NavSection — logo fin élégant + liens (Créations, Commandes, À propos) + CTA "Commander"
+2. HeroSection — split élégant, titre poétique UNIQUE (pas "L'art de la pâtisserie"), photo gâteau signature
+3. CollectionSection — grille 3x2 créations du moment avec belles photos Unsplash, noms poétiques, prix
+4. SavoirFaireSection — 3 valeurs (ingrédients locaux, fait main, recettes transmises)
+5. CommandesSpecialesSection — anniversaires, mariages, événements — formulaire contact
+6. HorairesAdresseSection
 7. FooterSection`,
     },
     {
       id: 'boulangerie-moderne',
-      keywords: ['boulangerie', 'boulanger', 'pain', 'viennoiserie', 'croissant', 'café', 'quartier', 'local', 'petit-déjeuner', 'déjeuner'],
+      keywords: ['boulangerie', 'boulanger', 'pain', 'viennoiserie', 'croissant', 'café', 'quartier', 'local', 'petit-déjeuner', 'déjeuner', 'snack'],
       preset: `
-DESIGN SYSTEM — Boulangerie de Quartier (mode CLAIR, chaleureux) :
+DESIGN SYSTEM — Boulangerie de Quartier (mode CLAIR, chaleureux, contemporain) :
 • Fond : #fffbf5 (blanc chaud, comme du papier d'emballage)
 • Accent : #c2410c (orange brique/terracotta) — CTA, badges prix, soulignements
 • Secondaire : #92400e (caramel foncé) pour les titres secondaires
 • Surfaces : bg-white border border-orange-100 rounded-2xl shadow-sm
 • Texte : text-stone-900 titres, text-stone-600 corps, text-orange-700 prix
 • Typo : Playfair Display 700 pour titres de sections, Inter 400/500 pour tout le reste
-• Hero : SPLIT horizontal — gauche : titre grand "Votre boulangerie de quartier" + horaires aujourd'hui + CTA, droite : photo devanture ou produits
-• Nav : fond blanc border-b border-orange-100, logo avec icône pain, liens sobres, CTA "Horaires & Adresse"
-• Photos : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop | https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=800&h=600&fit=crop | https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop
+• Hero : SPLIT 50/50 — gauche : titre UNIQUE et personnel + badge "Ouvert aujourd'hui jusqu'à XXh" + CTA, droite : grande photo appétissante
+• Nav : fond blanc border-b border-orange-100, logo avec emoji pain ou icône, liens sobres, CTA "Nous trouver"
 
-SECTIONS BOULANGERIE DE QUARTIER — utilise ces sections dans cet ordre :
-1. NavSection — logo + "Boulangerie [Nom]" + liens (Nos produits, Notre histoire, Horaires) + CTA orange "Nous trouver"
-2. HeroSection — SPLIT 50/50 : gauche texte (titre chaleureux "Fait avec amour, chaque matin" + horaires d'ouverture du jour en badge + bouton "Voir nos produits"), droite grande photo de devanture ou baguettes dorées
-3. ProduitsSection — grille 2x3 des spécialités avec photo, nom et prix. Inclure : Baguette Tradition (1,20€), Croissant au beurre (1,40€), Pain au levain (4,50€), Pain au chocolat (1,50€), Tarte aux pommes (3,80€), Sandwich du jour (5,50€)
-4. NotreHistoireSection — section narrative : "Depuis [année], nous faisons lever la pâte chaque nuit…" + photo du boulanger en action + 3 valeurs (Artisanal, Local, Passion)
-5. SpecialitesDuMomentSection — bannière horizontale "Les incontournables du moment" avec 3 produits en highlight visuel fort
-6. HorairesEtAdresseSection — tableau horaires (Lun–Dim), adresse complète avec lien Google Maps, numéro de téléphone, note "Fermé le mercredi"
-7. AvisClientsSection — 3 faux avis Google style (5 étoiles, prénom + initiale, texte court et chaleureux)
-8. FooterSection — adresse, horaires condensés, Instagram/Facebook, "Fait à [ville] avec ❤️"`,
+PHOTOS DISPONIBLES — utilise chaque photo UNE SEULE FOIS, varie les produits :
+Hero large : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
+Baguette : https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&h=800&fit=crop
+Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1608198093002-ad4e005484ec?w=800&h=800&fit=crop
+Pain chocolat : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop
+Pain levain : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=800&fit=crop
+Brioche : https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=800&h=800&fit=crop
+Chausson : https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=800&fit=crop
+Pain raisins : https://images.unsplash.com/photo-1583338917451-face2751d8d5?w=800&h=800&fit=crop
+Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop
+Sandwich : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+
+PRODUITS — sélectionne 6-8 produits VARIÉS parmi :
+Pains : Baguette Tradition 1,20€ | Pain au levain 4,50€ | Pain de seigle 3,50€
+Viennoiseries : Croissant au beurre 1,40€ | Pain au chocolat 1,50€ | Brioche maison 3,20€ | Chausson aux pommes 1,80€ | Pain aux raisins 1,60€
+Pâtisseries : Tarte au citron meringuée 4,20€ | Macaron x3 4,50€ | Éclair 3,50€
+Snacks : Sandwich jambon-beurre 4,50€ | Quiche lorraine 3,80€
+
+RÈGLE CRITIQUE : Le titre du HeroSection doit être UNIQUE et inventé — JAMAIS "Votre boulangerie de quartier" ni "Fait avec amour, chaque matin". Invente une accroche authentique différente pour chaque site.
+
+SECTIONS — dans cet ordre :
+1. NavSection
+2. HeroSection — titre accrocheur UNIQUE, badge horaires du jour, CTA, grande photo
+3. ProduitsSection — grille 2×3 ou 3×2, 6 produits VARIÉS avec leurs vraies photos Unsplash
+4. NotreHistoireSection — histoire inventée et chaleureuse + 3 valeurs (pas toujours les mêmes)
+5. HorairesEtAdresseSection — tableau horaires + adresse + Maps embed
+6. AvisClientsSection — 3 avis variés et crédibles
+7. FooterSection`,
     },
   ],
 

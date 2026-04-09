@@ -98,6 +98,89 @@ export function constructWebhookEvent(payload: Buffer, signature: string) {
   )
 }
 
+// ─── Stripe Connect Express ───────────────────────────────────────────────────
+
+/** Create an onboarding link for a bakery owner to connect their bank account */
+export async function createConnectOnboardingLink({
+  accountId,
+  refreshUrl,
+  returnUrl,
+}: {
+  accountId: string
+  refreshUrl: string
+  returnUrl: string
+}) {
+  return stripe.accountLinks.create({
+    account: accountId,
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+    type: 'account_onboarding',
+  })
+}
+
+/** Create a Stripe Connect Express account for a bakery owner */
+export async function createConnectAccount(email: string, userId: string) {
+  return stripe.accounts.create({
+    type: 'express',
+    email,
+    metadata: { supabase_user_id: userId },
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+    business_type: 'individual',
+    settings: {
+      payouts: { schedule: { interval: 'weekly', weekly_anchor: 'monday' } },
+    },
+  })
+}
+
+/** Create a Checkout Session for a bakery shop order */
+export async function createShopCheckoutSession({
+  connectedAccountId,
+  lineItems,
+  orderId,
+  siteId,
+  successUrl,
+  cancelUrl,
+  platformFeePercent = 5,
+}: {
+  connectedAccountId: string
+  lineItems: { name: string; amount: number; quantity: number; images?: string[] }[]
+  orderId: string
+  siteId: string
+  successUrl: string
+  cancelUrl: string
+  platformFeePercent?: number
+}) {
+  const totalCents = lineItems.reduce((sum, i) => sum + i.amount * i.quantity, 0)
+  const platformFee = Math.round(totalCents * platformFeePercent / 100)
+
+  return stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: lineItems.map(item => ({
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.name,
+          ...(item.images?.length ? { images: item.images.slice(0, 1) } : {}),
+        },
+        unit_amount: item.amount,
+      },
+      quantity: item.quantity,
+    })),
+    mode: 'payment',
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata: { orderId, siteId },
+    payment_intent_data: {
+      application_fee_amount: platformFee,
+      transfer_data: { destination: connectedAccountId },
+      metadata: { orderId, siteId },
+    },
+  })
+}
+
 /**
  * Given a Stripe subscription, return the plan key
  */
