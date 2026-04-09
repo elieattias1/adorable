@@ -119,12 +119,15 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
       var code = ${codeJson};
       var compiled;
       try {
-        compiled = Babel.transform(code, {
-          presets: [
-            ['react', { runtime: 'automatic' }],
-            ['typescript', { allExtensions: true, isTSX: true }],
-          ],
+        // Two-pass: strip TypeScript first, then compile JSX
+        // Avoids "Missing semicolon" on template literals in JSX attributes
+        var stripped = Babel.transform(code, {
+          presets: [['typescript', { allExtensions: true, isTSX: true }]],
           filename: 'App.tsx',
+        }).code;
+        compiled = Babel.transform(stripped, {
+          presets: [['react', { runtime: 'automatic' }]],
+          filename: 'App.jsx',
         }).code;
       } catch (err) {
         showError('Erreur de compilation :\\n' + err.message);
