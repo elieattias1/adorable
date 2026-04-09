@@ -87,11 +87,13 @@ Appelle create_manifest avec le manifest complet.`
 }
 
 export function buildSectionPrompt(
-  manifest:     SiteManifest,
-  section:      SectionSpec,
-  previousCode: string,
-  formEndpoint: string | null,
-  syntaxError?: string | null,
+  manifest:      SiteManifest,
+  section:       SectionSpec,
+  previousCode:  string,
+  formEndpoint:  string | null,
+  syntaxError?:  string | null,
+  shopEndpoint?: string | null,
+  shopSiteId?:   string | null,
 ): string {
   const d    = manifest.design
   const urls = manifest.unsplashUrls ?? []
@@ -128,6 +130,13 @@ ${previousCode}
 
 ${formEndpoint && (section.id === 'contact' || section.id === 'reservation' || section.id === 'booking') ? `━━ FORMULAIRE ━━
 Utilise exactement : fetch('${formEndpoint}', { method: 'POST', ... })` : ''}
+
+${shopEndpoint && shopSiteId && (section.id === 'shop' || section.id === 'boutique' || section.id === 'commandes' || section.component?.toLowerCase().includes('shop')) ? `━━ BOUTIQUE EN LIGNE ━━
+Charge les produits : fetch('${shopEndpoint}/products?siteId=${shopSiteId}')
+Checkout : POST '${shopEndpoint}/shop/checkout' avec { site_id: '${shopSiteId}', customer_name, customer_email, items: [{product_id, quantity}] }
+Sur succès (data.url) → window.location.href = data.url (Stripe Checkout)
+Affiche les produits en grille avec photo, nom, prix, bouton "Ajouter"
+Panier flottant ou modal pour finaliser (nom + email obligatoires)` : ''}
 
 ━━ RÈGLES ABSOLUES ━━
 1. Exporte UNIQUEMENT : export function ${section.component}() { ... }

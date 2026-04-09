@@ -13,6 +13,8 @@ export function buildAgentSystemPrompt(
   const designPreset = getDesignPreset(siteType, userMessage)
   const appUrl       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
   const formEndpoint = siteId ? `${appUrl}/api/forms/${siteId}` : null
+  const shopEndpoint = siteId ? `${appUrl}/api` : null
+  const shopSiteId   = siteId ?? null
   const isInitialGeneration = !currentCode
 
   return `Tu es Adorable, un agent expert en création de sites web React/Tailwind de niveau professionnel.
@@ -157,6 +159,50 @@ Affiche une erreur si formStatus === 'error'.
 Désactive le bouton submit quand formStatus === 'loading'.
 Ajoute un champ honeypot caché : <input type="text" name="_honeypot" style={{display:'none'}} tabIndex={-1} autoComplete="off" />
 Les champs doivent avoir des attributs \`name\` explicites (ex: name="email", name="message").
+` : ''}
+
+${shopEndpoint && shopSiteId && siteType === 'bakery' ? `
+BOUTIQUE EN LIGNE — BOULANGERIE :
+Si l'utilisateur demande d'ajouter une boutique, un panier, une section commandes ou "commander en ligne", génère une ShopSection complète avec ce pattern EXACT :
+
+\`\`\`tsx
+const SHOP_API  = '${shopEndpoint}'
+const SHOP_SITE = '${shopSiteId}'
+
+// Charge les produits depuis la DB
+useEffect(() => {
+  fetch(SHOP_API + '/products?siteId=' + SHOP_SITE)
+    .then(r => r.json())
+    .then(d => setProducts(d.products ?? []))
+}, [])
+
+// Panier : { [productId]: quantity }
+const [cart, setCart] = useState({})
+
+// Checkout
+const handleCheckout = async ({ customerName, customerEmail, items }) => {
+  const res = await fetch(SHOP_API + '/shop/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      site_id: SHOP_SITE,
+      customer_name: customerName,
+      customer_email: customerEmail,
+      items, // [{ product_id, quantity }]
+    }),
+  })
+  const data = await res.json()
+  if (data.url) window.location.href = data.url
+}
+\`\`\`
+
+Règles pour la ShopSection :
+- Affiche les produits en grille avec photo, nom, prix, bouton "Ajouter au panier"
+- Un compteur/badge panier flottant ou sticky montre le nombre d'articles
+- Un modal ou drawer s'ouvre pour finaliser la commande (nom, email, note)
+- Bouton "Payer en ligne" → appelle handleCheckout → redirige vers Stripe
+- Si products est vide au chargement, n'affiche pas la section (return null)
+- Style cohérent avec le reste du site (couleurs et typo de la boulangerie)
 ` : ''}
 CODE ACTUEL DU SITE :
 \`\`\`tsx

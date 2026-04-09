@@ -85,8 +85,10 @@ async function runSequentialGeneration(opts: {
   tag:         string
 }): Promise<string | null> {
   const { siteId, siteName, siteType, message, safeSend, tag } = opts
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
+  const appUrl       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
   const formEndpoint = `${appUrl}/api/forms/${siteId}`
+  const shopEndpoint = siteType === 'bakery' ? `${appUrl}/api` : null
+  const shopSiteId   = siteType === 'bakery' ? siteId : null
 
   const designPreset = getDesignPresetForManifest(siteType, message)
 
@@ -151,7 +153,7 @@ async function runSequentialGeneration(opts: {
           safeSend({ section_retry: { id: section.id, attempt, error: syntaxError?.slice(0, 120) } })
         }
 
-        const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint, syntaxError)
+        const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint, syntaxError, shopEndpoint, shopSiteId)
 
         const sectionStream = anthropic.messages.stream({
           model:       'claude-sonnet-4-6',
