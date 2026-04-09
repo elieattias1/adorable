@@ -494,6 +494,79 @@ function HasToggle({ value, onChange }: {
   )
 }
 
+// ─── Dropdown filter for text columns ────────────────────────────────────────
+function ColFilterDropdown({ value, onChange, options, placeholder }: {
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+  placeholder: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const visible = options
+    .filter(o => o.toLowerCase().includes(search.toLowerCase()))
+
+  const close = () => { setOpen(false); setSearch('') }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className={`col-filter flex items-center justify-between gap-1 w-full text-left ${
+          value ? 'border-violet-400 bg-violet-50 text-violet-700' : ''
+        }`}
+      >
+        <span className="truncate">{value || placeholder}</span>
+        <ChevronDown className="w-3 h-3 flex-shrink-0 opacity-50" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={close} />
+          <div className="absolute top-full left-0 z-30 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+            <div className="p-1.5 border-b border-gray-100">
+              <input
+                autoFocus
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher…"
+                className="w-full text-[11px] px-2 py-1 border border-gray-200 rounded focus:outline-none focus:border-violet-400 bg-white text-gray-800"
+              />
+            </div>
+            <div className="max-h-[145px] overflow-y-auto">
+              {value && (
+                <button
+                  onClick={() => { onChange(''); close() }}
+                  className="w-full text-left px-3 py-1.5 text-[11px] text-gray-400 hover:bg-gray-50 border-b border-gray-50"
+                >
+                  — Tous
+                </button>
+              )}
+              {visible.length === 0 ? (
+                <div className="px-3 py-2.5 text-[11px] text-gray-400 text-center">Aucun résultat</div>
+              ) : (
+                visible.map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => { onChange(opt); close() }}
+                    className={`w-full text-left px-3 py-1.5 text-[11px] hover:bg-gray-50 truncate block ${
+                      opt === value ? 'text-violet-600 font-semibold bg-violet-50' : 'text-gray-700'
+                    }`}
+                    title={opt}
+                  >
+                    {opt}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ─── Main CRM page ────────────────────────────────────────────────────────────
 export default function CRMPage() {
   const router = useRouter()
@@ -553,6 +626,20 @@ export default function CRMPage() {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
   }
+
+  // Unique options for dropdown filters (from all leads, not filtered)
+  const colOptions = useMemo(() => {
+    const uniq = (vals: (string | null | undefined)[]) =>
+      [...new Set(vals.filter((v): v is string => !!v))].sort()
+    return {
+      business:       uniq(leads.map(l => l.business_name)),
+      category:       uniq(leads.map(l => l.category)),
+      address:        uniq(leads.map(l => l.address)),
+      arrondissement: uniq(leads.map(l => l.arrondissement ?? l.city)),
+      postcode:       uniq(leads.map(l => l.postcode)),
+      outreach:       uniq(leads.map(l => l.outreach_status)),
+    }
+  }, [leads])
 
   // Stats
   const stats = useMemo(() => {
@@ -863,6 +950,16 @@ export default function CRMPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm transition-colors whitespace-nowrap">
             <Upload className="w-4 h-4" /> Importer
           </button>
+
+          {hasColFilters && (
+            <button onClick={() => setColFilters({
+              business:'',category:'',address:'',arrondissement:'',postcode:'',
+              phone:'all',minRating:'',minReviews:'',email:'all',website:'all',
+              instagram:'all',facebook:'all',outreach:'',maps:'all',
+            })} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-50 border border-violet-200 text-violet-700 text-sm font-medium hover:bg-violet-100 transition-colors whitespace-nowrap">
+              <X className="w-3.5 h-3.5" /> Reset filtres
+            </button>
+          )}
         </div>
 
         {/* Selection action bar */}
@@ -946,61 +1043,36 @@ export default function CRMPage() {
                   <div>Facebook</div>
                   <div>Statut</div>
                   <div>Maps</div>
-                  <div className="flex items-center justify-end">
-                    {hasColFilters && (
-                      <button onClick={() => setColFilters({
-                        business:'',category:'',address:'',arrondissement:'',postcode:'',
-                        phone:'all',minRating:'',minReviews:'',email:'all',website:'all',
-                        instagram:'all',facebook:'all',outreach:'',maps:'all',
-                      })} className="text-[10px] text-violet-500 hover:text-violet-700 whitespace-nowrap">
-                        Reset
-                      </button>
-                    )}
-                  </div>
+                  <div />
                 </div>
 
                 {/* ── Filter row ── */}
                 <div className="grid grid-cols-[auto_180px_110px_140px_120px_150px_160px_90px_80px_110px_90px_90px_120px_120px_110px_110px_auto] gap-x-2 px-4 py-1.5 border-b border-gray-100 bg-gray-50">
                   <div />
-                  {/* Business */}
-                  <input value={colFilters.business} onChange={e => setCF('business', e.target.value)}
-                    placeholder="Filtrer…" className="col-filter" />
-                  {/* Category */}
-                  <input value={colFilters.category} onChange={e => setCF('category', e.target.value)}
-                    placeholder="Filtrer…" className="col-filter" />
-                  {/* Address */}
-                  <input value={colFilters.address} onChange={e => setCF('address', e.target.value)}
-                    placeholder="Filtrer…" className="col-filter" />
-                  {/* Arrond */}
-                  <input value={colFilters.arrondissement} onChange={e => setCF('arrondissement', e.target.value)}
-                    placeholder="Filtrer…" className="col-filter" />
-                  {/* CP/Dépt */}
-                  <input value={colFilters.postcode} onChange={e => setCF('postcode', e.target.value)}
-                    placeholder="Filtrer…" className="col-filter" />
-                  {/* Phone toggle */}
+                  <ColFilterDropdown value={colFilters.business} onChange={v => setCF('business', v)}
+                    options={colOptions.business} placeholder="Filtrer…" />
+                  <ColFilterDropdown value={colFilters.category} onChange={v => setCF('category', v)}
+                    options={colOptions.category} placeholder="Filtrer…" />
+                  <ColFilterDropdown value={colFilters.address} onChange={v => setCF('address', v)}
+                    options={colOptions.address} placeholder="Filtrer…" />
+                  <ColFilterDropdown value={colFilters.arrondissement} onChange={v => setCF('arrondissement', v)}
+                    options={colOptions.arrondissement} placeholder="Filtrer…" />
+                  <ColFilterDropdown value={colFilters.postcode} onChange={v => setCF('postcode', v)}
+                    options={colOptions.postcode} placeholder="Filtrer…" />
                   <HasToggle value={colFilters.phone} onChange={v => setCF('phone', v)} />
-                  {/* Min rating */}
                   <input type="number" min="0" max="5" step="0.1"
                     value={colFilters.minRating} onChange={e => setCF('minRating', e.target.value)}
                     placeholder="≥ note" className="col-filter" />
-                  {/* Min reviews */}
                   <input type="number" min="0"
                     value={colFilters.minReviews} onChange={e => setCF('minReviews', e.target.value)}
                     placeholder="≥ avis" className="col-filter" />
-                  {/* Horaires — no filter */}
                   <div />
-                  {/* Email toggle */}
                   <HasToggle value={colFilters.email} onChange={v => setCF('email', v)} />
-                  {/* Website toggle */}
                   <HasToggle value={colFilters.website} onChange={v => setCF('website', v)} />
-                  {/* Instagram toggle */}
                   <HasToggle value={colFilters.instagram} onChange={v => setCF('instagram', v)} />
-                  {/* Facebook toggle */}
                   <HasToggle value={colFilters.facebook} onChange={v => setCF('facebook', v)} />
-                  {/* Outreach status */}
-                  <input value={colFilters.outreach} onChange={e => setCF('outreach', e.target.value)}
-                    placeholder="Filtrer…" className="col-filter" />
-                  {/* Maps toggle */}
+                  <ColFilterDropdown value={colFilters.outreach} onChange={v => setCF('outreach', v)}
+                    options={colOptions.outreach} placeholder="Filtrer…" />
                   <HasToggle value={colFilters.maps} onChange={v => setCF('maps', v)} />
                   <div />
                 </div>
