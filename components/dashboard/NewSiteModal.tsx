@@ -16,35 +16,30 @@ interface ScrapedTemplate {
   industry:       string
   site_type:      string
   screenshot_url: string | null
+  quality_score:  number | null
 }
 
-// ─── Industry display labels ──────────────────────────────────────────────────
+// ─── Business type filter pills ──────────────────────────────────────────────
+// label → list of `industry` DB values that match this filter
 
-const INDUSTRY_LABELS: Record<string, string> = {
-  'Food & Beverage':  'Food',
-  'Restaurant':       'Food',
-  'E-commerce':       'Shop',
-  'SaaS':             'SaaS',
-  'Health & Wellness':'Santé',
-  'Wellness':         'Santé',
-  'Portfolio':        'Portfolio',
-  'Agency':           'Agence',
-  'Real Estate':      'Immo',
-  'Education':        'Éducation',
-  'Finance':          'Finance',
-  'Technology':       'Tech',
-  'Fashion':          'Mode',
-  'Travel':           'Voyage',
-  'Beauty':           'Beauté',
-  'Sports':           'Sport',
-  'Photography':      'Photo',
-  'Music':            'Musique',
-  'Non-profit':       'ONG',
-}
-
-function shortIndustry(industry: string): string {
-  return INDUSTRY_LABELS[industry] ?? industry.split(' ')[0]
-}
+const BUSINESS_FILTERS: { label: string; emoji: string; industries: string[] }[] = [
+  { label: 'Tous',         emoji: '',   industries: [] },
+  { label: 'Boulangerie',  emoji: '🥐', industries: ['Boulangerie'] },
+  { label: 'Café',         emoji: '☕', industries: ['Café', 'Coffee'] },
+  { label: 'Restaurant',   emoji: '🍽️', industries: ['Restaurant', 'Food & Beverage', 'Food & Grocery', 'Food'] },
+  { label: 'Pâtisserie',   emoji: '🎂', industries: ['Pâtisserie', 'Patisserie'] },
+  { label: 'Coiffeur',     emoji: '✂️', industries: ['Salon', 'Beauty & Wellness', 'Wellness', 'Hair'] },
+  { label: 'Beauté',       emoji: '💅', industries: ['Beauty', 'Beauty & Wellness', 'Wellness', 'Spa'] },
+  { label: 'Shop',         emoji: '🛍️', industries: ['E-commerce', 'Shop', 'Retail'] },
+  { label: 'SaaS',         emoji: '💻', industries: ['SaaS', 'Technology', 'Tech'] },
+  { label: 'Agence',       emoji: '🏢', industries: ['Agency', 'Agency / Portfolio', 'Design & Creative'] },
+  { label: 'Immo',         emoji: '🏠', industries: ['Real Estate', 'Immobilier'] },
+  { label: 'Santé',        emoji: '🏥', industries: ['Health & Wellness', 'Healthcare', 'Medical'] },
+  { label: 'Éducation',    emoji: '🎓', industries: ['Education'] },
+  { label: 'Finance',      emoji: '💰', industries: ['Finance', 'Fintech'] },
+  { label: 'Voyage',       emoji: '✈️', industries: ['Travel', 'Hotel', 'Tourism'] },
+  { label: 'ONG',          emoji: '🤝', industries: ['Non-profit', 'NGO', 'Association'] },
+]
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +60,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
   const [templates,     setTemplates]    = useState<ScrapedTemplate[]>([])
   const [tplLoading,    setTplLoading]   = useState(false)
   const [activeIndustry,setActiveIndustry] = useState<string>('Tous')
+  const [businessType,  setBusinessType] = useState<string | null>(null)  // e.g. 'Boulangerie'
 
   // Fetch templates from Supabase when modal opens
   useEffect(() => {
@@ -73,25 +69,24 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     const supabase = createClient()
     supabase
       .from('templates')
-      .select('id, slug, name, url, industry, site_type, screenshot_url')
+      .select('id, slug, name, url, industry, site_type, screenshot_url, quality_score')
       .not('screenshot_url', 'is', null)
-      .order('id', { ascending: true })
-      .limit(120)
+      .not('has_cookies_wall', 'eq', true)
+      .order('quality_score', { ascending: false, nullsFirst: false })
+      .limit(200)
       .then(({ data }) => {
         setTemplates((data as ScrapedTemplate[]) ?? [])
         setTplLoading(false)
       })
   }, [open])
 
-  // Derive unique industry filter labels
-  const industries = ['Tous', ...Array.from(new Set(templates.map(t => shortIndustry(t.industry))))]
-
-  const visible = activeIndustry === 'Tous'
+  const activeFilter = BUSINESS_FILTERS.find(f => f.label === activeIndustry) ?? BUSINESS_FILTERS[0]
+  const visible = activeFilter.industries.length === 0
     ? templates
-    : templates.filter(t => shortIndustry(t.industry) === activeIndustry)
+    : templates.filter(t => activeFilter.industries.includes(t.industry))
 
   const reset = () => {
-    setName(''); setError(null); setSelectedSlug(null); setActiveIndustry('Tous')
+    setName(''); setError(null); setSelectedSlug(null); setActiveIndustry('Tous'); setBusinessType(null)
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -106,9 +101,10 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
       const tpl = templates.find(t => t.slug === selectedSlug) ?? null
 
       const siteType = tpl?.site_type ?? 'business'
+      const businessCtx = businessType ? ` C'est une ${businessType}.` : ''
       const initMsg  = tpl
-        ? `Crée un site web pour "${name.trim()}" en t'inspirant du style visuel de "${tpl.name}" (${tpl.url}). Adapte le contenu à "${name.trim()}" tout en respectant l'esthétique de la référence.`
-        : `Crée un site web complet et professionnel pour "${name.trim()}".`
+        ? `Crée un site web pour "${name.trim()}" en t'inspirant du style visuel de "${tpl.name}" (${tpl.url}).${businessCtx} Adapte le contenu à "${name.trim()}" tout en respectant l'esthétique de la référence.`
+        : `Crée un site web complet et professionnel pour "${name.trim()}".${businessCtx}`
 
       const site = await onCreateSite(name.trim(), siteType)
       reset()
@@ -163,14 +159,18 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
               />
               {/* Quick suggestions */}
               <div className="flex gap-1.5 flex-wrap mt-2">
-                {['🥐 Boulangerie', '☕ Café', '✂️ Coiffeur', '🍕 Restaurant', '💅 Beauté', '🛠️ Artisan'].map(s => (
+                {BUSINESS_FILTERS.filter(f => f.emoji).map(f => (
                   <button
-                    key={s}
+                    key={f.label}
                     type="button"
-                    onClick={() => { setName(s.split(' ').slice(1).join(' ')); setActiveIndustry('Food') }}
-                    className="px-2.5 py-1 rounded-full text-[11px] bg-gray-100 text-gray-500 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200 border border-transparent transition-all"
+                    onClick={() => setActiveIndustry(f.label)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] border transition-all ${
+                      activeIndustry === f.label
+                        ? 'bg-violet-50 border-violet-300 text-violet-700 font-medium'
+                        : 'bg-gray-100 border-transparent text-gray-500 hover:bg-violet-50 hover:text-violet-700'
+                    }`}
                   >
-                    {s}
+                    {f.emoji} {f.label}
                   </button>
                 ))}
               </div>
@@ -191,25 +191,30 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                 )}
               </div>
 
-              {/* Industry filter pills */}
-              {templates.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap mb-3">
-                  {industries.slice(0, 14).map(ind => (
+              {/* Business type filter pills */}
+              <div className="flex gap-1.5 flex-wrap mb-3">
+                {BUSINESS_FILTERS.map(f => {
+                  const count = f.industries.length === 0
+                    ? templates.length
+                    : templates.filter(t => f.industries.includes(t.industry)).length
+                  if (count === 0 && f.label !== 'Tous') return null
+                  return (
                     <button
-                      key={ind}
+                      key={f.label}
                       type="button"
-                      onClick={() => setActiveIndustry(ind)}
+                      onClick={() => setActiveIndustry(f.label)}
                       className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                        activeIndustry === ind
+                        activeIndustry === f.label
                           ? 'bg-violet-600 text-white'
                           : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'
                       }`}
                     >
-                      {ind}
+                      {f.emoji ? `${f.emoji} ` : ''}{f.label}
+                      {f.label !== 'Tous' && <span className="ml-1 opacity-60 text-[10px]">{count}</span>}
                     </button>
-                  ))}
-                </div>
-              )}
+                  )
+                })}
+              </div>
 
               {/* Grid */}
               <div className="grid grid-cols-3 gap-2.5">
@@ -270,7 +275,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                     {/* Name overlay (always visible) */}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-2 py-1.5">
                       <p className="text-[10px] font-semibold text-white leading-tight truncate">{tpl.name}</p>
-                      <p className="text-[9px] text-gray-400 truncate">{shortIndustry(tpl.industry)}</p>
+                      <p className="text-[9px] text-gray-400 truncate">{tpl.industry}</p>
                     </div>
 
                     {/* Selected checkmark */}
