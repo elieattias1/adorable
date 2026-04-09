@@ -27,7 +27,6 @@ function EditorPage() {
   const searchParams = useSearchParams()
   const siteId       = params.id as string
   const supabase     = createClient()
-  const initMsg      = searchParams.get('init')
   const autoSentRef  = useRef(false)
 
   const [site,          setSite]          = useState<Site | null>(null)
@@ -81,14 +80,31 @@ function EditorPage() {
     setLoading(false)
   }
 
-  // ─── Auto-trigger generation from ?init= param ────────────────────────────
+  // ─── Load template code immediately if ?template= param present ─────────────
   useEffect(() => {
-    if (loading || !initMsg || autoSentRef.current) return
-    if (site && !site.html) {
-      autoSentRef.current = true
-      handleSend(initMsg)
-    }
-  }, [loading, site, initMsg])
+    if (loading || autoSentRef.current) return
+    const templateSlug = searchParams.get('template')
+    if (!templateSlug || !site || site.html) return
+
+    autoSentRef.current = true
+    const supabaseClient = createClient()
+    supabaseClient
+      .from('templates')
+      .select('react_code')
+      .eq('slug', templateSlug)
+      .single()
+      .then(({ data }) => {
+        if (data?.react_code) {
+          // Save to site immediately so it persists
+          setSiteCode(data.react_code)
+          supabaseClient
+            .from('sites')
+            .update({ html: data.react_code, updated_at: new Date().toISOString() })
+            .eq('id', siteId)
+            .then(() => loadAll())
+        }
+      })
+  }, [loading, site])
 
 
   // ─── Upload image ─────────────────────────────────────────────────────────

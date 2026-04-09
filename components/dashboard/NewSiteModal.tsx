@@ -60,7 +60,6 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
   const [templates,     setTemplates]    = useState<ScrapedTemplate[]>([])
   const [tplLoading,    setTplLoading]   = useState(false)
   const [activeIndustry,setActiveIndustry] = useState<string>('Tous')
-  const [businessType,  setBusinessType] = useState<string | null>(null)  // e.g. 'Boulangerie'
 
   // Fetch templates from Supabase when modal opens
   useEffect(() => {
@@ -86,7 +85,7 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     : templates.filter(t => activeFilter.industries.includes(t.industry))
 
   const reset = () => {
-    setName(''); setError(null); setSelectedSlug(null); setActiveIndustry('Tous'); setBusinessType(null)
+    setName(''); setError(null); setSelectedSlug(null); setActiveIndustry('Tous')
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -100,16 +99,17 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     try {
       const tpl = templates.find(t => t.slug === selectedSlug) ?? null
 
-      const siteType = tpl?.site_type ?? 'business'
-      const businessCtx = businessType ? ` C'est une ${businessType}.` : ''
-      const initMsg  = tpl
-        ? `Crée un site web pour "${name.trim()}" en t'inspirant du style visuel de "${tpl.name}" (${tpl.url}).${businessCtx} Adapte le contenu à "${name.trim()}" tout en respectant l'esthétique de la référence.`
-        : `Crée un site web complet et professionnel pour "${name.trim()}".${businessCtx}`
+      const VALID_SITE_TYPES = ['business','portfolio','restaurant','shop','blog','saas','landing','bakery','wellness','blank']
+      const siteType = tpl?.site_type && VALID_SITE_TYPES.includes(tpl.site_type) ? tpl.site_type : 'business'
 
       const site = await onCreateSite(name.trim(), siteType)
       reset()
       onClose()
-      router.push(`/editor/${site.id}?init=${encodeURIComponent(initMsg)}`)
+      // If template has react_code → load it directly; otherwise fall back to AI generation
+      const dest = tpl?.slug
+        ? `/editor/${site.id}?template=${encodeURIComponent(tpl.slug)}`
+        : `/editor/${site.id}`
+      router.push(dest)
     } catch (err: any) {
       if (err.code === 'PLAN_LIMIT') {
         onClose()
