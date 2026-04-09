@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { Toast, type ToastState } from '@/components/ui/Toast'
 import ShopPanel from '@/components/dashboard/ShopPanel'
 import OrdersPanel from '@/components/dashboard/OrdersPanel'
+import HoursEditor from '@/components/dashboard/HoursEditor'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ interface Site {
   id: string; name: string; type: string; html: string | null
   deployed_url: string | null; is_published: boolean
   view_count: number; created_at: string; updated_at: string
+  site_config: Record<string, unknown> | null
 }
 interface Submission { id: string; form_name: string; data: Record<string, string> | null; name: string | null; email: string | null; message: string | null; read: boolean | null; read_at: string | null; created_at: string }
 interface DashData { site: Site; versionCount: number; submissionCount: number }
@@ -48,6 +50,9 @@ const SECTIONS = [
   { id: 'overview',      label: 'Vue d\'ensemble', icon: LayoutDashboard },
   { id: 'seo',           label: 'SEO',             icon: Search },
   { id: 'forms',         label: 'Formulaires',     icon: Mail },
+  { id: 'horaires',      label: 'Horaires',        icon: Clock },
+  { id: 'produits',      label: 'Produits',        icon: ShoppingBag },
+  { id: 'commandes',     label: 'Commandes',       icon: ShoppingBag },
   { id: 'history',       label: 'Historique',      icon: History },
   { id: 'analytics',     label: 'Analytiques',     icon: BarChart2 },
   { id: 'integrations',  label: 'Intégrations',    icon: Puzzle },
@@ -632,7 +637,7 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
 
 // ─── Section: Settings ─────────────────────────────────────────────────────────
 
-function SettingsSection({ site, onSave, onDelete, onUnpublish }: { site: Site; onSave: (p: object) => Promise<void>; onDelete: () => void; onUnpublish: () => Promise<void> }) {
+function SettingsSection({ site, onSave, onDelete, onUnpublish, plan }: { site: Site; onSave: (p: object) => Promise<void>; onDelete: () => void; onUnpublish: () => Promise<void>; plan: 'free' | 'starter' | 'pro' }) {
   const [name, setName] = useState(site.name)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState(false)
@@ -673,7 +678,15 @@ function SettingsSection({ site, onSave, onDelete, onUnpublish }: { site: Site; 
             <Globe2 className="w-4 h-4 text-violet-400" />
             <h3 className="font-semibold text-sm">Domaine personnalisé</h3>
           </div>
-          <CustomDomainCard siteId={site.id} />
+          {plan === 'free' ? (
+            <div className="flex items-center gap-3 py-3 px-4 bg-violet-50 border border-violet-200 rounded-xl">
+              <Zap className="w-4 h-4 text-violet-600 flex-shrink-0" />
+              <p className="text-sm text-gray-700 flex-1">Disponible à partir du plan <strong>Starter</strong>.</p>
+              <a href="/dashboard" className="text-xs font-semibold text-violet-700 hover:underline whitespace-nowrap">Mettre à niveau →</a>
+            </div>
+          ) : (
+            <CustomDomainCard siteId={site.id} />
+          )}
         </div>
       </div>
 
@@ -781,36 +794,55 @@ function NotificationEmailCard() {
   )
 }
 
-// ─── Boutique section (Produits + Commandes tabs) ─────────────────────────────
+// ─── Upgrade gate ─────────────────────────────────────────────────────────────
 
-function BoutiqueSection({ siteId }: { siteId: string }) {
-  const [tab, setTab] = useState<'commandes' | 'produits'>('commandes')
+function UpgradeGate({ title, plan, description }: { title: string; plan: string; description: string }) {
+  return (
+    <div>
+      <h2 className="text-lg font-black mb-1">{title}</h2>
+      <p className="text-sm text-gray-500 mb-6">{description}</p>
+      <div className="border border-dashed border-gray-300 rounded-2xl p-10 flex flex-col items-center text-center gap-4">
+        <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
+          <Zap className="w-5 h-5 text-violet-600" />
+        </div>
+        <div>
+          <p className="font-semibold text-gray-900 mb-1">Plan {plan} requis</p>
+          <p className="text-sm text-gray-500 max-w-xs">{description}</p>
+        </div>
+        <a
+          href="/dashboard"
+          className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-colors"
+        >
+          Passer à {plan}
+        </a>
+      </div>
+    </div>
+  )
+}
+
+// ─── Produits section ─────────────────────────────────────────────────────────
+
+function ProduitsSection({ siteId }: { siteId: string }) {
+  return (
+    <div>
+      <h2 className="text-lg font-black mb-1">Produits</h2>
+      <p className="text-sm text-gray-500 mb-6">Gérez votre catalogue de produits.</p>
+      <div className="border border-gray-200 rounded-2xl overflow-hidden" style={{ height: 600 }}>
+        <ShopPanel siteId={siteId} />
+      </div>
+    </div>
+  )
+}
+
+// ─── Commandes section ────────────────────────────────────────────────────────
+
+function CommandesSection({ siteId }: { siteId: string }) {
   return (
     <div>
       <h2 className="text-lg font-black mb-1">Commandes</h2>
-      <p className="text-sm text-gray-500 mb-4">Gérez vos commandes et votre catalogue produits.</p>
-
+      <p className="text-sm text-gray-500 mb-6">Suivez et gérez les commandes de vos clients.</p>
       <NotificationEmailCard />
-
-      <div className="flex gap-1 mb-6">
-        {(['commandes', 'produits'] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              tab === t
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-          >
-            {t === 'commandes' ? '📦 Commandes' : '🛍️ Produits'}
-          </button>
-        ))}
-      </div>
-      {tab === 'commandes'
-        ? <OrdersPanel siteId={siteId} />
-        : <div className="border border-gray-200 rounded-2xl overflow-hidden" style={{ height: 600 }}><ShopPanel siteId={siteId} /></div>
-      }
+      <OrdersPanel siteId={siteId} />
     </div>
   )
 }
@@ -830,6 +862,7 @@ export default function SiteDashboardPage() {
   const [toast,       setToast]       = useState<ToastState>(null)
   const [deploying,   setDeploying]   = useState(false)
   const [userEmail,   setUserEmail]   = useState('')
+  const [plan,        setPlan]        = useState<'free' | 'starter' | 'pro'>('free')
   const [loggingOut,  setLoggingOut]  = useState(false)
   const mainRef = useRef<HTMLDivElement>(null)
 
@@ -850,6 +883,7 @@ export default function SiteDashboardPage() {
 
   // Load data
   const loadData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
     const [dashRes, subRes] = await Promise.all([
       fetch(`/api/site/${siteId}`),
       fetch(`/api/site/${siteId}/submissions`),
@@ -858,6 +892,10 @@ export default function SiteDashboardPage() {
     setData(await dashRes.json())
     const subs = await subRes.json()
     setSubmissions(subs.submissions || [])
+    if (user) {
+      const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
+      setPlan((profile?.plan ?? 'free') as 'free' | 'starter' | 'pro')
+    }
     setLoading(false)
   }, [siteId, router])
 
@@ -872,7 +910,7 @@ export default function SiteDashboardPage() {
       },
       { rootMargin: '-10% 0px -65% 0px', threshold: 0 }
     )
-    const sectionIds = [...SECTIONS.map(s => s.id), 'boutique']
+    const sectionIds = SECTIONS.map(s => s.id)
     sectionIds.forEach(id => {
       const el = document.getElementById(id)
       if (el) observer.observe(el)
@@ -939,8 +977,7 @@ export default function SiteDashboardPage() {
 
   if (!data) return null
   const unreadCount = submissions.filter(s => !s.read_at).length
-  // Always show Commandes section (available for all site types)
-  const sections = [...SECTIONS.slice(0, 3), { id: 'boutique', label: 'Commandes', icon: ShoppingBag }, ...SECTIONS.slice(3)]
+  const sections = SECTIONS
 
   return (
     <div className="min-h-screen bg-[#fafaf9] text-gray-900">
@@ -1038,8 +1075,32 @@ export default function SiteDashboardPage() {
           </section>
 
           <div className="border-t border-gray-200" />
-          <section id="boutique">
-            <BoutiqueSection siteId={siteId} />
+          <section id="horaires">
+            <h2 className="text-lg font-black mb-1">Horaires</h2>
+            <p className="text-sm text-gray-500 mb-6">Affiché en temps réel sur votre site.</p>
+            <HoursEditor
+              siteId={siteId}
+              initialConfig={data.site.site_config ?? {}}
+              onSaved={() => setData(prev => prev ? prev : prev)}
+            />
+          </section>
+
+          <div className="border-t border-gray-200" />
+          <section id="produits">
+            {plan !== 'free' ? (
+              <ProduitsSection siteId={siteId} />
+            ) : (
+              <UpgradeGate title="Produits" plan="Starter" description="Gérez votre catalogue de produits et acceptez des commandes en ligne." />
+            )}
+          </section>
+
+          <div className="border-t border-gray-200" />
+          <section id="commandes">
+            {plan !== 'free' ? (
+              <CommandesSection siteId={siteId} />
+            ) : (
+              <UpgradeGate title="Commandes" plan="Starter" description="Recevez et gérez les commandes de vos clients directement depuis le dashboard." />
+            )}
           </section>
 
           <div className="border-t border-gray-200" />
@@ -1067,7 +1128,7 @@ export default function SiteDashboardPage() {
 
           <section id="settings" className="pb-20">
             <h2 className="text-lg font-black mb-6">Paramètres</h2>
-            <SettingsSection site={data.site} onSave={handleSave} onDelete={handleDelete} onUnpublish={handleUnpublish} />
+            <SettingsSection site={data.site} onSave={handleSave} onDelete={handleDelete} onUnpublish={handleUnpublish} plan={plan} />
           </section>
         </main>
       </div>

@@ -11,10 +11,10 @@ export function buildAgentSystemPrompt(
   userMessage?: string,
 ): string {
   const designPreset = getDesignPreset(siteType, userMessage)
-  const appUrl       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
-  const formEndpoint = siteId ? `${appUrl}/api/forms/${siteId}` : null
-  const shopEndpoint = siteId ? `${appUrl}/api` : null
-  const shopSiteId   = siteId ?? null
+  const appUrl           = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
+  const formEndpoint     = siteId ? `${appUrl}/api/forms/${siteId}` : null
+  const shopEndpoint     = siteId ? `${appUrl}/api` : null
+  const shopSiteId       = siteId ?? null
   const isInitialGeneration = !currentCode
 
   return `Tu es Adorable, un agent expert en création de sites web React/Tailwind de niveau professionnel.
@@ -160,6 +160,7 @@ Désactive le bouton submit quand formStatus === 'loading'.
 Ajoute un champ honeypot caché : <input type="text" name="_honeypot" style={{display:'none'}} tabIndex={-1} autoComplete="off" />
 Les champs doivent avoir des attributs \`name\` explicites (ex: name="email", name="message").
 ` : ''}
+
 
 ${shopEndpoint && shopSiteId && siteType === 'bakery' ? `
 ━━ BOUTIQUE EN LIGNE — BOULANGERIE (OBLIGATOIRE) ━━

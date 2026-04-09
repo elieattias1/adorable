@@ -277,39 +277,42 @@ export default function LandingPage() {
           <PricingCard
             name="Gratuit"
             price="Gratuit"
-            sub="Pour tester"
+            sub="Pour découvrir"
             features={[
               "1 site",
-              "20 générations IA / jour",
+              "5 générations IA / jour",
               "Hébergement inclus",
             ]}
             cta="Commencer"
             ctaHref="/login"
           />
           <PricingCard
-            name="Pro"
-            price="19€"
+            name="Starter"
+            price="49€"
             sub="7 jours d'essai · sans CB"
             features={[
-              "Sites illimités",
-              "IA illimitée",
+              "5 sites",
+              "100 générations IA / jour",
               "Domaine personnalisé",
-              "Support prioritaire",
+              "Commandes & boutique",
+              "Versions illimitées",
             ]}
-            cta="Essayer Pro gratuitement"
+            cta="Essayer gratuitement"
             ctaHref="/login"
             highlight
           />
           <PricingCard
-            name="Starter"
-            price="6€"
+            name="Pro"
+            price="89€"
             sub="Sans engagement"
             features={[
-              "5 sites",
-              "100 générations / jour",
-              "Versions illimitées",
+              "Sites illimités",
+              "IA illimitée",
+              "Domaine personnalisé",
+              "Commandes & boutique",
+              "Support prioritaire",
             ]}
-            cta="Passer à Starter"
+            cta="Passer à Pro"
             ctaHref="/login"
           />
         </div>

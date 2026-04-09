@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -42,7 +43,11 @@ export default function LoginPage() {
           },
         });
         if (error) throw error;
-        fetch("/api/auth/welcome", { method: "POST" }).catch(() => {});
+        fetch("/api/auth/welcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, phone: phone || undefined }),
+        }).catch(() => {});
         setSent(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -185,6 +190,21 @@ export default function LoginPage() {
                       required
                       minLength={8}
                       placeholder="••••••••"
+                      className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-all text-sm"
+                    />
+                  </div>
+                )}
+
+                {mode === "signup" && (
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1.5 block font-medium">
+                      Téléphone <span className="text-gray-400">(pour recevoir les commandes par SMS)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+33 6 12 34 56 78"
                       className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-all text-sm"
                     />
                   </div>

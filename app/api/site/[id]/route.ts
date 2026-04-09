@@ -42,6 +42,7 @@ const PatchSchema = z.object({
   integrations: z.record(z.record(z.string())).optional(),
   is_published: z.boolean().optional(),
   deployed_url: z.string().nullable().optional(),
+  site_config:  z.record(z.unknown()).optional(),
 })
 
 export async function PATCH(req: NextRequest, { params }: Params) {
@@ -63,6 +64,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (patch.name         !== undefined) updates.name         = patch.name
   if (patch.is_published !== undefined) updates.is_published = patch.is_published
   if (patch.deployed_url !== undefined) updates.deployed_url = patch.deployed_url
+  if (patch.site_config  !== undefined) updates.site_config  = patch.site_config
 
   // Merge changes into the JSON schema meta
   const schemaFields = ['seoTitle', 'seoDesc', 'favicon', 'integrations'] as const

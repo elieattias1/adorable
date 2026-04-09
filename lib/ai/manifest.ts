@@ -87,13 +87,13 @@ Appelle create_manifest avec le manifest complet.`
 }
 
 export function buildSectionPrompt(
-  manifest:      SiteManifest,
-  section:       SectionSpec,
-  previousCode:  string,
-  formEndpoint:  string | null,
-  syntaxError?:  string | null,
-  shopEndpoint?: string | null,
-  shopSiteId?:   string | null,
+  manifest:        SiteManifest,
+  section:         SectionSpec,
+  previousCode:    string,
+  formEndpoint:    string | null,
+  syntaxError?:    string | null,
+  shopEndpoint?:   string | null,
+  shopSiteId?:     string | null,
 ): string {
   const d    = manifest.design
   const urls = manifest.unsplashUrls ?? []
@@ -130,6 +130,7 @@ ${previousCode}
 
 ${formEndpoint && (section.id === 'contact' || section.id === 'reservation' || section.id === 'booking') ? `━━ FORMULAIRE ━━
 Utilise exactement : fetch('${formEndpoint}', { method: 'POST', ... })` : ''}
+
 
 ${shopEndpoint && shopSiteId && (section.id === 'shop' || section.id === 'boutique' || section.id === 'commandes' || section.component?.toLowerCase().includes('shop')) ? `━━ BOUTIQUE EN LIGNE (pay-at-pickup) ━━
 Charge les produits depuis la DB au montage :

@@ -85,10 +85,10 @@ async function runSequentialGeneration(opts: {
   tag:         string
 }): Promise<string | null> {
   const { siteId, siteName, siteType, message, safeSend, tag } = opts
-  const appUrl       = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
-  const formEndpoint = `${appUrl}/api/forms/${siteId}`
-  const shopEndpoint = siteType === 'bakery' ? `${appUrl}/api` : null
-  const shopSiteId   = siteType === 'bakery' ? siteId : null
+  const appUrl        = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
+  const formEndpoint  = `${appUrl}/api/forms/${siteId}`
+  const shopEndpoint  = siteType === 'bakery' ? `${appUrl}/api` : null
+  const shopSiteId    = siteType === 'bakery' ? siteId : null
 
   const designPreset = getDesignPresetForManifest(siteType, message)
 

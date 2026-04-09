@@ -11,10 +11,11 @@
 import { Resend } from 'resend'
 import twilio    from 'twilio'
 
-const resend       = new Resend(process.env.RESEND_API_KEY)
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-const TWILIO_FROM  = process.env.TWILIO_PHONE_NUMBER ?? ''
-const FROM_EMAIL   = process.env.RESEND_FROM_EMAIL   ?? 'commandes@adorable.click'
+const resend            = new Resend(process.env.RESEND_API_KEY)
+const twilioClient      = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+const TWILIO_FROM       = process.env.TWILIO_PHONE_NUMBER          ?? ''
+const TWILIO_WA_FROM    = process.env.TWILIO_WHATSAPP_NUMBER        ?? ''  // e.g. whatsapp:+14155238886
+const FROM_EMAIL        = process.env.RESEND_FROM_EMAIL             ?? 'commandes@adorable.click'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,10 +57,6 @@ function formatPickup(pickupAt: string | null | undefined) {
 
 async function sendOrderEmail(payload: NotificationPayload) {
   if (!payload.ownerEmail) return
-
-  const itemLines = payload.items
-    .map(i => `  • ${i.quantity}× ${i.name} — ${formatPrice(i.price_cents * i.quantity)}`)
-    .join('\n')
 
   const html = `
 <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
@@ -114,29 +111,36 @@ async function sendOrderEmail(payload: NotificationPayload) {
   })
 }
 
-// ─── SMS ───────────────────────────────────────────────────────────────────────
+// ─── SMS + WhatsApp ────────────────────────────────────────────────────────────
 
-async function sendOrderSms(payload: NotificationPayload) {
-  if (!payload.ownerPhone || !TWILIO_FROM) return
-
-  const itemSummary = payload.items
-    .map(i => `${i.quantity}× ${i.name}`)
-    .join(', ')
-
-  const body = [
+function buildSmsBody(payload: NotificationPayload): string {
+  const itemSummary = payload.items.map(i => `${i.quantity}× ${i.name}`).join(', ')
+  return [
     `🥐 Nouvelle commande – ${payload.siteName}`,
     `Client : ${payload.customerName}`,
     `Articles : ${itemSummary}`,
     `Total : ${formatPrice(payload.totalCents)}`,
     `Retrait : ${formatPickup(payload.pickupAt)}`,
     payload.note ? `Note : ${payload.note}` : null,
-    `Tél client : ${payload.customerPhone ?? payload.customerEmail}`,
+    `Contact : ${payload.customerPhone ?? payload.customerEmail}`,
   ].filter(Boolean).join('\n')
+}
 
+async function sendOrderSms(payload: NotificationPayload) {
+  if (!payload.ownerPhone || !TWILIO_FROM) return
   await twilioClient.messages.create({
     from: TWILIO_FROM,
     to:   payload.ownerPhone,
-    body,
+    body: buildSmsBody(payload),
+  })
+}
+
+async function sendOrderWhatsApp(payload: NotificationPayload) {
+  if (!payload.ownerPhone || !TWILIO_WA_FROM) return
+  await twilioClient.messages.create({
+    from: TWILIO_WA_FROM,
+    to:   `whatsapp:${payload.ownerPhone}`,
+    body: buildSmsBody(payload),
   })
 }
 
@@ -146,20 +150,18 @@ export async function sendOrderNotification(payload: NotificationPayload) {
   const results = await Promise.allSettled([
     sendOrderEmail(payload),
     sendOrderSms(payload),
+    sendOrderWhatsApp(payload),
   ])
 
-  const emailResult = results[0]
-  const smsResult   = results[1]
+  const [emailResult, smsResult, waResult] = results
 
-  if (emailResult.status === 'rejected') {
-    console.error('[notifications] email failed:', emailResult.reason)
-  }
-  if (smsResult.status === 'rejected') {
-    console.error('[notifications] sms failed:', smsResult.reason)
-  }
+  if (emailResult.status === 'rejected') console.error('[notifications] email failed:',    emailResult.reason)
+  if (smsResult.status   === 'rejected') console.error('[notifications] sms failed:',      smsResult.reason)
+  if (waResult.status    === 'rejected') console.error('[notifications] whatsapp failed:',  waResult.reason)
 
   return {
-    emailSent: emailResult.status === 'fulfilled',
-    smsSent:   smsResult.status   === 'fulfilled',
+    emailSent:    emailResult.status === 'fulfilled',
+    smsSent:      smsResult.status   === 'fulfilled',
+    whatsappSent: waResult.status    === 'fulfilled',
   }
 }

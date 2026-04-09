@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v11_'
+const LS_PREFIX  = 'sb_prev_v12_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -159,12 +159,21 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
   let js: string
   try {
     // @ts-ignore — Babel loaded via CDN script tag
-    const result = (window as any).Babel.transform(tsxCode, {
-      presets: [
-        ['react', { runtime: 'automatic' }],
-        ['typescript', { allExtensions: true, isTSX: true }],
-      ],
+    const Babel = (window as any).Babel
+
+    // Two-pass compilation to avoid TypeScript↔JSX parser conflicts:
+    // Pass 1: strip TypeScript types → pure JSX  (TypeScript preset only)
+    // Pass 2: compile JSX → JS              (React preset only)
+    // This avoids the "Missing semicolon" error that occurs when the combined
+    // TypeScript+React transform encounters template literals in JSX attributes.
+    const stripped = Babel.transform(tsxCode, {
+      presets: [['typescript', { allExtensions: true, isTSX: true }]],
       filename: 'App.tsx',
+    }).code
+
+    const result = Babel.transform(stripped, {
+      presets: [['react', { runtime: 'automatic' }]],
+      filename: 'App.jsx',
     })
 
     js = result.code

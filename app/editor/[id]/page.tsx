@@ -99,11 +99,20 @@ function EditorPage() {
       .single()
       .then(({ data }) => {
         if (data?.react_code) {
-          // Save to site immediately so it persists
-          setSiteCode(data.react_code)
+          // Substitute template's siteId references with this site's actual siteId
+          // so shop/checkout/site-config API calls target the right site
+          let code = data.react_code
+          const oldSiteId = code.match(/SHOP_SITE\s*=\s*['"]([a-f0-9-]{36})['"]/)?.[1]
+          if (oldSiteId) code = code.replaceAll(oldSiteId, siteId)
+          // Also patch site-config URL
+          code = code.replace(
+            /api\/site-config\?siteId=[a-f0-9-]{36}/g,
+            `api/site-config?siteId=${siteId}`
+          )
+          setSiteCode(code)
           supabaseClient
             .from('sites')
-            .update({ html: data.react_code, updated_at: new Date().toISOString() })
+            .update({ html: code, updated_at: new Date().toISOString() })
             .eq('id', siteId)
             .then(() => loadAll())
         }
