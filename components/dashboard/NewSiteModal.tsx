@@ -145,7 +145,8 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
           </div>
 
           {/* Scrollable body */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 pb-6 overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="flex flex-col gap-5 px-6 pb-4 overflow-y-auto flex-1">
 
             {/* Name */}
             <div>
@@ -156,10 +157,23 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                 onChange={e => setName(e.target.value)}
                 required
                 maxLength={80}
-                placeholder="Mon super site"
+                placeholder="Ma Boulangerie Dupont"
                 className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-colors text-sm"
                 autoFocus
               />
+              {/* Quick suggestions */}
+              <div className="flex gap-1.5 flex-wrap mt-2">
+                {['🥐 Boulangerie', '☕ Café', '✂️ Coiffeur', '🍕 Restaurant', '💅 Beauté', '🛠️ Artisan'].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => { setName(s.split(' ').slice(1).join(' ')); setActiveIndustry('Food') }}
+                    className="px-2.5 py-1 rounded-full text-[11px] bg-gray-100 text-gray-500 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200 border border-transparent transition-all"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Template gallery */}
@@ -283,30 +297,32 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                 {error}
               </div>
             )}
+          </div>
 
-            <div className="flex gap-3 pt-1 flex-shrink-0">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 text-sm font-medium transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                disabled={loading || !name.trim()}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-bold text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" />
-                    Créer et générer
-                  </>
-                )}
-              </button>
-            </div>
+          {/* Sticky footer — always visible */}
+          <div className="flex gap-3 px-6 py-4 border-t border-gray-100 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 text-sm font-medium transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !name.trim()}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-bold text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  Créer et générer
+                </>
+              )}
+            </button>
+          </div>
           </form>
         </Dialog.Content>
       </Dialog.Portal>
