@@ -163,6 +163,7 @@ Affichage :
 7. Avatars témoignages : https://i.pravatar.cc/80?img=[1-70]
 8. Sections spacieuses : py-20 minimum
 9. Responsive : 1 colonne mobile, 2-3 colonnes desktop
+10. GUILLEMETS : utilise TOUJOURS des guillemets doubles "..." ou des backticks \`...\` pour toutes les chaînes JS — JAMAIS des guillemets simples — les textes français contiennent des apostrophes (L'Artisan, d'accord…) qui cassent les strings single-quoted
 
 ${syntaxError ? `━━ ERREUR DE SYNTAXE À CORRIGER (tentative précédente rejetée) ━━
 ${syntaxError}

@@ -115,8 +115,13 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
         '<pre style="color:#f87171;padding:24px;font-size:12px;font-family:monospace;white-space:pre-wrap">' + msg + '</pre>';
     }
 
+    function fixApostrophes(code) {
+      // Escape French apostrophes in single-quoted strings: L'Artisan → L\'Artisan
+      return code.replace(/([A-Za-z\u00C0-\u00FF])'([A-Za-z\u00C0-\u00FF])/g, "$1\\'$2");
+    }
+
     function run() {
-      var code = ${codeJson};
+      var code = fixApostrophes(${codeJson});
       var compiled;
       try {
         // Two-pass: strip TypeScript first, then compile JSX

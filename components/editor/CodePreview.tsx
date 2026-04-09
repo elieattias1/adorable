@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v12_'
+const LS_PREFIX  = 'sb_prev_v13_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -142,6 +142,15 @@ const EMPTY_SRCDOC = `<!DOCTYPE html>
 </div>
 </body></html>`
 
+// ─── Pre-processor: escape French apostrophes in single-quoted strings ────────
+// Claude generates French content (L'Artisan, d'accord…). When that text ends up
+// in a JS single-quoted string, the apostrophe closes the string early and Babel
+// throws "Missing semicolon". We escape letter'letter → letter\'letter globally;
+// this is safe in double-quoted strings, template literals, and comments too.
+function fixApostrophes(code: string): string {
+  return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
+}
+
 // ─── Transform TSX → iframe srcdoc ───────────────────────────────────────────
 async function codeToSrcdoc(tsxCode: string): Promise<string> {
   const key = djb2(tsxCode)
@@ -160,13 +169,14 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
   try {
     // @ts-ignore — Babel loaded via CDN script tag
     const Babel = (window as any).Babel
+    const safeCode = fixApostrophes(tsxCode)
 
     // Two-pass compilation to avoid TypeScript↔JSX parser conflicts:
     // Pass 1: strip TypeScript types → pure JSX  (TypeScript preset only)
     // Pass 2: compile JSX → JS              (React preset only)
     // This avoids the "Missing semicolon" error that occurs when the combined
     // TypeScript+React transform encounters template literals in JSX attributes.
-    const stripped = Babel.transform(tsxCode, {
+    const stripped = Babel.transform(safeCode, {
       presets: [['typescript', { allExtensions: true, isTSX: true }]],
       filename: 'App.tsx',
     }).code
@@ -175,6 +185,7 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
       presets: [['react', { runtime: 'automatic' }]],
       filename: 'App.jsx',
     })
+
 
     js = result.code
       // Remove export default so App is a named binding accessible in the module
