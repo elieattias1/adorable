@@ -17,6 +17,7 @@ interface ScrapedTemplate {
   site_type:      string
   screenshot_url: string | null
   quality_score:  number | null
+  react_code:     string | null
 }
 
 // ─── Business type filter pills ──────────────────────────────────────────────
@@ -67,9 +68,10 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     setTplLoading(true)
     const supabase = createClient()
     supabase
-      .from('templates')
-      .select('id, slug, name, url, industry, site_type, screenshot_url, quality_score')
+      .from('reference_sites')
+      .select('id, slug, name, url, industry, site_type, screenshot_url, quality_score, react_code')
       .not('screenshot_url', 'is', null)
+      .not('react_code', 'is', null)
       .not('has_cookies_wall', 'eq', true)
       .order('quality_score', { ascending: false, nullsFirst: false })
       .limit(200)

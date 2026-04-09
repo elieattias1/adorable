@@ -285,17 +285,26 @@ export async function POST(req: NextRequest) {
         let finalCode: string | null = null
         let finalNote = 'Site mis à jour.'
         let askQuestion: string | null = null
+        let fullText = ''   // accumulates all streamed text for message save
+
+        // Wrap safeSend to also capture text chunks
+        const safeSendTracked = (data: object) => {
+          if ('chunk' in data && typeof (data as any).chunk === 'string') {
+            fullText += (data as any).chunk
+          }
+          safeSend(data)
+        }
 
         // ── INITIAL GENERATION: sequential section approach ────────────────
         if (isInitial) {
           finalCode = await runSequentialGeneration({
             siteId, siteName: site.name, siteType: site.type ?? 'landing',
-            message, safeSend, tag,
+            message, safeSend: safeSendTracked, tag,
           })
 
           if (finalCode) {
             finalNote = `Site ${site.name} généré`
-            safeSend({ chunk: `\n\n✓ Site prêt ! Voici quelques améliorations possibles :\n• Ajouter une galerie photo\n• Intégrer un formulaire de contact\n• Personnaliser les couleurs et textes` })
+            safeSendTracked({ chunk: `\n\n✓ Site prêt ! Voici quelques améliorations possibles :\n• Ajouter une galerie photo\n• Intégrer un formulaire de contact\n• Personnaliser les couleurs et textes` })
           }
 
         // ── EDIT: existing agent loop ─────────────────────────────────────
@@ -346,7 +355,7 @@ export async function POST(req: NextRequest) {
             let activeToolName = ''
             let lastStreamedLen = 0
 
-            claudeStream.on('text', (text: string) => safeSend({ chunk: text }))
+            claudeStream.on('text', (text: string) => safeSendTracked({ chunk: text }))
 
             claudeStream.on('streamEvent', (event: any) => {
               if (event.type === 'content_block_start' && event.content_block?.type === 'tool_use') {
@@ -438,12 +447,18 @@ export async function POST(req: NextRequest) {
         // ── Save site code first (most critical) ─────────────────────────
         let versionLimitHit = false
         if (finalCode) {
-          const { error: siteErr } = await supabaseAdmin
+          const { error: siteErr, data: savedSite } = await supabaseAdmin
             .from('sites')
             .update({ html: finalCode, updated_at: new Date().toISOString() })
             .eq('id', siteId)
-          if (siteErr) console.error(`${tag} ❌ site save error:`, siteErr)
-          else         console.log(`${tag} 💾 saved  codeLen=${finalCode.length}`)
+            .select('id')
+            .single()
+          if (siteErr) {
+            console.error(`${tag} ❌ site save error:`, siteErr)
+            safeSend({ saveError: `Erreur lors de la sauvegarde : ${siteErr.message}` })
+          } else {
+            console.log(`${tag} 💾 saved  codeLen=${finalCode.length}  id=${savedSite?.id}`)
+          }
 
           try {
             const { isAdminUser } = await import('@/lib/admin')
@@ -464,8 +479,13 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Save messages ─────────────────────────────────────────────────
-        const savedUserContent = image ? `${message} [image: ${image.url}]` : message
-        const savedNote = askQuestion ? `[Question] ${askQuestion}` : finalNote
+        const savedUserContent = allImages.length > 0
+          ? `${message} [images: ${allImages.map(i => i.url).join(', ')}]`
+          : message
+        // Save the full streamed text (reflexion + plan), fallback to note
+        const savedNote = askQuestion
+          ? `[Question] ${askQuestion}`
+          : (fullText.trim() || finalNote)
         const [umRes, amRes] = await Promise.all([
           supabaseAdmin.from('messages').insert({ site_id: siteId, user_id: user.id, role: 'user',      content: savedUserContent }),
           supabaseAdmin.from('messages').insert({ site_id: siteId, user_id: user.id, role: 'assistant', content: savedNote }),

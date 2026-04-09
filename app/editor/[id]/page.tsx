@@ -91,7 +91,7 @@ function EditorPage() {
     autoSentRef.current = true
     const supabaseClient = createClient()
     supabaseClient
-      .from('templates')
+      .from('reference_sites')
       .select('react_code')
       .eq('slug', templateSlug)
       .single()
@@ -186,9 +186,12 @@ function EditorPage() {
 
           if (data.error) {
             generationError = data.error
-            if (data.upgrade) showToast(data.error, 'error')
-            else              showToast(data.error, 'error')
+            showToast(data.error, 'error')
             break
+          }
+
+          if (data.saveError) {
+            showToast(data.saveError, 'error')
           }
 
           if (data.chunk) {

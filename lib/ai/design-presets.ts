@@ -92,19 +92,22 @@ DESIGN SYSTEM — Boulangerie Artisanale (dark warm, four à bois) :
 • Hero : IMAGE PLEIN ÉCRAN h-screen, overlay gradient from-[#120900]/80, texte centré avec badge horaires du jour
 • Nav : bg-[#120900]/95 backdrop-blur, logo Playfair avec icône épis de blé, CTA "Commander" doré
 
-PHOTOS DISPONIBLES — utilise ces URLs réelles dans les sections :
+PHOTOS DISPONIBLES — assigne EXACTEMENT la photo au bon produit :
 Hero/fond : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
 Baguette : https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1600369671236-e74521d4b6ad?w=800&h=800&fit=crop
 Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=800&h=800&fit=crop
 Pain au chocolat : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&h=800&fit=crop
 Pain levain : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=800&h=800&fit=crop
-Éclair : https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=800&h=800&fit=crop
-Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop
-Opéra/gâteau : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop
+Éclair chocolat : https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&h=800&fit=crop
+Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=800&fit=crop
+Opéra/gâteau chocolat : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop
 Mille-feuille : https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=800&fit=crop
-Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Tarte citron meringuée : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Tarte fraises/framboises : https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&h=800&fit=crop
 Brioche : https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=800&h=800&fit=crop
-Sandwich : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+Sandwich jambon-beurre : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+Café expresso : https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&h=800&fit=crop
+⚠️ RÈGLE STRICTE : la photo doit CORRESPONDRE au produit. Éclair → photo d'éclair. Macaron → photo de macarons. Ne jamais substituer.
 
 PRODUITS BOULANGERIE — choisis une sélection VARIÉE parmi ceux-ci (ne les mets pas tous) :
 Pains : Baguette Tradition 1,20€ | Pain au levain 4,50€ | Pain de campagne 3,80€ | Fougasse 3,20€
@@ -135,16 +138,17 @@ DESIGN SYSTEM — Pâtisserie Parisienne (mode CLAIR, luxueux) :
 • Hero : SPLIT CLAIR — gauche : titre Playfair italic "L'art de la pâtisserie" + sous-titre élégant + CTA, droite : photo gâteau signature sur fond crème
 • Nav : fond blanc, liens Inter 500 letter-spacing-wide, aucun arrière-plan coloré
 
-PHOTOS DISPONIBLES :
+PHOTOS DISPONIBLES — assigne EXACTEMENT la photo au bon produit :
 Hero/fond : https://images.unsplash.com/photo-1587314168485-3236d6710814?w=1920&h=1080&fit=crop
-Opéra : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=800&h=800&fit=crop
+Opéra (gâteau couches chocolat/café) : https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=800&h=800&fit=crop
 Mille-feuille : https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1612203985729-70726954388c?w=800&h=800&fit=crop
-Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=800&fit=crop
-Éclair : https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1587314168485-3236d6710814?w=800&h=800&fit=crop
-Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?w=800&h=800&fit=crop
-Tarte framboise : https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&h=800&fit=crop
-Financier : https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=800&h=800&fit=crop
+Macaron (colorés) : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&h=800&fit=crop
+Éclair chocolat : https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&h=800&fit=crop
+Tarte citron meringuée : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?w=800&h=800&fit=crop
+Tarte framboise/fraise : https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&h=800&fit=crop
+Financier amande : https://images.unsplash.com/photo-1603532648955-039310d9ed75?w=800&h=800&fit=crop
 Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop
+⚠️ RÈGLE STRICTE : la photo doit CORRESPONDRE au produit. Éclair → photo d'éclair. Macaron → photo de macarons. Ne jamais substituer.
 
 PRODUITS PÂTISSERIE — sélection luxueuse et variée :
 Pièces maîtresses : Opéra 5,50€ | Mille-feuille 4,80€ | Saint-Honoré 6,50€ | Paris-Brest 5,20€
@@ -175,18 +179,22 @@ DESIGN SYSTEM — Boulangerie de Quartier (mode CLAIR, chaleureux, contemporain)
 • Hero : SPLIT 50/50 — gauche : titre UNIQUE et personnel + badge "Ouvert aujourd'hui jusqu'à XXh" + CTA, droite : grande photo appétissante
 • Nav : fond blanc border-b border-orange-100, logo avec emoji pain ou icône, liens sobres, CTA "Nous trouver"
 
-PHOTOS DISPONIBLES — utilise chaque photo UNE SEULE FOIS, varie les produits :
+PHOTOS DISPONIBLES — assigne EXACTEMENT la photo au bon produit, utilise chaque photo UNE SEULE FOIS :
 Hero large : https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=1080&fit=crop
 Baguette : https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&h=800&fit=crop
 Croissant : https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop | https://images.unsplash.com/photo-1608198093002-ad4e005484ec?w=800&h=800&fit=crop
-Pain chocolat : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop
+Pain au chocolat : https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=800&h=800&fit=crop
 Pain levain : https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&h=800&fit=crop
 Brioche : https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=800&h=800&fit=crop
-Chausson : https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=800&fit=crop
-Pain raisins : https://images.unsplash.com/photo-1583338917451-face2751d8d5?w=800&h=800&fit=crop
-Tarte citron : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Chausson aux pommes : https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=800&fit=crop
+Pain aux raisins : https://images.unsplash.com/photo-1583338917451-face2751d8d5?w=800&h=800&fit=crop
+Tarte citron meringuée : https://images.unsplash.com/photo-1519915028121-7d3463d5b1ff?w=800&h=800&fit=crop
+Tarte fraises/framboises : https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&h=800&fit=crop
 Macaron : https://images.unsplash.com/photo-1558326567-98ae2405596b?w=800&h=800&fit=crop
-Sandwich : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+Éclair chocolat : https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop
+Sandwich jambon-beurre : https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=800&fit=crop
+Café expresso : https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&h=800&fit=crop
+⚠️ RÈGLE STRICTE : la photo doit CORRESPONDRE au produit. Éclair → photo d'éclair. Macaron → macarons. Ne jamais substituer.
 
 PRODUITS — sélectionne 6-8 produits VARIÉS parmi :
 Pains : Baguette Tradition 1,20€ | Pain au levain 4,50€ | Pain de seigle 3,50€

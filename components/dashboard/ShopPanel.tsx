@@ -58,9 +58,14 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  pain: '🥖 Pains', viennoiserie: '🥐 Viennoiseries',
-  patisserie: '🎂 Pâtisseries', snack: '🥪 Snacks',
-  boisson: '☕ Boissons', other: '🛍 Autres',
+  pain:        '🥖 Pains',
+  viennoiserie: '🥐 Viennoiseries',
+  patisserie:  '🎂 Pâtisseries',
+  entremet:    '🎂 Entremets / Gâteaux',
+  snack:       '🥪 Snacks / Salé',
+  boisson:     '☕ Boissons',
+  service:     '🛍 Services / Commandes',
+  other:       '🛍 Autres',
 }
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
@@ -308,6 +313,7 @@ function ProductForm({
   const [description, setDescription] = useState(product?.description ?? '')
   const [active,      setActive]      = useState(product?.active ?? true)
   const [saving,      setSaving]      = useState(false)
+  const [saveError,   setSaveError]   = useState<string | null>(null)
 
   // Quick-fill from library
   const fillFromLibrary = (slug: string) => {
@@ -315,28 +321,37 @@ function ProductForm({
     if (!p) return
     setName(p.name)
     setPrice((p.price).toFixed(2))
-    setCategory(p.category)
+    // Map library categories to valid API categories
+    const catMap: Record<string, string> = { entremet: 'patisserie', service: 'other' }
+    setCategory(catMap[p.category] ?? p.category)
     setPhotoUrl(p.photos[0] ?? '')
   }
 
   const handleSave = async () => {
     if (!name.trim() || !price) return
     setSaving(true)
-    const body = {
+    setSaveError(null)
+    const body: Record<string, unknown> = {
       ...(product ? { id: product.id } : { site_id: siteId }),
-      name: name.trim(),
-      price: Math.round(parseFloat(price) * 100),
+      name:     name.trim(),
+      price:    Math.round(parseFloat(price) * 100),
       category,
-      photo_url: photoUrl || null,
-      description: description || null,
       active,
     }
-    await fetch('/api/products', {
+    if (photoUrl.trim())    body.photo_url   = photoUrl.trim()
+    if (description.trim()) body.description = description.trim()
+
+    const res  = await fetch('/api/products', {
       method: product ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
+    const data = await res.json()
     setSaving(false)
+    if (!res.ok) {
+      setSaveError(data.error ?? 'Erreur lors de l\'enregistrement')
+      return
+    }
     onSave()
   }
 
@@ -396,6 +411,9 @@ function ProductForm({
           </button>
         </div>
       </div>
+      {saveError && (
+        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">{saveError}</p>
+      )}
     </div>
   )
 }

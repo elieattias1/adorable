@@ -12,11 +12,11 @@ import { createServerSupabaseClient, supabaseAdmin } from '@/lib/supabase'
 const ProductSchema = z.object({
   site_id:     z.string().uuid(),
   name:        z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
+  description: z.string().max(500).nullish().transform(v => v ?? undefined),
   price:       z.number().int().min(1).max(100000),  // cents
-  category:    z.enum(['pain', 'viennoiserie', 'patisserie', 'snack', 'boisson', 'other']).default('other'),
-  photo_url:   z.string().url().optional().or(z.literal('')),
-  emoji:       z.string().max(4).optional(),
+  category:    z.enum(['pain', 'viennoiserie', 'patisserie', 'entremet', 'snack', 'boisson', 'service', 'other']).default('other'),
+  photo_url:   z.string().url().nullish().or(z.literal('')).transform(v => v ?? undefined),
+  emoji:       z.string().max(4).nullish().transform(v => v ?? undefined),
   active:      z.boolean().default(true),
   sort_order:  z.number().int().default(0),
 })

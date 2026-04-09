@@ -6,11 +6,12 @@ import {
   LayoutDashboard, Search, Mail, BarChart2, Settings, ArrowLeft,
   Globe, Globe2, PenLine, ExternalLink, Copy, Trash2, CheckCircle2,
   Circle, RefreshCw, Eye, MessageSquare, Clock, TrendingUp, Shield,
-  AlertTriangle, Loader2, Check, X, Puzzle, ChevronDown, ChevronUp, Zap, Rocket, History, LogOut,
+  AlertTriangle, Loader2, Check, X, Puzzle, ChevronDown, ChevronUp, Zap, Rocket, History, LogOut, ShoppingBag,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { createClient } from '@/lib/supabase-browser'
 import { Toast, type ToastState } from '@/components/ui/Toast'
+import ShopPanel from '@/components/dashboard/ShopPanel'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -778,8 +779,11 @@ export default function SiteDashboardPage() {
       },
       { rootMargin: '-10% 0px -65% 0px', threshold: 0 }
     )
-    SECTIONS.forEach(s => {
-      const el = document.getElementById(s.id)
+    const sectionIds = data?.site?.type === 'bakery'
+      ? [...SECTIONS.map(s => s.id), 'boutique']
+      : SECTIONS.map(s => s.id)
+    sectionIds.forEach(id => {
+      const el = document.getElementById(id)
       if (el) observer.observe(el)
     })
     return () => observer.disconnect()
@@ -844,6 +848,12 @@ export default function SiteDashboardPage() {
 
   if (!data) return null
   const unreadCount = submissions.filter(s => !s.read_at).length
+  const isBakery = data.site.type === 'bakery'
+
+  // Build sections list, inserting "Boutique" for bakery sites after "forms"
+  const sections = isBakery
+    ? [...SECTIONS.slice(0, 3), { id: 'boutique', label: 'Boutique & Paiements', icon: ShoppingBag }, ...SECTIONS.slice(3)]
+    : SECTIONS
 
   return (
     <div className="min-h-screen bg-[#fafaf9] text-gray-900">
@@ -903,7 +913,7 @@ export default function SiteDashboardPage() {
           </div>
 
           <nav className="flex flex-col gap-0.5">
-            {SECTIONS.map(s => (
+            {sections.map(s => (
               <button key={s.id} onClick={() => scrollTo(s.id)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
                   active === s.id ? 'bg-violet-600/20 text-violet-300' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
@@ -939,6 +949,19 @@ export default function SiteDashboardPage() {
             <h2 className="text-lg font-black mb-6">Formulaires</h2>
             <FormsSection siteId={siteId} />
           </section>
+
+          {isBakery && (
+            <>
+              <div className="border-t border-gray-200" />
+              <section id="boutique">
+                <h2 className="text-lg font-black mb-1">Boutique & Paiements</h2>
+                <p className="text-sm text-gray-500 mb-6">Gérez vos produits, suivez vos commandes et configurez les paiements en ligne.</p>
+                <div className="border border-gray-200 rounded-2xl overflow-hidden" style={{ height: 600 }}>
+                  <ShopPanel siteId={siteId} />
+                </div>
+              </section>
+            </>
+          )}
 
           <div className="border-t border-gray-200" />
 
