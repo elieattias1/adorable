@@ -494,36 +494,41 @@ function HasToggle({ value, onChange }: {
   )
 }
 
-// ─── Dropdown filter for text columns ────────────────────────────────────────
+// ─── Dropdown filter for text columns (multi-select) ─────────────────────────
 function ColFilterDropdown({ value, onChange, options, placeholder }: {
-  value: string
-  onChange: (v: string) => void
+  value: string[]
+  onChange: (v: string[]) => void
   options: string[]
   placeholder: string
 }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
 
-  const visible = options
-    .filter(o => o.toLowerCase().includes(search.toLowerCase()))
+  const visible = options.filter(o => o.toLowerCase().includes(search.toLowerCase()))
 
-  const close = () => { setOpen(false); setSearch('') }
+  const toggle = (opt: string) => {
+    onChange(value.includes(opt) ? value.filter(v => v !== opt) : [...value, opt])
+  }
+
+  const label = value.length === 0 ? placeholder
+    : value.length === 1 ? value[0]
+    : `${value.length} sélectionnés`
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen(p => !p)}
         className={`col-filter flex items-center justify-between gap-1 w-full text-left ${
-          value ? 'border-violet-400 bg-violet-50 text-violet-700' : ''
+          value.length ? 'border-violet-400 bg-violet-50 text-violet-700' : ''
         }`}
       >
-        <span className="truncate">{value || placeholder}</span>
+        <span className="truncate">{label}</span>
         <ChevronDown className="w-3 h-3 flex-shrink-0 opacity-50" />
       </button>
 
       {open && (
         <>
-          <div className="fixed inset-0 z-20" onClick={close} />
+          <div className="fixed inset-0 z-20" onClick={() => { setOpen(false); setSearch('') }} />
           <div className="absolute top-full left-0 z-30 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
             <div className="p-1.5 border-b border-gray-100">
               <input
@@ -534,30 +539,38 @@ function ColFilterDropdown({ value, onChange, options, placeholder }: {
                 className="w-full text-[11px] px-2 py-1 border border-gray-200 rounded focus:outline-none focus:border-violet-400 bg-white text-gray-800"
               />
             </div>
-            <div className="max-h-[145px] overflow-y-auto">
-              {value && (
+            <div className="max-h-[150px] overflow-y-auto">
+              {value.length > 0 && (
                 <button
-                  onClick={() => { onChange(''); close() }}
-                  className="w-full text-left px-3 py-1.5 text-[11px] text-gray-400 hover:bg-gray-50 border-b border-gray-50"
+                  onClick={() => onChange([])}
+                  className="w-full text-left px-3 py-1.5 text-[11px] text-gray-400 hover:bg-gray-50 border-b border-gray-100"
                 >
-                  — Tous
+                  — Tout effacer ({value.length})
                 </button>
               )}
               {visible.length === 0 ? (
                 <div className="px-3 py-2.5 text-[11px] text-gray-400 text-center">Aucun résultat</div>
               ) : (
-                visible.map(opt => (
-                  <button
-                    key={opt}
-                    onClick={() => { onChange(opt); close() }}
-                    className={`w-full text-left px-3 py-1.5 text-[11px] hover:bg-gray-50 truncate block ${
-                      opt === value ? 'text-violet-600 font-semibold bg-violet-50' : 'text-gray-700'
-                    }`}
-                    title={opt}
-                  >
-                    {opt}
-                  </button>
-                ))
+                visible.map(opt => {
+                  const checked = value.includes(opt)
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => toggle(opt)}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-gray-50 text-left ${
+                        checked ? 'text-violet-700 bg-violet-50' : 'text-gray-700'
+                      }`}
+                      title={opt}
+                    >
+                      <span className={`w-3 h-3 flex-shrink-0 rounded border flex items-center justify-center ${
+                        checked ? 'bg-violet-600 border-violet-600' : 'border-gray-300'
+                      }`}>
+                        {checked && <span className="text-white text-[8px] leading-none">✓</span>}
+                      </span>
+                      <span className="truncate">{opt}</span>
+                    </button>
+                  )
+                })
               )}
             </div>
           </div>
@@ -586,27 +599,25 @@ export default function CRMPage() {
   const [mapOpen,         setMapOpen]          = useState(true)
   const [mapLead,         setMapLead]          = useState<Lead | null>(null)
   const [colFilters, setColFilters] = useState({
-    business:     '',
-    category:     '',
-    address:      '',
-    arrondissement: '',
-    postcode:     '',
-    phone:        'all' as 'all'|'yes'|'no',
-    minRating:    '',
-    minReviews:   '',
-    email:        'all' as 'all'|'yes'|'no',
-    website:      'all' as 'all'|'yes'|'no',
-    instagram:    'all' as 'all'|'yes'|'no',
-    facebook:     'all' as 'all'|'yes'|'no',
-    outreach:     '',
-    maps:         'all' as 'all'|'yes'|'no',
+    business:       [] as string[],
+    category:       [] as string[],
+    address:        [] as string[],
+    arrondissement: [] as string[],
+    postcode:       [] as string[],
+    phone:          'all' as 'all'|'yes'|'no',
+    minRating:      '',
+    minReviews:     '',
+    email:          'all' as 'all'|'yes'|'no',
+    website:        'all' as 'all'|'yes'|'no',
+    instagram:      'all' as 'all'|'yes'|'no',
+    facebook:       'all' as 'all'|'yes'|'no',
+    outreach:       [] as string[],
+    maps:           'all' as 'all'|'yes'|'no',
   })
   const setCF = <K extends keyof typeof colFilters>(k: K, v: typeof colFilters[K]) =>
     setColFilters(p => ({ ...p, [k]: v }))
-  const hasColFilters = Object.entries(colFilters).some(([k, v]) =>
-    k.startsWith('phone') || k.startsWith('email') || k.startsWith('website') ||
-    k.startsWith('instagram') || k.startsWith('facebook') || k.startsWith('maps')
-      ? v !== 'all' : v !== ''
+  const hasColFilters = Object.entries(colFilters).some(([, v]) =>
+    Array.isArray(v) ? v.length > 0 : typeof v === 'string' ? v !== '' && v !== 'all' : false
   )
 
   // Load user & sites — redirect non-admins
@@ -659,8 +670,8 @@ export default function CRMPage() {
   // Filtered leads
   const filtered = useMemo(() => {
     const cf = colFilters
-    const txt = (val: string | null | undefined, q: string) =>
-      !q || (val ?? '').toLowerCase().includes(q.toLowerCase())
+    const inSet = (val: string | null | undefined, set: string[]) =>
+      set.length === 0 || set.includes(val ?? '')
     const has = (val: unknown, mode: 'all'|'yes'|'no') =>
       mode === 'all' ? true : mode === 'yes' ? !!val : !val
 
@@ -677,12 +688,12 @@ export default function CRMPage() {
       )
     }
     // Column filters
-    if (cf.business)       result = result.filter(l => txt(l.business_name, cf.business))
-    if (cf.category)       result = result.filter(l => txt(l.category, cf.category))
-    if (cf.address)        result = result.filter(l => txt(l.address, cf.address))
-    if (cf.arrondissement) result = result.filter(l => txt(l.arrondissement ?? l.city, cf.arrondissement))
-    if (cf.postcode)       result = result.filter(l => txt(l.postcode ?? l.departement, cf.postcode))
-    if (cf.outreach)       result = result.filter(l => txt(l.outreach_status, cf.outreach))
+    if (cf.business.length)       result = result.filter(l => inSet(l.business_name, cf.business))
+    if (cf.category.length)       result = result.filter(l => inSet(l.category, cf.category))
+    if (cf.address.length)        result = result.filter(l => inSet(l.address, cf.address))
+    if (cf.arrondissement.length) result = result.filter(l => inSet(l.arrondissement ?? l.city, cf.arrondissement))
+    if (cf.postcode.length)       result = result.filter(l => inSet(l.postcode ?? l.departement, cf.postcode))
+    if (cf.outreach.length)       result = result.filter(l => inSet(l.outreach_status, cf.outreach))
     if (cf.minRating)      result = result.filter(l => (l.rating ?? 0) >= parseFloat(cf.minRating))
     if (cf.minReviews)     result = result.filter(l => (l.reviews ?? 0) >= parseInt(cf.minReviews))
     if (cf.phone    !== 'all') result = result.filter(l => has(l.phone, cf.phone))
@@ -953,9 +964,9 @@ export default function CRMPage() {
 
           {hasColFilters && (
             <button onClick={() => setColFilters({
-              business:'',category:'',address:'',arrondissement:'',postcode:'',
+              business:[],category:[],address:[],arrondissement:[],postcode:[],
               phone:'all',minRating:'',minReviews:'',email:'all',website:'all',
-              instagram:'all',facebook:'all',outreach:'',maps:'all',
+              instagram:'all',facebook:'all',outreach:[],maps:'all',
             })} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-50 border border-violet-200 text-violet-700 text-sm font-medium hover:bg-violet-100 transition-colors whitespace-nowrap">
               <X className="w-3.5 h-3.5" /> Reset filtres
             </button>
