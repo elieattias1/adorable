@@ -1,74 +1,86 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase-browser'
-import { useRouter } from 'next/navigation'
-import MarqueeSection from '@/components/MarqueeSection'
-import Link from 'next/link'
-import { Zap } from 'lucide-react'
+import MarqueeSection from "@/components/MarqueeSection";
+import { createClient } from "@/lib/supabase-browser";
+import { Zap } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // ─── Auth form ─────────────────────────────────────────────────────────────────
-type Mode = 'login' | 'signup' | 'forgot'
+type Mode = "login" | "signup" | "forgot";
 
 export default function LoginPage() {
-  const [mode,     setMode]     = useState<Mode>('login')
-  const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState<string | null>(null)
-  const [sent,     setSent]     = useState(false)
+  const [mode, setMode] = useState<Mode>("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
 
-  const supabase = createClient()
-  const router   = useRouter()
+  const supabase = createClient();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      if (mode === 'forgot') {
+      if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-        })
-        if (error) throw error
-        setSent(true)
-      } else if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email, password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
-        })
-        if (error) throw error
-        fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {})
-        setSent(true)
+        });
+        if (error) throw error;
+        setSent(true);
+      } else if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        if (error) throw error;
+        fetch("/api/auth/welcome", { method: "POST" }).catch(() => {});
+        setSent(true);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        router.push('/dashboard')
-        router.refresh()
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` }
-    })
-  }
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#fafaf9] text-gray-900 flex flex-col font-sans">
       {/* Nav */}
       <nav className="flex items-center px-6 md:px-12 py-4 border-b border-gray-200/60">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link
+          href="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-7 h-7 rounded-xl bg-gray-950 flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-black text-lg tracking-tight text-gray-950">adorable</span>
+          <span className="font-black text-lg tracking-tight text-gray-950">
+            adorable
+          </span>
         </Link>
       </nav>
 
@@ -78,35 +90,55 @@ export default function LoginPage() {
           <div className="max-w-sm mx-auto w-full">
             <div className="mb-8">
               <h1 className="text-3xl font-black mb-2 text-gray-950">
-                {mode === 'login' ? 'Bienvenue 👋' : mode === 'signup' ? 'Crée ton compte' : 'Mot de passe oublié'}
+                {mode === "login"
+                  ? "Bienvenue 👋"
+                  : mode === "signup"
+                    ? "Crée ton compte"
+                    : "Mot de passe oublié"}
               </h1>
               <p className="text-gray-500 text-sm">
-                {mode === 'login'
-                  ? 'Connecte-toi pour accéder à tes sites.'
-                  : mode === 'signup'
-                  ? 'Un site offert, sans CB.'
-                  : "On t'envoie un lien pour réinitialiser ton mot de passe."}
+                {mode === "login"
+                  ? "Connecte-toi pour accéder à tes sites."
+                  : mode === "signup"
+                    ? "Un site offert, sans CB."
+                    : "On t'envoie un lien pour réinitialiser ton mot de passe."}
               </p>
             </div>
 
             {sent ? (
               <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
                 <div className="text-2xl mb-2">📬</div>
-                <h3 className="font-bold mb-1 text-gray-950">Vérifie tes emails !</h3>
+                <h3 className="font-bold mb-1 text-gray-950">
+                  Vérifie tes emails !
+                </h3>
                 <p className="text-sm text-gray-500">
-                  {mode === 'forgot'
-                    ? <>Un lien de réinitialisation a été envoyé à <strong>{email}</strong>.</>
-                    : <>Un lien de confirmation t'a été envoyé à <strong>{email}</strong>.</>}
+                  {mode === "forgot" ? (
+                    <>
+                      Un lien de réinitialisation a été envoyé à{" "}
+                      <strong>{email}</strong>.
+                    </>
+                  ) : (
+                    <>
+                      Un lien de confirmation t'a été envoyé à{" "}
+                      <strong>{email}</strong>.
+                    </>
+                  )}
                 </p>
-                {mode === 'forgot' && (
-                  <button onClick={() => { setSent(false); setMode('login') }} className="mt-4 text-xs text-violet-600 hover:underline">
+                {mode === "forgot" && (
+                  <button
+                    onClick={() => {
+                      setSent(false);
+                      setMode("login");
+                    }}
+                    className="mt-4 text-xs text-violet-600 hover:underline"
+                  >
                     Retour à la connexion
                   </button>
                 )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <button
+                {/* <button
                   type="button"
                   onClick={handleGoogle}
                   style={{ display: mode === 'forgot' ? 'none' : undefined }}
@@ -125,27 +157,31 @@ export default function LoginPage() {
                   <div className="flex-1 h-px bg-gray-200" />
                   <span className="text-xs text-gray-400">ou</span>
                   <div className="flex-1 h-px bg-gray-200" />
-                </div>
+                </div> */}
 
                 <div>
-                  <label className="text-xs text-gray-500 mb-1.5 block font-medium">Email</label>
+                  <label className="text-xs text-gray-500 mb-1.5 block font-medium">
+                    Email
+                  </label>
                   <input
                     type="email"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="toi@exemple.com"
                     className="w-full bg-white border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 rounded-xl px-4 py-3 text-gray-900 outline-none transition-all text-sm"
                   />
                 </div>
 
-                {mode !== 'forgot' && (
+                {mode !== "forgot" && (
                   <div>
-                    <label className="text-xs text-gray-500 mb-1.5 block font-medium">Mot de passe</label>
+                    <label className="text-xs text-gray-500 mb-1.5 block font-medium">
+                      Mot de passe
+                    </label>
                     <input
                       type="password"
                       value={password}
-                      onChange={e => setPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={8}
                       placeholder="••••••••"
@@ -167,31 +203,56 @@ export default function LoginPage() {
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : mode === 'forgot' ? 'Envoyer le lien' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+                  ) : mode === "forgot" ? (
+                    "Envoyer le lien"
+                  ) : mode === "login" ? (
+                    "Se connecter"
+                  ) : (
+                    "Créer mon compte"
+                  )}
                 </button>
 
                 <div className="flex items-center justify-between text-xs text-gray-400">
-                  {mode === 'login' ? (
-                    <button type="button" onClick={() => { setError(null); setSent(false); setMode('forgot') }} className="hover:text-gray-700 transition-colors">
+                  {mode === "login" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        setSent(false);
+                        setMode("forgot");
+                      }}
+                      className="hover:text-gray-700 transition-colors"
+                    >
                       Mot de passe oublié ?
                     </button>
-                  ) : <span />}
+                  ) : (
+                    <span />
+                  )}
                   <button
                     type="button"
-                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                    onClick={() =>
+                      setMode(mode === "login" ? "signup" : "login")
+                    }
                     className="hover:text-gray-700 transition-colors"
                   >
-                    {mode === 'login' ? "Pas de compte ? S'inscrire" : 'Déjà inscrit ? Se connecter'}
+                    {mode === "login"
+                      ? "Pas de compte ? S'inscrire"
+                      : "Déjà inscrit ? Se connecter"}
                   </button>
                 </div>
               </form>
             )}
 
             <p className="text-center text-xs text-gray-400 mt-6">
-              En continuant, tu acceptes nos{' '}
-              <a href="/terms" className="text-gray-600 hover:underline">CGU</a>
-              {' '}et notre{' '}
-              <a href="/privacy" className="text-gray-600 hover:underline">Politique de confidentialité</a>.
+              En continuant, tu acceptes nos{" "}
+              <a href="/terms" className="text-gray-600 hover:underline">
+                CGU
+              </a>{" "}
+              et notre{" "}
+              <a href="/privacy" className="text-gray-600 hover:underline">
+                Politique de confidentialité
+              </a>
+              .
             </p>
           </div>
         </div>
@@ -207,18 +268,28 @@ export default function LoginPage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
             <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-6 border border-gray-200 text-center shadow-lg">
-              <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Propulsé par l'IA</p>
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">
+                Propulsé par l'IA
+              </p>
               <h2 className="text-2xl font-black mb-1 text-gray-950">
-                Décris.{' '}
+                Décris.{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-500">
                   Adorable construit.
                 </span>
               </h2>
-              <p className="text-xs text-gray-500">Restaurant, portfolio, SaaS, boutique…</p>
+              <p className="text-xs text-gray-500">
+                Restaurant, portfolio, SaaS, boutique…
+              </p>
               <div className="flex gap-6 mt-5 pt-4 border-t border-gray-100 justify-center">
-                {[['< 1 min', 'pour créer'], ['∞', 'modifs'], ['0€', 'pour commencer']].map(([v, l]) => (
+                {[
+                  ["< 1 min", "pour créer"],
+                  ["∞", "modifs"],
+                  ["0€", "pour commencer"],
+                ].map(([v, l]) => (
                   <div key={v} className="text-center">
-                    <div className="text-base font-black text-gray-950">{v}</div>
+                    <div className="text-base font-black text-gray-950">
+                      {v}
+                    </div>
                     <div className="text-[10px] text-gray-400">{l}</div>
                   </div>
                 ))}
@@ -228,5 +299,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
