@@ -131,12 +131,26 @@ ${previousCode}
 ${formEndpoint && (section.id === 'contact' || section.id === 'reservation' || section.id === 'booking') ? `━━ FORMULAIRE ━━
 Utilise exactement : fetch('${formEndpoint}', { method: 'POST', ... })` : ''}
 
-${shopEndpoint && shopSiteId && (section.id === 'shop' || section.id === 'boutique' || section.id === 'commandes' || section.component?.toLowerCase().includes('shop')) ? `━━ BOUTIQUE EN LIGNE ━━
-Charge les produits : fetch('${shopEndpoint}/products?siteId=${shopSiteId}')
-Checkout : POST '${shopEndpoint}/shop/checkout' avec { site_id: '${shopSiteId}', customer_name, customer_email, items: [{product_id, quantity}] }
-Sur succès (data.url) → window.location.href = data.url (Stripe Checkout)
-Affiche les produits en grille avec photo, nom, prix, bouton "Ajouter"
-Panier flottant ou modal pour finaliser (nom + email obligatoires)` : ''}
+${shopEndpoint && shopSiteId && (section.id === 'shop' || section.id === 'boutique' || section.id === 'commandes' || section.component?.toLowerCase().includes('shop')) ? `━━ BOUTIQUE EN LIGNE (pay-at-pickup) ━━
+Charge les produits depuis la DB au montage :
+  fetch('${shopEndpoint}/products?siteId=${shopSiteId}').then(r=>r.json()).then(d=>setProducts(d.products??[]))
+
+Panier : const [cart, setCart] = useState({})  // { [productId]: quantity }
+
+Checkout (PAS de Stripe, PAS de redirection) :
+  const res = await fetch('${shopEndpoint}/shop/checkout', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ site_id:'${shopSiteId}', customer_name, customer_email, customer_phone, note, items })
+  })
+  const data = await res.json()
+  if (data.orderId) setStatus('success')  // ← afficher confirmation, jamais window.location
+
+Affichage :
+- Grille produits : photo, nom, prix ("X,XX €"), bouton "+"
+- Badge panier flottant (total + bouton "Commander")
+- Modal commande : Nom*, Email*, Téléphone (optionnel), Note (optionnel)
+- Succès : "✅ Commande confirmée ! Nous vous contacterons pour l'heure de retrait."
+- Si produits vides : "Catalogue bientôt disponible"` : ''}
 
 ━━ RÈGLES ABSOLUES ━━
 1. Exporte UNIQUEMENT : export function ${section.component}() { ... }

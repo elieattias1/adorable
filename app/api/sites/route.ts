@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerSupabaseClient, supabaseAdmin, canCreateSite } from '@/lib/supabase'
+import { DEFAULT_BAKERY_PRODUCTS } from '@/lib/bakery-defaults'
 
 const CreateSiteSchema = z.object({
   name:        z.string().min(1).max(80),
@@ -68,6 +69,22 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (createError) return NextResponse.json({ error: createError.message }, { status: 500 })
+
+  // Seed default products for bakery sites
+  if (input.type === 'bakery') {
+    const rows = DEFAULT_BAKERY_PRODUCTS.map(p => ({
+      site_id:    site.id,
+      user_id:    user.id,
+      name:       p.name,
+      category:   p.category,
+      price:      p.price_cents,
+      emoji:      p.emoji,
+      photo_url:  p.photo_url,
+      active:     true,
+      sort_order: p.sort_order,
+    }))
+    await supabaseAdmin.from('products').insert(rows)
+  }
 
   return NextResponse.json({ site }, { status: 201 })
 }

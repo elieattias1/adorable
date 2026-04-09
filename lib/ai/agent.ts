@@ -162,47 +162,61 @@ Les champs doivent avoir des attributs \`name\` explicites (ex: name="email", na
 ` : ''}
 
 ${shopEndpoint && shopSiteId && siteType === 'bakery' ? `
-BOUTIQUE EN LIGNE — BOULANGERIE :
-Si l'utilisateur demande d'ajouter une boutique, un panier, une section commandes ou "commander en ligne", génère une ShopSection complète avec ce pattern EXACT :
+━━ BOUTIQUE EN LIGNE — BOULANGERIE (OBLIGATOIRE) ━━
+Le site DOIT inclure une ShopSection qui charge les vrais produits depuis la DB et permet de commander.
+Utilise EXACTEMENT ce pattern (ne pas modifier les URLs ni la logique) :
 
 \`\`\`tsx
 const SHOP_API  = '${shopEndpoint}'
 const SHOP_SITE = '${shopSiteId}'
 
-// Charge les produits depuis la DB
+// Dans le composant ShopSection :
+const [products,  setProducts]  = useState([])
+const [cart,      setCart]      = useState({}) // { [productId]: quantity }
+const [showModal, setShowModal] = useState(false)
+const [form,      setForm]      = useState({ name: '', email: '', phone: '', note: '' })
+const [status,    setStatus]    = useState('idle') // idle | loading | success | error
+
 useEffect(() => {
   fetch(SHOP_API + '/products?siteId=' + SHOP_SITE)
     .then(r => r.json())
     .then(d => setProducts(d.products ?? []))
 }, [])
 
-// Panier : { [productId]: quantity }
-const [cart, setCart] = useState({})
+const cartCount = Object.values(cart).reduce((s, q) => s + q, 0)
+const cartTotal = products.reduce((s, p) => s + (cart[p.id] ?? 0) * p.price, 0)
 
-// Checkout
-const handleCheckout = async ({ customerName, customerEmail, items }) => {
+const handleCheckout = async () => {
+  setStatus('loading')
+  const items = Object.entries(cart)
+    .filter(([, q]) => q > 0)
+    .map(([product_id, quantity]) => ({ product_id, quantity }))
   const res = await fetch(SHOP_API + '/shop/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      site_id: SHOP_SITE,
-      customer_name: customerName,
-      customer_email: customerEmail,
-      items, // [{ product_id, quantity }]
+      site_id:        SHOP_SITE,
+      customer_name:  form.name,
+      customer_email: form.email,
+      customer_phone: form.phone || undefined,
+      note:           form.note  || undefined,
+      items,
     }),
   })
   const data = await res.json()
-  if (data.url) window.location.href = data.url
+  setStatus(data.orderId ? 'success' : 'error')
 }
 \`\`\`
 
 Règles pour la ShopSection :
-- Affiche les produits en grille avec photo, nom, prix, bouton "Ajouter au panier"
-- Un compteur/badge panier flottant ou sticky montre le nombre d'articles
-- Un modal ou drawer s'ouvre pour finaliser la commande (nom, email, note)
-- Bouton "Payer en ligne" → appelle handleCheckout → redirige vers Stripe
-- Si products est vide au chargement, n'affiche pas la section (return null)
-- Style cohérent avec le reste du site (couleurs et typo de la boulangerie)
+- Grille de produits : photo, nom, prix (formaté "X,XX €"), bouton "+" pour ajouter au panier
+- Badge panier flottant (sticky bottom-right) avec le total et un bouton "Commander"
+- Au clic "Commander" → ouvre un modal avec : Nom*, Email*, Téléphone (optionnel), Note (optionnel)
+- Bouton "Confirmer la commande" → appelle handleCheckout
+- Si status === 'success' : affiche "✅ Commande confirmée ! Nous vous contacterons pour confirmer l'heure de retrait." (pas de redirection)
+- Si status === 'error' : affiche "Une erreur est survenue, veuillez réessayer."
+- Si products est vide après chargement : affiche un message "Catalogue bientôt disponible"
+- Style cohérent avec le reste du site
 ` : ''}
 CODE ACTUEL DU SITE :
 \`\`\`tsx

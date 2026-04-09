@@ -721,6 +721,66 @@ function SettingsSection({ site, onSave, onDelete, onUnpublish }: { site: Site; 
   )
 }
 
+// ─── Notification email card ──────────────────────────────────────────────────
+
+function NotificationEmailCard() {
+  const supabase = createClient()
+  const [email,   setEmail]   = useState('')
+  const [saved,   setSaved]   = useState(false)
+  const [saving,  setSaving]  = useState(false)
+  const [loaded,  setLoaded]  = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('notification_email, email')
+        .eq('id', user.id)
+        .single()
+      setEmail(data?.notification_email ?? data?.email ?? '')
+      setLoaded(true)
+    })
+  }, [])
+
+  const save = async () => {
+    setSaving(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('profiles').update({ notification_email: email }).eq('id', user.id)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  if (!loaded) return null
+
+  return (
+    <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-center gap-4 mb-6">
+      <div className="text-2xl">📬</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 mb-1">Email de notification des commandes</p>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="votre@email.com"
+            className="flex-1 text-sm border border-orange-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-400 bg-white"
+          />
+          <button
+            onClick={save}
+            disabled={saving || !email.trim()}
+            className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+          >
+            {saved ? <Check className="w-3.5 h-3.5" /> : saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Boutique section (Produits + Commandes tabs) ─────────────────────────────
 
 function BoutiqueSection({ siteId }: { siteId: string }) {
@@ -729,6 +789,9 @@ function BoutiqueSection({ siteId }: { siteId: string }) {
     <div>
       <h2 className="text-lg font-black mb-1">Commandes</h2>
       <p className="text-sm text-gray-500 mb-4">Gérez vos commandes et votre catalogue produits.</p>
+
+      <NotificationEmailCard />
+
       <div className="flex gap-1 mb-6">
         {(['commandes', 'produits'] as const).map(t => (
           <button
