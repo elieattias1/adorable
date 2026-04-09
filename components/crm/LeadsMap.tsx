@@ -26,30 +26,16 @@ const STATUS_COLORS: Record<string, string> = {
   closed:    '#9ca3af', // gray
 }
 
-function makeIcon(L: typeof import('leaflet'), status: string, selected = false) {
-  const color = STATUS_COLORS[status] ?? '#8b5cf6'
-  const size  = selected ? 34 : 26
-  const fs    = selected ? 16 : 13
-  const ring  = selected
-    ? `0 0 0 3px ${color}50, 0 3px 10px rgba(0,0,0,0.3)`
-    : '0 2px 6px rgba(0,0,0,0.22)'
-  const html = `<div style="
-    width:${size}px;height:${size}px;
-    background:${color};
-    border-radius:50%;
-    border:2.5px solid white;
-    box-shadow:${ring};
-    display:flex;align-items:center;justify-content:center;
-    font-size:${fs}px;line-height:1;
-    transition:all 0.15s;
-    cursor:pointer;
-  ">🥐</div>`
+function makeIcon(L: typeof import('leaflet'), _status: string, selected = false) {
+  const fs   = selected ? 28 : 22
+  const html = `<div style="font-size:${fs}px;line-height:1;cursor:pointer;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));transition:font-size 0.15s;">🥐</div>`
+  const size = fs + 4
   return L.divIcon({
     html,
     className: '',
     iconSize:    [size, size],
     iconAnchor:  [size / 2, size / 2],
-    popupAnchor: [0, -(size / 2 + 8)],
+    popupAnchor: [0, -(size / 2 + 4)],
   })
 }
 
