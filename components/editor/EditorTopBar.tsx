@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Globe, Monitor, Smartphone, History, Loader2, ExternalLink, PanelRightClose, PanelRightOpen, Link2, Check } from 'lucide-react'
+import { ArrowLeft, Globe, Monitor, Smartphone, History, Loader2, ExternalLink, PanelRightClose, PanelRightOpen, Link2, Check, ShoppingBag } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -20,6 +20,8 @@ interface EditorTopBarProps {
   deployedUrl?: string | null
   showChat: boolean
   onToggleChat: () => void
+  showShop?: boolean
+  onToggleShop?: () => void
 }
 
 export default function EditorTopBar({
@@ -35,6 +37,8 @@ export default function EditorTopBar({
   deployedUrl,
   showChat,
   onToggleChat,
+  showShop,
+  onToggleShop,
 }: EditorTopBarProps) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -123,6 +127,22 @@ export default function EditorTopBar({
             <ExternalLink className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Voir en ligne</span>
           </a>
+        )}
+
+        {/* Shop panel toggle */}
+        {onToggleShop && (
+          <button
+            onClick={onToggleShop}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              showShop
+                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+            title="Boutique en ligne"
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Boutique</span>
+          </button>
         )}
 
         {/* Toggle chat */}

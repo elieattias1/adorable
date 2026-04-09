@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import EditorTopBar from '@/components/editor/EditorTopBar'
+import ShopPanel from '@/components/dashboard/ShopPanel'
 import CodePreview from '@/components/editor/CodePreview'
 import ChatPanel, { type ChatMessage } from '@/components/editor/ChatPanel'
 import VersionPanel, { type Version } from '@/components/editor/VersionPanel'
@@ -42,6 +43,7 @@ function EditorPage() {
   const deployPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [showVersions,  setShowVersions]  = useState(false)
   const [showChat,      setShowChat]      = useState(true)
+  const [showShop,      setShowShop]      = useState(false)
   const [previewMode,   setPreviewMode]   = useState<'desktop' | 'mobile'>('desktop')
   const [isPro,         setIsPro]         = useState(false)
   const [loading,       setLoading]       = useState(true)
@@ -403,6 +405,8 @@ function EditorPage() {
         deployedUrl={site.deployed_url}
         showChat={showChat}
         onToggleChat={() => setShowChat(v => !v)}
+        showShop={showShop}
+        onToggleShop={site.type === 'bakery' ? () => setShowShop(v => !v) : undefined}
       />
 
       {/* Split layout */}
@@ -430,6 +434,13 @@ function EditorPage() {
             siteType={site?.type}
           />
         </div>
+
+        {/* Shop panel */}
+        {showShop && site.type === 'bakery' && (
+          <div className="hidden md:flex flex-col min-h-0 min-w-0 md:flex-[35] max-w-sm border-l border-gray-200 bg-white">
+            <ShopPanel siteId={siteId} />
+          </div>
+        )}
 
         {/* Version panel */}
         {showVersions && (
