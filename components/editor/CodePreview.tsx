@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v13_'
+const LS_PREFIX  = 'sb_prev_v14_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -143,12 +143,56 @@ const EMPTY_SRCDOC = `<!DOCTYPE html>
 </body></html>`
 
 // ─── Pre-processor: escape French apostrophes in single-quoted strings ────────
-// Claude generates French content (L'Artisan, d'accord…). When that text ends up
-// in a JS single-quoted string, the apostrophe closes the string early and Babel
-// throws "Missing semicolon". We escape letter'letter → letter\'letter globally;
-// this is safe in double-quoted strings, template literals, and comments too.
 function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
+}
+
+// ─── Pre-processor: flatten multi-line ${...} inside template literals ────────
+// Babel standalone throws "Missing semicolon" when ${ is followed by a newline
+// inside a JSX attribute value (e.g. className={`a ${↵  expr↵}`}). Collapsing
+// the expression to a single line avoids the parser bug.
+function flattenTemplateLiterals(code: string): string {
+  let out = ''
+  let i = 0
+  while (i < code.length) {
+    if (code[i] === '`') {
+      out += code[i++]
+      while (i < code.length && code[i] !== '`') {
+        if (code[i] === '\\') {
+          out += code[i++]
+          if (i < code.length) out += code[i++]
+          continue
+        }
+        if (code[i] === '$' && code[i + 1] === '{') {
+          out += '${'; i += 2
+          let depth = 1
+          while (i < code.length && depth > 0) {
+            const c = code[i]
+            if (c === '{') { depth++; out += code[i++] }
+            else if (c === '}') {
+              depth--
+              if (depth === 0) { out += '}'; i++; break }
+              out += code[i++]
+            } else if (c === '\n' || c === '\r') {
+              // Collapse newline + surrounding whitespace to a single space
+              out += ' '; i++
+              while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n' || code[i] === '\r')) i++
+            } else if (c === "'" || c === '"') {
+              // String inside expression — preserve, don't treat its chars as braces
+              const q = code[i]; out += code[i++]
+              while (i < code.length && code[i] !== q && code[i] !== '\n') {
+                if (code[i] === '\\') out += code[i++]
+                if (i < code.length) out += code[i++]
+              }
+              if (i < code.length && code[i] === q) out += code[i++]
+            } else { out += code[i++] }
+          }
+        } else { out += code[i++] }
+      }
+      if (i < code.length) out += code[i++] // closing backtick
+    } else { out += code[i++] }
+  }
+  return out
 }
 
 // ─── Transform TSX → iframe srcdoc ───────────────────────────────────────────
@@ -169,7 +213,7 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
   try {
     // @ts-ignore — Babel loaded via CDN script tag
     const Babel = (window as any).Babel
-    const safeCode = fixApostrophes(tsxCode)
+    const safeCode = fixApostrophes(flattenTemplateLiterals(tsxCode))
 
     // Two-pass compilation to avoid TypeScript↔JSX parser conflicts:
     // Pass 1: strip TypeScript types → pure JSX  (TypeScript preset only)
