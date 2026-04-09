@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Globe, Monitor, Smartphone, History, Loader2, ExternalLink, PanelRightClose, PanelRightOpen, Link2, Check, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Globe, Monitor, Smartphone, History, Loader2, ExternalLink, PanelRightClose, PanelRightOpen, Link2, Check, ShoppingBag, Image } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -22,6 +22,8 @@ interface EditorTopBarProps {
   onToggleChat: () => void
   showShop?: boolean
   onToggleShop?: () => void
+  showAssets?: boolean
+  onToggleAssets?: () => void
 }
 
 export default function EditorTopBar({
@@ -39,6 +41,8 @@ export default function EditorTopBar({
   onToggleChat,
   showShop,
   onToggleShop,
+  showAssets,
+  onToggleAssets,
 }: EditorTopBarProps) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -142,6 +146,22 @@ export default function EditorTopBar({
           >
             <ShoppingBag className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Boutique</span>
+          </button>
+        )}
+
+        {/* Assets panel toggle */}
+        {onToggleAssets && (
+          <button
+            onClick={onToggleAssets}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              showAssets
+                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+            title="Bibliothèque de photos"
+          >
+            <Image className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Photos</span>
           </button>
         )}
 

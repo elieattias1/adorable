@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import ShopPanel from '@/components/dashboard/ShopPanel'
+import AssetLibraryPanel from '@/components/editor/AssetLibraryPanel'
 import CodePreview from '@/components/editor/CodePreview'
 import ChatPanel, { type ChatMessage } from '@/components/editor/ChatPanel'
 import VersionPanel, { type Version } from '@/components/editor/VersionPanel'
@@ -44,6 +45,7 @@ function EditorPage() {
   const [showVersions,  setShowVersions]  = useState(false)
   const [showChat,      setShowChat]      = useState(true)
   const [showShop,      setShowShop]      = useState(false)
+  const [showAssets,    setShowAssets]    = useState(false)
   const [previewMode,   setPreviewMode]   = useState<'desktop' | 'mobile'>('desktop')
   const [isPro,         setIsPro]         = useState(false)
   const [loading,       setLoading]       = useState(true)
@@ -410,6 +412,8 @@ function EditorPage() {
         onToggleChat={() => setShowChat(v => !v)}
         showShop={showShop}
         onToggleShop={site.type === 'bakery' ? () => setShowShop(v => !v) : undefined}
+        showAssets={showAssets}
+        onToggleAssets={site.type === 'bakery' ? () => setShowAssets(v => !v) : undefined}
       />
 
       {/* Split layout */}
@@ -442,6 +446,13 @@ function EditorPage() {
         {showShop && site.type === 'bakery' && (
           <div className="hidden md:flex flex-col min-h-0 min-w-0 md:flex-[35] max-w-sm border-l border-gray-200 bg-white">
             <ShopPanel siteId={siteId} />
+          </div>
+        )}
+
+        {/* Asset library panel */}
+        {showAssets && site.type === 'bakery' && (
+          <div className="hidden md:flex flex-col min-h-0 min-w-0 md:flex-[35] max-w-sm border-l border-gray-200 bg-white">
+            <AssetLibraryPanel />
           </div>
         )}
 
