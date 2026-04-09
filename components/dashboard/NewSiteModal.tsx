@@ -201,31 +201,6 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                 )}
               </div>
 
-              {/* Business type filter pills */}
-              <div className="flex gap-1.5 flex-wrap mb-3">
-                {BUSINESS_FILTERS.map(f => {
-                  const count = f.industries.length === 0
-                    ? templates.length
-                    : templates.filter(t => f.industries.includes(t.industry)).length
-                  if (count === 0 && f.label !== 'Tous') return null
-                  return (
-                    <button
-                      key={f.label}
-                      type="button"
-                      onClick={() => setActiveIndustry(f.label)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                        activeIndustry === f.label
-                          ? 'bg-violet-600 text-white'
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900'
-                      }`}
-                    >
-                      {f.emoji ? `${f.emoji} ` : ''}{f.label}
-                      {f.label !== 'Tous' && <span className="ml-1 opacity-60 text-[10px]">{count}</span>}
-                    </button>
-                  )
-                })}
-              </div>
-
               {/* Grid */}
               <div className="grid grid-cols-3 gap-2.5">
 
