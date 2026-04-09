@@ -23,12 +23,24 @@ export async function GET(
 
   const { data: site } = await supabaseAdmin
     .from('sites')
-    .select('id, name, html')
+    .select('id, name, html, is_published')
     .eq('id', id)
     .single()
 
   if (!site?.html) {
     return new NextResponse('Site introuvable', { status: 404 })
+  }
+
+  // Block unpublished sites (preview=1 bypasses for editor)
+  if (!site.is_published && !isPreview) {
+    return new NextResponse(
+      `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Site hors ligne</title></head>
+<body style="margin:0;background:#0f0f13;color:#666;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:14px;flex-direction:column;gap:8px">
+  <span style="font-size:32px">🔒</span>
+  <p style="margin:0;font-size:15px;color:#aaa">Ce site est hors ligne.</p>
+</body></html>`,
+      { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    )
   }
 
   // Increment view count (fire-and-forget)

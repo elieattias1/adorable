@@ -632,11 +632,12 @@ function CustomDomainCard({ siteId }: { siteId: string }) {
 
 // ─── Section: Settings ─────────────────────────────────────────────────────────
 
-function SettingsSection({ site, onSave, onDelete }: { site: Site; onSave: (p: object) => Promise<void>; onDelete: () => void }) {
+function SettingsSection({ site, onSave, onDelete, onUnpublish }: { site: Site; onSave: (p: object) => Promise<void>; onDelete: () => void; onUnpublish: () => Promise<void> }) {
   const [name, setName] = useState(site.name)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [unpublishing, setUnpublishing] = useState(false)
   const [copied, setCopied] = useState(false)
   const copyId = () => { navigator.clipboard.writeText(site.id); setCopied(true); setTimeout(() => setCopied(false), 2000) }
   const save = async () => { setSaving(true); await onSave({ name }); setSaving(false) }
@@ -676,24 +677,45 @@ function SettingsSection({ site, onSave, onDelete }: { site: Site; onSave: (p: o
         </div>
       </div>
 
-      <div className="bg-white border border-red-900/40 rounded-xl p-6 space-y-4 self-start">
+      <div className="bg-white border border-red-900/40 rounded-xl p-6 space-y-5 self-start">
         <h3 className="font-semibold text-sm text-red-400 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Zone dangereuse</h3>
-        <p className="text-xs text-gray-500 leading-relaxed">La suppression est irréversible — toutes les versions, messages et données associés seront perdus définitivement.</p>
-        {!confirm
-          ? <button onClick={() => setConfirm(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-900 text-red-400 hover:bg-red-950/40 text-sm font-medium transition-all">
-              <Trash2 className="w-4 h-4" /> Supprimer ce site
+
+        {/* Unpublish */}
+        {site.is_published && (
+          <div className="space-y-2 pb-5 border-b border-red-900/20">
+            <p className="text-xs font-medium text-gray-700">Dépublier le site</p>
+            <p className="text-xs text-gray-500 leading-relaxed">Le site devient inaccessible immédiatement. Le code est conservé — vous pouvez le republier à tout moment.</p>
+            <button
+              onClick={async () => { setUnpublishing(true); await onUnpublish(); setUnpublishing(false) }}
+              disabled={unpublishing}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-800/60 text-orange-400 hover:bg-orange-950/30 text-sm font-medium transition-all disabled:opacity-50"
+            >
+              {unpublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+              Mettre hors ligne
             </button>
-          : <div className="space-y-3">
-              <p className="text-sm font-medium text-red-300">Cette action est irréversible. Confirmer ?</p>
-              <div className="flex gap-2">
-                <button onClick={() => { setDeleting(true); onDelete() }} disabled={deleting}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold">
-                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Confirmer
-                </button>
-                <button onClick={() => setConfirm(false)} className="px-4 py-2 rounded-lg bg-white hover:bg-gray-700 text-sm">Annuler</button>
+          </div>
+        )}
+
+        {/* Delete */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-gray-700">Supprimer ce site</p>
+          <p className="text-xs text-gray-500 leading-relaxed">Action irréversible — toutes les versions, messages et données associés seront perdus définitivement.</p>
+          {!confirm
+            ? <button onClick={() => setConfirm(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-900 text-red-400 hover:bg-red-950/40 text-sm font-medium transition-all">
+                <Trash2 className="w-4 h-4" /> Supprimer ce site
+              </button>
+            : <div className="space-y-3">
+                <p className="text-sm font-medium text-red-300">Cette action est irréversible. Confirmer ?</p>
+                <div className="flex gap-2">
+                  <button onClick={() => { setDeleting(true); onDelete() }} disabled={deleting}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold">
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Confirmer
+                  </button>
+                  <button onClick={() => setConfirm(false)} className="px-4 py-2 rounded-lg bg-white hover:bg-gray-100 text-sm">Annuler</button>
+                </div>
               </div>
-            </div>
-        }
+          }
+        </div>
       </div>
     </div>
   )
@@ -795,6 +817,20 @@ export default function SiteDashboardPage() {
     const res = await fetch(`/api/site/${siteId}`, { method: 'DELETE' })
     if (res.ok) router.push('/dashboard')
     else showToast('Erreur lors de la suppression', 'error')
+  }
+
+  const handleUnpublish = async () => {
+    const res = await fetch(`/api/site/${siteId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_published: false, deployed_url: null }),
+    })
+    if (res.ok) {
+      setData(prev => prev ? { ...prev, site: { ...prev.site, is_published: false, deployed_url: null } } : prev)
+      showToast('Site mis hors ligne')
+    } else {
+      showToast('Erreur lors de la dépublication', 'error')
+    }
   }
 
   if (loading) return (
@@ -929,7 +965,7 @@ export default function SiteDashboardPage() {
 
           <section id="settings" className="pb-20">
             <h2 className="text-lg font-black mb-6">Paramètres</h2>
-            <SettingsSection site={data.site} onSave={handleSave} onDelete={handleDelete} />
+            <SettingsSection site={data.site} onSave={handleSave} onDelete={handleDelete} onUnpublish={handleUnpublish} />
           </section>
         </main>
       </div>
