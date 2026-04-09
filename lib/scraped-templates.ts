@@ -12,23 +12,26 @@ import { supabaseAdmin } from '@/lib/supabase'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface ScrapedTemplate {
-  slug:           string
-  name:           string
-  url:            string
-  industry:       string
-  site_type:      string
-  tags:           string[]
-  fonts:          string[]
-  has_dark_bg:    boolean
-  cta_texts:      string[]
-  screenshot_url: string | null
+  slug:             string
+  name:             string
+  url:              string
+  industry:         string
+  site_type:        string
+  tags:             string[]
+  fonts:            string[]
+  has_dark_bg:      boolean
+  cta_texts:        string[]
+  screenshot_url:   string | null
+  quality_score:    number | null
+  html_url:         string | null
 }
 
 // ── Industry keyword mapping ──────────────────────────────────────────────────
 // Maps free-form siteType + user message keywords → `industry` values in DB.
 
 const KEYWORD_TO_INDUSTRIES: Array<{ keywords: string[]; industries: string[] }> = [
-  { keywords: ['restaurant', 'food', 'café', 'brasserie', 'bistro', 'gastrono', 'cuisine', 'menu'], industries: ['Restaurant', 'Food & Grocery'] },
+  { keywords: ['boulangerie', 'boulanger', 'pâtisserie', 'patisserie', 'bakery', 'viennoiserie', 'croissant', 'pain', 'bread'], industries: ['Boulangerie'] },
+  { keywords: ['restaurant', 'food', 'café', 'brasserie', 'bistro', 'gastrono', 'cuisine', 'menu'], industries: ['Restaurant', 'Food & Grocery', 'Boulangerie'] },
   { keywords: ['fashion', 'mode', 'luxury', 'luxe', 'vêtement', 'clothing', 'apparel', 'couture'],  industries: ['Fashion & Luxury', 'E-commerce'] },
   { keywords: ['shop', 'ecommerce', 'store', 'boutique', 'product', 'produit', 'marketplace'],       industries: ['E-commerce'] },
   { keywords: ['saas', 'software', 'app', 'platform', 'tool', 'productivity', 'dashboard'],          industries: ['SaaS', 'Developer Tools'] },
@@ -77,7 +80,9 @@ export async function getRelevantTemplates(
   // Prefer exact industry match; fall back to a broader sample
   const query = supabaseAdmin
     .from('templates')
-    .select('slug, name, url, industry, site_type, tags, fonts, has_dark_bg, cta_texts, screenshot_url')
+    .select('slug, name, url, industry, site_type, tags, fonts, has_dark_bg, cta_texts, screenshot_url, quality_score, html_url')
+    .not('has_cookies_wall', 'eq', true)
+    .order('quality_score', { ascending: false, nullsFirst: false })
     .limit(50) // fetch a pool to rank locally
 
   const { data, error } = industries.length > 0
