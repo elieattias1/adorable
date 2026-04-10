@@ -37,7 +37,7 @@ dotenv.config({ path: '.env.local' })
 
 const supabase  = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const APP_URL   = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
+const APP_URL   = 'https://adorable.click'
 const ADMIN_USER_ID = process.env.ADMIN_USER_ID
 
 if (!ADMIN_USER_ID) {
@@ -262,8 +262,8 @@ function buildHtml(reactCode: string): string {
     .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
     .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
     .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)=])/g, '$1')
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)=])/g, '$1')
+    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)]|=(?![=]))/g, '$1')
+    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)]|=(?![=]))/g, '$1')
     .replace(/\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g, '$1')
 
   const escaped = JSON.stringify(cleaned)

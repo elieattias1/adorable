@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v18_'
+const LS_PREFIX  = 'sb_prev_v19_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -167,9 +167,9 @@ function stripTypeScript(code: string): string {
     // Parameter type annotations: param: Type before , or )
     // Only match word-based types (string, number, React.X) — NOT quoted strings
     // because fontFamily: 'Playfair Display, serif' is a JS prop, not a TS annotation
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)=])/g, '$1')
+    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)]|=(?![=]))/g, '$1')
     // TypeScript literal union types: param: 'a' | 'b' (requires ≥2 values — avoids JS props)
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)=])/g, '$1')
+    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)]|=(?![=]))/g, '$1')
     // Generic params on React hooks: useState<T>(), useRef<T>()
     .replace(
       /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
