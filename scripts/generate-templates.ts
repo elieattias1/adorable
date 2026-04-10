@@ -409,17 +409,19 @@ async function generateTemplate(tpl: typeof TEMPLATES[0], force: boolean) {
 
 // ── Entry point ────────────────────────────────────────────────────────────────
 
-const force    = process.argv.includes('--force')
-const onlySlug = process.argv.find(a => a.startsWith('--slug='))?.split('=')[1]
-const targets  = onlySlug ? TEMPLATES.filter(t => t.slug === onlySlug) : TEMPLATES
+;(async () => {
+  const force    = process.argv.includes('--force')
+  const onlySlug = process.argv.find(a => a.startsWith('--slug='))?.split('=')[1]
+  const targets  = onlySlug ? TEMPLATES.filter(t => t.slug === onlySlug) : TEMPLATES
 
-if (targets.length === 0) { console.error('❌  No matching template:', onlySlug); process.exit(1) }
+  if (targets.length === 0) { console.error('❌  No matching template:', onlySlug); process.exit(1) }
 
-console.log(`🥐  Generating ${targets.length} boulangerie template(s) via production AI pipeline…\n`)
+  console.log(`🥐  Generating ${targets.length} boulangerie template(s) via production AI pipeline…\n`)
 
-let ok = 0, failed = 0
-for (const tpl of targets) {
-  try   { await generateTemplate(tpl, force); ok++ }
-  catch (err: any) { console.error(`   ❌ FAILED: ${err.message}`); failed++ }
-}
-console.log(`\n✅  ${ok} done, ❌ ${failed} failed`)
+  let ok = 0, failed = 0
+  for (const tpl of targets) {
+    try   { await generateTemplate(tpl, force); ok++ }
+    catch (err: any) { console.error(`   ❌ FAILED: ${err.message}`); failed++ }
+  }
+  console.log(`\n✅  ${ok} done, ❌ ${failed} failed`)
+})()
