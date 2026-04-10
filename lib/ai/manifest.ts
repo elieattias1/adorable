@@ -171,7 +171,8 @@ Affichage :
 8. Sections spacieuses : py-20 minimum
 9. Responsive : 1 colonne mobile, 2-3 colonnes desktop
 10. GUILLEMETS : utilise TOUJOURS des guillemets doubles "..." ou des backticks \`...\` pour toutes les chaînes JS — JAMAIS des guillemets simples — les textes français contiennent des apostrophes (L'Artisan, d'accord…) qui cassent les strings single-quoted
-${declaredNames.length > 0 ? `11. VARIABLES INTERDITES — déjà déclarées dans les sections précédentes, NE PAS re-déclarer avec const/let/var : ${declaredNames.join(', ')}` : ''}
+11. JAVASCRIPT PUR — PAS de TypeScript : pas d'annotations de type (param: string), pas d'interfaces, pas de génériques (useState<T>), pas de "as Type", pas de "?: " — le compilateur est Babel React-only, le TypeScript fait planter la compilation
+${declaredNames.length > 0 ? `12. VARIABLES INTERDITES — déjà déclarées dans les sections précédentes, NE PAS re-déclarer avec const/let/var : ${declaredNames.join(', ')}` : ''}
 
 ${syntaxError ? `━━ ERREUR DE SYNTAXE À CORRIGER (tentative précédente rejetée) ━━
 ${syntaxError}

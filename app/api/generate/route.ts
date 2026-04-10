@@ -157,7 +157,7 @@ async function runSequentialGeneration(opts: {
 
         const sectionStream = anthropic.messages.stream({
           model:       'claude-sonnet-4-6',
-          max_tokens:  3000,
+          max_tokens:  5000,
           system:      sectionPrompt,
           tools:       [SECTION_TOOL],
           tool_choice: { type: 'tool', name: 'write_section' },
