@@ -154,7 +154,8 @@ Checkout (PAS de Stripe, PAS de redirection) :
   if (data.orderId) setStatus('success')  // ← afficher confirmation, jamais window.location
 
 Affichage :
-- Grille produits : photo, nom, prix ("X,XX €"), bouton "+"
+- Grille produits : photo, nom, prix, bouton "+"
+- ⚠️ PRIX EN CENTIMES : affiche toujours (product.price / 100).toFixed(2).replace('.', ',') + " €"  — NE PAS afficher product.price directement
 - Badge panier flottant (total + bouton "Commander")
 - Modal commande : Nom*, Email*, Téléphone (optionnel), Note (optionnel)
 - Succès : "✅ Commande confirmée ! Nous vous contacterons pour l'heure de retrait."
