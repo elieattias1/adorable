@@ -1087,11 +1087,7 @@ export default function SiteDashboardPage() {
 
           <div className="border-t border-gray-200" />
           <section id="produits">
-            {plan !== 'free' ? (
-              <ProduitsSection siteId={siteId} />
-            ) : (
-              <UpgradeGate title="Produits" plan="Starter" description="Gérez votre catalogue de produits et acceptez des commandes en ligne." />
-            )}
+            <ProduitsSection siteId={siteId} />
           </section>
 
           <div className="border-t border-gray-200" />
