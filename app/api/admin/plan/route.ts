@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   if (!isAdminUser(user.id)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { plan } = await req.json()
-  if (!['free', 'pro', 'enterprise'].includes(plan)) {
+  if (!['free', 'starter', 'pro', 'enterprise'].includes(plan)) {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 

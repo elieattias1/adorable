@@ -828,7 +828,7 @@ function ProduitsSection({ siteId }: { siteId: string }) {
       <h2 className="text-lg font-black mb-1">Produits</h2>
       <p className="text-sm text-gray-500 mb-6">Gérez votre catalogue de produits.</p>
       <div className="border border-gray-200 rounded-2xl overflow-hidden" style={{ height: 600 }}>
-        <ShopPanel siteId={siteId} />
+        <ShopPanel siteId={siteId} hideOrders />
       </div>
     </div>
   )
