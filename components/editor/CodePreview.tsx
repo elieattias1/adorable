@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v14_'
+const LS_PREFIX  = 'sb_prev_v15_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -147,52 +147,22 @@ function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
 }
 
-// ─── Pre-processor: flatten multi-line ${...} inside template literals ────────
-// Babel standalone throws "Missing semicolon" when ${ is followed by a newline
-// inside a JSX attribute value (e.g. className={`a ${↵  expr↵}`}). Collapsing
-// the expression to a single line avoids the parser bug.
-function flattenTemplateLiterals(code: string): string {
-  let out = ''
-  let i = 0
-  while (i < code.length) {
-    if (code[i] === '`') {
-      out += code[i++]
-      while (i < code.length && code[i] !== '`') {
-        if (code[i] === '\\') {
-          out += code[i++]
-          if (i < code.length) out += code[i++]
-          continue
-        }
-        if (code[i] === '$' && code[i + 1] === '{') {
-          out += '${'; i += 2
-          let depth = 1
-          while (i < code.length && depth > 0) {
-            const c = code[i]
-            if (c === '{') { depth++; out += code[i++] }
-            else if (c === '}') {
-              depth--
-              if (depth === 0) { out += '}'; i++; break }
-              out += code[i++]
-            } else if (c === '\n' || c === '\r') {
-              // Collapse newline + surrounding whitespace to a single space
-              out += ' '; i++
-              while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n' || code[i] === '\r')) i++
-            } else if (c === "'" || c === '"') {
-              // String inside expression — preserve, don't treat its chars as braces
-              const q = code[i]; out += code[i++]
-              while (i < code.length && code[i] !== q && code[i] !== '\n') {
-                if (code[i] === '\\') out += code[i++]
-                if (i < code.length) out += code[i++]
-              }
-              if (i < code.length && code[i] === q) out += code[i++]
-            } else { out += code[i++] }
-          }
-        } else { out += code[i++] }
-      }
-      if (i < code.length) out += code[i++] // closing backtick
-    } else { out += code[i++] }
-  }
-  return out
+// ─── Pre-processor: strip TypeScript generics so React-only Babel preset works ──
+// We use the React preset only (not TypeScript preset) because the TypeScript
+// preset has a bug where it fails on template literals inside JSX attribute
+// expressions (e.g. className={`... ${expr}`} → "Missing semicolon").
+// AI-generated code only uses TypeScript for generic hooks — strip those.
+function stripTypeScriptGenerics(code: string): string {
+  return code
+    // Remove type-only imports: import type { Foo } from '...'
+    .replace(/^import\s+type\s+.+$/gm, '')
+    // Strip generic params from React hooks and helpers:
+    //   useState<string[]>([])  →  useState([])
+    //   useRef<HTMLDivElement>(null)  →  useRef(null)
+    .replace(
+      /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
+      '$1'
+    )
 }
 
 // ─── Transform TSX → iframe srcdoc ───────────────────────────────────────────
@@ -213,23 +183,18 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
   try {
     // @ts-ignore — Babel loaded via CDN script tag
     const Babel = (window as any).Babel
-    const safeCode = fixApostrophes(flattenTemplateLiterals(tsxCode))
+    // Preprocess: fix apostrophes + strip TS generics, then compile as plain JSX.
+    // We intentionally do NOT use the TypeScript Babel preset — it has a bug
+    // where it fails on template literals inside JSX attribute expressions
+    // (className={`... ${expr}`} → "Missing semicolon"). The React-only preset
+    // handles JSX + template literals correctly. AI-generated code only has
+    // TypeScript in the form of generic hooks (useState<T>), which we strip first.
+    const safeCode = stripTypeScriptGenerics(fixApostrophes(tsxCode))
 
-    // Two-pass compilation to avoid TypeScript↔JSX parser conflicts:
-    // Pass 1: strip TypeScript types → pure JSX  (TypeScript preset only)
-    // Pass 2: compile JSX → JS              (React preset only)
-    // This avoids the "Missing semicolon" error that occurs when the combined
-    // TypeScript+React transform encounters template literals in JSX attributes.
-    const stripped = Babel.transform(safeCode, {
-      presets: [['typescript', { allExtensions: true, isTSX: true }]],
-      filename: 'App.tsx',
-    }).code
-
-    const result = Babel.transform(stripped, {
+    const result = Babel.transform(safeCode, {
       presets: [['react', { runtime: 'automatic' }]],
       filename: 'App.jsx',
     })
-
 
     js = result.code
       // Remove export default so App is a named binding accessible in the module

@@ -21,50 +21,17 @@ function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
 }
 
-// Flatten multi-line ${...} expressions inside template literals.
-// Babel standalone throws "Missing semicolon" when ${ is followed by a newline
-// inside a JSX attribute (e.g. className={`a ${\n  expr\n}`}).
-function flattenTemplateLiterals(code: string): string {
-  let out = ''
-  let i = 0
-  while (i < code.length) {
-    if (code[i] === '`') {
-      out += code[i++]
-      while (i < code.length && code[i] !== '`') {
-        if (code[i] === '\\') {
-          out += code[i++]
-          if (i < code.length) out += code[i++]
-          continue
-        }
-        if (code[i] === '$' && code[i + 1] === '{') {
-          out += '${'
-          i += 2
-          let depth = 1
-          while (i < code.length && depth > 0) {
-            const c = code[i]
-            if (c === '{') { depth++; out += code[i++] }
-            else if (c === '}') {
-              depth--
-              if (depth === 0) { out += '}'; i++; break }
-              out += code[i++]
-            } else if (c === '\n' || c === '\r') {
-              out += ' '; i++
-              while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n' || code[i] === '\r')) i++
-            } else if (c === "'" || c === '"') {
-              const q = code[i]; out += code[i++]
-              while (i < code.length && code[i] !== q && code[i] !== '\n') {
-                if (code[i] === '\\') out += code[i++]
-                if (i < code.length) out += code[i++]
-              }
-              if (i < code.length && code[i] === q) out += code[i++]
-            } else { out += code[i++] }
-          }
-        } else { out += code[i++] }
-      }
-      if (i < code.length) out += code[i++]
-    } else { out += code[i++] }
-  }
-  return out
+// Strip TypeScript generic params from React hooks so React-only Babel preset works.
+// We do NOT use the TypeScript Babel preset — it has a bug where it fails on
+// template literals inside JSX attribute expressions (className={`... ${expr}`}).
+// AI-generated code only has TypeScript as generic hooks (useState<T>); strip them.
+function stripTypeScriptGenerics(code: string): string {
+  return code
+    .replace(/^import\s+type\s+.+$/gm, '')
+    .replace(
+      /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
+      '$1'
+    )
 }
 
 export async function GET(
@@ -114,7 +81,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
 
   // Apply preprocessors server-side then JSON-stringify — avoids any escaping
   // conflicts when embedding JS inside the TypeScript template literal below.
-  const processedCode = fixApostrophes(flattenTemplateLiterals(site.html))
+  const processedCode = stripTypeScriptGenerics(fixApostrophes(site.html))
   const codeJson = JSON.stringify(processedCode)
   const cdnJson  = {
     react:      JSON.stringify(CDN.react),
@@ -174,12 +141,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
       var code = ${codeJson};
       var compiled;
       try {
-        // Two-pass: strip TypeScript first, then compile JSX
-        var stripped = Babel.transform(code, {
-          presets: [['typescript', { allExtensions: true, isTSX: true }]],
-          filename: 'App.tsx',
-        }).code;
-        compiled = Babel.transform(stripped, {
+        compiled = Babel.transform(code, {
           presets: [['react', { runtime: 'automatic' }]],
           filename: 'App.jsx',
         }).code;
