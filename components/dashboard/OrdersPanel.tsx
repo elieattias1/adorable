@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase-browser'
 import { Package, Clock, CheckCircle, ChefHat, Bike, XCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -170,27 +169,22 @@ export default function OrdersPanel({ siteId }: { siteId: string }) {
   const [loading,      setLoading]      = useState(true)
   const [activeStatus, setActiveStatus] = useState<string>('active')
 
-  const supabase = createClient()
-
   const load = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('orders')
-      .select('*, items:order_items(*)')
-      .eq('site_id', siteId)
-      .order('created_at', { ascending: false })
-      .limit(100)
-    setOrders((data as Order[]) ?? [])
+    const res = await fetch(`/api/orders?siteId=${siteId}`)
+    const json = await res.json()
+    setOrders(json.orders ?? [])
     setLoading(false)
   }
 
   useEffect(() => { load() }, [siteId])
 
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
-    await supabase
-      .from('orders')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', orderId)
+    await fetch('/api/orders', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: orderId, status }),
+    })
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
   }
 
