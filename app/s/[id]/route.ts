@@ -21,23 +21,6 @@ function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
 }
 
-// Strip TypeScript annotations so React-only Babel preset works.
-// We do NOT use the TypeScript Babel preset — it has a bug where it fails on
-// template literals inside JSX attribute expressions (className={`... ${expr}`}).
-function stripTypeScript(code: string): string {
-  return code
-    .replace(/^import\s+type\b.+$/gm, '')
-    .replace(/^(?:export\s+)?interface\s+\w+[^{]*\{[^{}]*\}/gm, '')
-    .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
-    .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
-    .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)]|=(?![=]))/g, '$1')
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)]|=(?![=]))/g, '$1')
-    .replace(
-      /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
-      '$1'
-    )
-}
 
 export async function GET(
   req: NextRequest,
@@ -86,7 +69,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
 
   // Apply preprocessors server-side then JSON-stringify — avoids any escaping
   // conflicts when embedding JS inside the TypeScript template literal below.
-  const processedCode = stripTypeScript(fixApostrophes(site.html))
+  const processedCode = fixApostrophes(site.html)
   const codeJson = JSON.stringify(processedCode)
   const cdnJson  = {
     react:      JSON.stringify(CDN.react),
@@ -147,8 +130,11 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
       var compiled;
       try {
         compiled = Babel.transform(code, {
-          presets: [['react', { runtime: 'automatic' }]],
-          filename: 'App.jsx',
+          presets: [
+            ['react', { runtime: 'automatic' }],
+            ['typescript', { isTSX: true, allExtensions: true }],
+          ],
+          filename: 'App.tsx',
         }).code;
       } catch (err) {
         showError('Erreur de compilation :\\n' + err.message);

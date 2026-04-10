@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v19_'
+const LS_PREFIX  = 'sb_prev_v20_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -147,35 +147,6 @@ function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
 }
 
-// ─── Pre-processor: strip TypeScript so React-only Babel preset works ────────
-// We use the React preset only (not TypeScript preset) because the TypeScript
-// preset has a bug where it fails on template literals inside JSX attribute
-// expressions (e.g. className={`... ${expr}`} → "Missing semicolon").
-// This function strips all common TypeScript annotations with regex.
-function stripTypeScript(code: string): string {
-  return code
-    // import type lines
-    .replace(/^import\s+type\b.+$/gm, '')
-    // interface declarations
-    .replace(/^(?:export\s+)?interface\s+\w+[^{]*\{[^{}]*\}/gm, '')
-    // type alias declarations
-    .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
-    // Destructuring with type annotation: ({ x }: TypeObj) → ({ x })
-    .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
-    // Variable type annotations: const/let/var x: Type =
-    .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
-    // Parameter type annotations: param: Type before , or )
-    // Only match word-based types (string, number, React.X) — NOT quoted strings
-    // because fontFamily: 'Playfair Display, serif' is a JS prop, not a TS annotation
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)]|=(?![=]))/g, '$1')
-    // TypeScript literal union types: param: 'a' | 'b' (requires ≥2 values — avoids JS props)
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)]|=(?![=]))/g, '$1')
-    // Generic params on React hooks: useState<T>(), useRef<T>()
-    .replace(
-      /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
-      '$1'
-    )
-}
 
 // ─── Transform TSX → iframe srcdoc ───────────────────────────────────────────
 async function codeToSrcdoc(tsxCode: string): Promise<string> {
@@ -196,16 +167,12 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
     // @ts-ignore — Babel loaded via CDN script tag
     const Babel = (window as any).Babel
     // Preprocess: fix apostrophes + strip TS generics, then compile as plain JSX.
-    // We intentionally do NOT use the TypeScript Babel preset — it has a bug
-    // where it fails on template literals inside JSX attribute expressions
-    // (className={`... ${expr}`} → "Missing semicolon"). The React-only preset
-    // handles JSX + template literals correctly. AI-generated code only has
-    // TypeScript in the form of generic hooks (useState<T>), which we strip first.
-    const safeCode = stripTypeScript(fixApostrophes(tsxCode))
-
-    const result = Babel.transform(safeCode, {
-      presets: [['react', { runtime: 'automatic' }]],
-      filename: 'App.jsx',
+    const result = Babel.transform(fixApostrophes(tsxCode), {
+      presets: [
+        ['react', { runtime: 'automatic' }],
+        ['typescript', { isTSX: true, allExtensions: true }],
+      ],
+      filename: 'App.tsx',
     })
 
     js = result.code

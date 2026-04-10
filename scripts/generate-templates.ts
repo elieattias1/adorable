@@ -256,17 +256,7 @@ const CDN = {
 }
 
 function buildHtml(reactCode: string): string {
-  const cleaned = reactCode
-    .replace(/^import\s+type\b.+$/gm, '')
-    .replace(/^(?:export\s+)?interface\s+\w+[^{]*\{[^{}]*\}/gm, '')
-    .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
-    .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
-    .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)]|=(?![=]))/g, '$1')
-    .replace(/\b([a-zA-Z_$][\w$]*)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)]|=(?![=]))/g, '$1')
-    .replace(/\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g, '$1')
-
-  const escaped = JSON.stringify(cleaned)
+  const escaped = JSON.stringify(reactCode)
   const r = JSON.stringify(CDN.react), j = JSON.stringify(CDN.jsxRuntime)
   const d = JSON.stringify(CDN.reactDom), l = JSON.stringify(CDN.lucide)
 
@@ -285,7 +275,7 @@ function buildHtml(reactCode: string): string {
     var R=${r},J=${j},D=${d},L=${l};
     function run(){
       var code=${escaped},compiled;
-      try{compiled=Babel.transform(code,{presets:[['react',{runtime:'automatic'}]],filename:'App.jsx'}).code;}
+      try{compiled=Babel.transform(code,{presets:[['react',{runtime:'automatic'}],['typescript',{isTSX:true,allExtensions:true}]],filename:'App.tsx'}).code;}
       catch(e){document.getElementById('loading').remove();document.getElementById('root').innerHTML='<pre style="color:#f87171;padding:24px;font-size:12px">'+e.message+'</pre>';return;}
       var js=compiled
         .replace(/export\\s+default\\s+(function|class)\\s+App\\b/,'$1 App')
