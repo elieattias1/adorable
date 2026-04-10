@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v15_'
+const LS_PREFIX  = 'sb_prev_v16_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -147,18 +147,26 @@ function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
 }
 
-// ─── Pre-processor: strip TypeScript generics so React-only Babel preset works ──
+// ─── Pre-processor: strip TypeScript so React-only Babel preset works ────────
 // We use the React preset only (not TypeScript preset) because the TypeScript
 // preset has a bug where it fails on template literals inside JSX attribute
 // expressions (e.g. className={`... ${expr}`} → "Missing semicolon").
-// AI-generated code only uses TypeScript for generic hooks — strip those.
-function stripTypeScriptGenerics(code: string): string {
+// This function strips all common TypeScript annotations with regex.
+function stripTypeScript(code: string): string {
   return code
-    // Remove type-only imports: import type { Foo } from '...'
-    .replace(/^import\s+type\s+.+$/gm, '')
-    // Strip generic params from React hooks and helpers:
-    //   useState<string[]>([])  →  useState([])
-    //   useRef<HTMLDivElement>(null)  →  useRef(null)
+    // import type lines
+    .replace(/^import\s+type\b.+$/gm, '')
+    // interface declarations
+    .replace(/^(?:export\s+)?interface\s+\w+[^{]*\{[^{}]*\}/gm, '')
+    // type alias declarations
+    .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
+    // Destructuring with type annotation: ({ x }: TypeObj) → ({ x })
+    .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
+    // Variable type annotations: const/let/var x: Type =
+    .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
+    // Parameter type annotations: param: Type before , or )
+    .replace(/\b(\w+)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|'[^']*'(?:\s*\|\s*'[^']*')*|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*(?:'[^']*'|[\w.]+(?:<[^<>()]*>)?(?:\[\])?))*)\s*(?=[,)=])/g, '$1')
+    // Generic params on React hooks: useState<T>(), useRef<T>()
     .replace(
       /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
       '$1'
@@ -189,7 +197,7 @@ async function codeToSrcdoc(tsxCode: string): Promise<string> {
     // (className={`... ${expr}`} → "Missing semicolon"). The React-only preset
     // handles JSX + template literals correctly. AI-generated code only has
     // TypeScript in the form of generic hooks (useState<T>), which we strip first.
-    const safeCode = stripTypeScriptGenerics(fixApostrophes(tsxCode))
+    const safeCode = stripTypeScript(fixApostrophes(tsxCode))
 
     const result = Babel.transform(safeCode, {
       presets: [['react', { runtime: 'automatic' }]],

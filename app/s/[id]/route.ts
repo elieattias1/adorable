@@ -21,13 +21,17 @@ function fixApostrophes(code: string): string {
   return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
 }
 
-// Strip TypeScript generic params from React hooks so React-only Babel preset works.
+// Strip TypeScript annotations so React-only Babel preset works.
 // We do NOT use the TypeScript Babel preset — it has a bug where it fails on
 // template literals inside JSX attribute expressions (className={`... ${expr}`}).
-// AI-generated code only has TypeScript as generic hooks (useState<T>); strip them.
-function stripTypeScriptGenerics(code: string): string {
+function stripTypeScript(code: string): string {
   return code
-    .replace(/^import\s+type\s+.+$/gm, '')
+    .replace(/^import\s+type\b.+$/gm, '')
+    .replace(/^(?:export\s+)?interface\s+\w+[^{]*\{[^{}]*\}/gm, '')
+    .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
+    .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
+    .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
+    .replace(/\b(\w+)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|'[^']*'(?:\s*\|\s*'[^']*')*|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*(?:'[^']*'|[\w.]+(?:<[^<>()]*>)?(?:\[\])?))*)\s*(?=[,)=])/g, '$1')
     .replace(
       /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,
       '$1'
@@ -81,7 +85,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
 
   // Apply preprocessors server-side then JSON-stringify — avoids any escaping
   // conflicts when embedding JS inside the TypeScript template literal below.
-  const processedCode = stripTypeScriptGenerics(fixApostrophes(site.html))
+  const processedCode = stripTypeScript(fixApostrophes(site.html))
   const codeJson = JSON.stringify(processedCode)
   const cdnJson  = {
     react:      JSON.stringify(CDN.react),
