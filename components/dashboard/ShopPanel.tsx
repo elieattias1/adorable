@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, Edit2, Check, ShoppingBag, Package, Clock, ChefHat, CheckCircle, Bike, XCircle } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Plus, Trash2, Edit2, Check, ShoppingBag, Package, Clock, ChefHat, CheckCircle, Bike, XCircle, Upload, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { BAKERY_PRODUCTS } from '@/lib/bakery-photos'
 
@@ -209,27 +209,7 @@ function ProductsTab({
                   onCancel={() => setEditingId(null)}
                 />
               ) : (
-                <div key={p.id} className={`flex items-center gap-3 p-2.5 rounded-xl border ${p.active ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
-                  {p.photo_url ? (
-                    <img src={p.photo_url} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt={p.name} />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
-                      {p.emoji ?? '🛍'}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
-                    <p className="text-xs text-gray-500">{(p.price / 100).toFixed(2).replace('.', ',')} €</p>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => setEditingId(p.id)} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => onDelete(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+                <ProductCard key={p.id} product={p} siteId={siteId} onEdit={() => setEditingId(p.id)} onDelete={() => onDelete(p.id)} onRefresh={onRefresh} />
               )
             ))}
           </div>
@@ -245,6 +225,77 @@ function ProductsTab({
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Product Card ─────────────────────────────────────────────────────────────
+
+function ProductCard({ product, siteId, onEdit, onDelete, onRefresh }: {
+  product:   Product
+  siteId:    string
+  onEdit:    () => void
+  onDelete:  () => void
+  onRefresh: () => void
+}) {
+  const fileInputRef  = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const uploadPhoto = async (file: File) => {
+    if (!file.type.startsWith('image/')) return
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('siteId', siteId)
+    const res  = await fetch('/api/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (data.url) {
+      await fetch('/api/products', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id: product.id, photo_url: data.url }),
+      })
+      onRefresh()
+    }
+    setUploading(false)
+  }
+
+  return (
+    <div className={`flex items-center gap-3 p-2.5 rounded-xl border ${product.active ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+        onChange={e => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        title="Changer la photo"
+        className="relative w-10 h-10 rounded-lg flex-shrink-0 overflow-hidden group"
+      >
+        {product.photo_url ? (
+          <img src={product.photo_url} className="w-full h-full object-cover" alt={product.name} />
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-lg">
+            {product.emoji ?? '🛍'}
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          {uploading
+            ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            : <Upload className="w-3.5 h-3.5 text-white" />
+          }
+        </div>
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+        <p className="text-xs text-gray-500">{(product.price / 100).toFixed(2).replace('.', ',')} €</p>
+      </div>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button onClick={onEdit} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100">
+          <Edit2 className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={onDelete} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50">
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   )
 }
@@ -265,6 +316,21 @@ function ProductForm({ siteId, product, onSave, onCancel }: {
   const [active,      setActive]      = useState(product?.active ?? true)
   const [saving,      setSaving]      = useState(false)
   const [saveError,   setSaveError]   = useState<string | null>(null)
+  const [uploading,   setUploading]   = useState(false)
+  const [dragOver,    setDragOver]    = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const uploadFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) return
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('siteId', siteId)
+    const res  = await fetch('/api/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (data.url) setPhotoUrl(data.url)
+    setUploading(false)
+  }
 
   const fillFromLibrary = (slug: string) => {
     const p = BAKERY_PRODUCTS.find(b => b.slug === slug)
@@ -334,8 +400,44 @@ function ProductForm({ siteId, product, onSave, onCancel }: {
         </select>
       </div>
 
-      <input value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} placeholder="URL photo (optionnel)"
-        className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-violet-400 focus:outline-none" />
+      {/* Photo upload */}
+      <div>
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+          onChange={e => e.target.files?.[0] && uploadFile(e.target.files[0])} />
+        {photoUrl ? (
+          <div className="relative group w-full h-24 rounded-lg overflow-hidden border border-gray-200">
+            <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <button type="button" onClick={() => fileInputRef.current?.click()}
+                className="p-1.5 bg-white/90 rounded-lg text-gray-700 hover:bg-white text-[10px] flex items-center gap-1">
+                <Upload className="w-3 h-3" /> Changer
+              </button>
+              <button type="button" onClick={() => setPhotoUrl('')}
+                className="p-1.5 bg-white/90 rounded-lg text-red-600 hover:bg-white">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+            {uploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={e => { e.preventDefault(); setDragOver(false); e.dataTransfer.files[0] && uploadFile(e.dataTransfer.files[0]) }}
+            className={`w-full h-16 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 cursor-pointer transition-colors ${dragOver ? 'border-violet-400 bg-violet-50' : 'border-gray-200 hover:border-violet-300 hover:bg-violet-50/50'}`}
+          >
+            {uploading
+              ? <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              : <><Upload className="w-3.5 h-3.5 text-gray-400" /><span className="text-xs text-gray-400">Ajouter une photo</span></>
+            }
+          </div>
+        )}
+      </div>
 
       <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Description courte (optionnel)"
         className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:border-violet-400 focus:outline-none" />
