@@ -156,6 +156,8 @@ Checkout (PAS de Stripe, PAS de redirection) :
 Affichage :
 - Grille produits : photo, nom, prix, bouton "+"
 - ⚠️ PRIX EN CENTIMES : affiche toujours (product.price / 100).toFixed(2).replace('.', ',') + " €"  — NE PAS afficher product.price directement
+- ⚠️ PHOTOS DYNAMIQUES : utilise TOUJOURS product.photo_url pour l'image — NE JAMAIS hardcoder des URLs d'images, NE JAMAIS inventer des produits en dur dans le code. Les produits viennent UNIQUEMENT du fetch. Si product.photo_url est null, affiche product.emoji ?? "🛍" dans un div coloré à la place
+- ⚠️ PAS de tableau de produits hardcodé dans le code — le state products[] est alimenté UNIQUEMENT par le fetch API
 - Badge panier flottant (total + bouton "Commander")
 - Modal commande : Nom*, Email*, Téléphone (optionnel), Note (optionnel)
 - Succès : "✅ Commande confirmée ! Nous vous contacterons pour l'heure de retrait."

@@ -32,6 +32,7 @@ import {
   assembleSections,
 } from '../lib/ai/manifest'
 import type { SiteManifest } from '../lib/ai/types'
+import { DEFAULT_BAKERY_PRODUCTS } from '../lib/bakery-defaults'
 
 dotenv.config({ path: '.env.local' })
 
@@ -111,25 +112,6 @@ https://images.unsplash.com/photo-1600369671236-e74521d4b6ad?w=800&h=800&fit=cro
 https://images.unsplash.com/photo-1585418579316-4c1f91478248?w=800&h=600&fit=crop`,
 }
 
-// ── Default products ───────────────────────────────────────────────────────────
-
-const DEFAULT_PRODUCTS = [
-  { name: 'Baguette Tradition',  category: 'pain',         price: 130,  emoji: '🥖', sort_order: 1  },
-  { name: 'Pain au Levain',      category: 'pain',         price: 490,  emoji: '🍞', sort_order: 2  },
-  { name: 'Pain de Campagne',    category: 'pain',         price: 420,  emoji: '🍞', sort_order: 3  },
-  { name: 'Pain aux Céréales',   category: 'pain',         price: 380,  emoji: '🍞', sort_order: 4  },
-  { name: 'Croissant',           category: 'viennoiserie', price: 140,  emoji: '🥐', sort_order: 10 },
-  { name: 'Pain au Chocolat',    category: 'viennoiserie', price: 150,  emoji: '🍫', sort_order: 11 },
-  { name: 'Chausson aux Pommes', category: 'viennoiserie', price: 180,  emoji: '🍎', sort_order: 12 },
-  { name: 'Brioche',             category: 'viennoiserie', price: 320,  emoji: '🧁', sort_order: 13 },
-  { name: 'Tarte aux Fraises',   category: 'patisserie',   price: 490,  emoji: '🍓', sort_order: 20 },
-  { name: 'Éclair au Chocolat',  category: 'patisserie',   price: 390,  emoji: '🍫', sort_order: 21 },
-  { name: 'Mille-feuille',       category: 'patisserie',   price: 450,  emoji: '🍰', sort_order: 22 },
-  { name: 'Paris-Brest',         category: 'patisserie',   price: 520,  emoji: '🍩', sort_order: 23 },
-  { name: 'Café',                category: 'boisson',      price: 200,  emoji: '☕', sort_order: 30 },
-  { name: 'Chocolat Chaud',      category: 'boisson',      price: 350,  emoji: '🍫', sort_order: 31 },
-  { name: "Jus d'Orange",        category: 'boisson',      price: 380,  emoji: '🍊', sort_order: 32 },
-]
 
 // ── Phase 1: Generate manifest (Opus + vision from reference screenshot) ───────
 
@@ -350,10 +332,20 @@ async function generateTemplate(tpl: typeof TEMPLATES[0], force: boolean) {
 
   // 3. Seed products
   const { error: prodErr } = await supabase.from('products').insert(
-    DEFAULT_PRODUCTS.map(p => ({ ...p, site_id: siteId, user_id: ADMIN_USER_ID, photo_url: null, active: true }))
+    DEFAULT_BAKERY_PRODUCTS.map(p => ({
+      site_id:    siteId,
+      user_id:    ADMIN_USER_ID,
+      name:       p.name,
+      category:   p.category,
+      price:      p.price_cents,
+      emoji:      p.emoji,
+      photo_url:  p.photo_url,
+      active:     true,
+      sort_order: p.sort_order,
+    }))
   )
   if (prodErr) console.warn(`   ⚠  products: ${prodErr.message}`)
-  else console.log(`   🛍  Seeded ${DEFAULT_PRODUCTS.length} products`)
+  else console.log(`   🛍  Seeded ${DEFAULT_BAKERY_PRODUCTS.length} products`)
 
   // 4. Generate manifest (Opus + vision)
   console.log(`   🎨 Generating manifest…`)

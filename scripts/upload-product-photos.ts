@@ -12,9 +12,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { readFileSync, readdirSync, statSync } from 'fs'
-import { join, extname, basename } from 'path'
 import dotenv from 'dotenv'
+import { readFileSync, readdirSync, statSync } from 'fs'
+import { basename, extname, join } from 'path'
 
 dotenv.config({ path: '.env.local' })
 
@@ -25,7 +25,7 @@ const supabase = createClient(
 
 const DRY_RUN    = process.argv.includes('--dry-run')
 const BUCKET     = 'sites'
-const PHOTOS_DIR = join(process.cwd(), 'photos boulangerie')
+const PHOTOS_DIR = join(process.cwd(), 'photos_boulangerie')
 
 // ── Slug mapping: folder name → product slug in bakery-defaults.ts ──────────
 const FOLDER_TO_SLUG: Record<string, string> = {
@@ -168,6 +168,21 @@ async function uploadPhoto(entry: PhotoEntry): Promise<string> {
 
   if (fetchErr) { console.error('Failed to fetch products:', fetchErr.message); return }
 
+  // ── Clear stale Unsplash URLs (random/wrong photos) ─────────────────────
+  const unsplashProducts = (allProducts ?? []).filter(p =>
+    p.photo_url?.includes('unsplash.com')
+  )
+  let cleared = 0
+  for (const product of unsplashProducts) {
+    const { error } = await supabase
+      .from('products')
+      .update({ photo_url: null })
+      .eq('id', product.id)
+    if (error) console.warn(`  ✗ clear ${product.name}: ${error.message}`)
+    else { console.log(`  🧹 cleared unsplash: ${product.name}`); cleared++ }
+  }
+  if (cleared > 0) console.log(`\n  ${cleared} stale Unsplash photos cleared`)
+
   let updated = 0
   for (const [slug, url] of Object.entries(slugToUrl)) {
     // Match by slug keyword in name (case-insensitive)
@@ -185,5 +200,5 @@ async function uploadPhoto(entry: PhotoEntry): Promise<string> {
     }
   }
 
-  console.log(`\n✅  ${updated} products updated in DB`)
+  console.log(`\n✅  ${updated} products updated, ${cleared} stale photos cleared`)
 })()

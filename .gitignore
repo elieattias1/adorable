@@ -37,3 +37,6 @@ scraper/output/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# photos
+# photos_boulanferie/

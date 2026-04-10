@@ -102,13 +102,12 @@ function EditorPage() {
           // Substitute template's siteId references with this site's actual siteId
           // so shop/checkout/site-config API calls target the right site
           let code = data.react_code
-          const oldSiteId = code.match(/SHOP_SITE\s*=\s*['"]([a-f0-9-]{36})['"]/)?.[1]
+          // Find the template's backing siteId from any API call in the code
+          const oldSiteId =
+            code.match(/SHOP_SITE\s*=\s*['"]([a-f0-9-]{36})['"]/)?.[1] ??
+            code.match(/[?&]siteId=['"]?([a-f0-9-]{36})/)?.[1] ??
+            code.match(/site_id\s*[=:]\s*['"]([a-f0-9-]{36})['"]/)?.[1]
           if (oldSiteId) code = code.replaceAll(oldSiteId, siteId)
-          // Also patch site-config URL
-          code = code.replace(
-            /api\/site-config\?siteId=[a-f0-9-]{36}/g,
-            `api/site-config?siteId=${siteId}`
-          )
           setSiteCode(code)
           supabaseClient
             .from('sites')
