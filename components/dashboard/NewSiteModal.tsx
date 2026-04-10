@@ -70,8 +70,8 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
     supabase
       .from('reference_sites')
       .select('id, slug, name, url, industry, site_type, screenshot_url, quality_score, react_code')
-      .not('screenshot_url', 'is', null)
       .not('react_code', 'is', null)
+      .not('url', 'is', null)
       .not('has_cookies_wall', 'eq', true)
       .order('quality_score', { ascending: false, nullsFirst: false })
       .limit(200)
@@ -85,12 +85,11 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
   const filtered = activeFilter.industries.length === 0
     ? templates
     : templates.filter(t => activeFilter.industries.includes(t.industry))
-  // Deduplicate: one card per distinct screenshot_url (same chain / same photo can appear multiple times)
-  const seenScreenshots = new Set<string>()
+  // Deduplicate by slug
+  const seenSlugs = new Set<string>()
   const visible = filtered.filter(t => {
-    const key = t.screenshot_url ?? t.slug
-    if (seenScreenshots.has(key)) return false
-    seenScreenshots.add(key)
+    if (seenSlugs.has(t.slug)) return false
+    seenSlugs.add(t.slug)
     return true
   })
 
@@ -243,19 +242,22 @@ export default function NewSiteModal({ open, onClose, onCreateSite, onPlanLimit 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    {/* Screenshot */}
-                    {tpl.screenshot_url ? (
-                      <img
-                        src={tpl.screenshot_url}
-                        alt={tpl.name}
-                        className="w-full h-full object-cover object-top"
-                        loading="lazy"
+                    {/* Live iframe preview — same technique as SiteCard */}
+                    <div className="absolute inset-0 bg-gray-100">
+                      <iframe
+                        src={`${tpl.url}?preview=1`}
+                        title={tpl.name}
+                        style={{
+                          width: `${100 / 0.22}%`,
+                          height: `${100 / 0.22}%`,
+                          transform: 'scale(0.22)',
+                          transformOrigin: 'top left',
+                          border: 'none',
+                          pointerEvents: 'none',
+                          overflow: 'hidden',
+                        }}
                       />
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-2xl">🌐</span>
-                      </div>
-                    )}
+                    </div>
 
                     {/* Name overlay (always visible) */}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-2 py-1.5">
