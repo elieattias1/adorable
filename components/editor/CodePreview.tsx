@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v16_'
+const LS_PREFIX  = 'sb_prev_v17_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -165,7 +165,11 @@ function stripTypeScript(code: string): string {
     // Variable type annotations: const/let/var x: Type =
     .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
     // Parameter type annotations: param: Type before , or )
-    .replace(/\b(\w+)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|'[^']*'(?:\s*\|\s*'[^']*')*|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*(?:'[^']*'|[\w.]+(?:<[^<>()]*>)?(?:\[\])?))*)\s*(?=[,)=])/g, '$1')
+    // Only match word-based types (string, number, React.X) — NOT quoted strings
+    // because fontFamily: 'Playfair Display, serif' is a JS prop, not a TS annotation
+    .replace(/\b(\w+)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)=])/g, '$1')
+    // TypeScript literal union types: param: 'a' | 'b' (requires ≥2 values — avoids JS props)
+    .replace(/\b(\w+)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)=])/g, '$1')
     // Generic params on React hooks: useState<T>(), useRef<T>()
     .replace(
       /\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g,

@@ -284,7 +284,7 @@ async function generateForSite(refSite, anonName, idx) {
 
   const manifestRes = await anthropic.messages.create({
     model:       'claude-opus-4-6',
-    max_tokens:  4000,
+    max_tokens:  8000,
     system:      systemPrompt,
     tools:       [MANIFEST_TOOL],
     tool_choice: { type: 'tool', name: 'create_manifest' },
@@ -356,7 +356,7 @@ Appelle write_section avec le code complet de ${section.component}.`
     for (let attempt = 0; attempt <= 2; attempt++) {
       const sectionRes = await anthropic.messages.create({
         model:       'claude-sonnet-4-6',
-        max_tokens:  3000,
+        max_tokens:  8000,
         system:      sectionPrompt,
         tools:       [SECTION_TOOL],
         tool_choice: { type: 'tool', name: 'write_section' },

@@ -281,7 +281,8 @@ function stripTypeScript(code) {
     .replace(/^(?:export\s+)?type\s+\w+\s*(?:<[^>]*>)?\s*=\s*.+;?\s*$/gm, '')
     .replace(/\}\s*:\s*\{[^{}]*\}/g, '}')
     .replace(/((?:const|let|var)\s+\w+)\s*:\s*[A-Za-z_$][\w$.<>[\]|& ,'"?!()]+?(?=\s*=(?!=))/g, '$1')
-    .replace(/\b(\w+)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|'[^']*'(?:\s*\|\s*'[^']*')*|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*(?:'[^']*'|[\w.]+(?:<[^<>()]*>)?(?:\[\])?))*)\s*(?=[,)=])/g, '$1')
+    .replace(/\b(\w+)\s*:\s*(?:React\.[\w.]+(?:<[^<>()]*>)?|[\w.]+(?:<[^<>()]*>)?(?:\[\])?(?:\s*\|\s*[\w.]+(?:<[^<>()]*>)?(?:\[\])?)*)\s*(?=[,)=])/g, '$1')
+    .replace(/\b(\w+)\s*:\s*'[^']*'(?:\s*\|\s*(?:'[^']*'|"[^"]*"))+\s*(?=[,)=])/g, '$1')
     .replace(/\b(useState|useRef|useCallback|useMemo|useReducer|useContext|useLayoutEffect|useImperativeHandle|createRef|createContext)\s*<[^<>()[\]{}]+>/g, '$1')
 }
 
