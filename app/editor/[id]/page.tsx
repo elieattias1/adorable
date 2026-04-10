@@ -47,6 +47,30 @@ function EditorPage() {
   const [showShop,      setShowShop]      = useState(false)
   const [showAssets,    setShowAssets]    = useState(false)
   const [previewMode,   setPreviewMode]   = useState<'desktop' | 'mobile'>('desktop')
+  const [sideWidth,     setSideWidth]     = useState(380)
+  const isDragging      = useRef(false)
+  const dragStartX      = useRef(0)
+  const dragStartWidth  = useRef(380)
+
+  const handleDragStart = (e: React.MouseEvent) => {
+    isDragging.current     = true
+    dragStartX.current     = e.clientX
+    dragStartWidth.current = sideWidth
+    e.preventDefault()
+  }
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isDragging.current) return
+      const delta    = dragStartX.current - e.clientX
+      const newWidth = Math.max(260, Math.min(640, dragStartWidth.current + delta))
+      setSideWidth(newWidth)
+    }
+    const onUp = () => { isDragging.current = false }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup',   onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [])
   const [isPro,         setIsPro]         = useState(false)
   const [loading,       setLoading]       = useState(true)
   const [toast,         setToast]         = useState<ToastState>(null)
@@ -427,7 +451,7 @@ function EditorPage() {
       {/* Split layout */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative">
         {/* Preview */}
-        <div className="flex-1 md:flex-[65] flex flex-col min-h-0 min-w-0">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0">
           <CodePreview
             code={siteCode}
             isGenerating={isGenerating}
@@ -438,8 +462,19 @@ function EditorPage() {
           />
         </div>
 
+        {/* Drag handle — visible when any side panel is open */}
+        {(showChat || (showShop && site.type === 'bakery') || (showAssets && site.type === 'bakery')) && (
+          <div
+            onMouseDown={handleDragStart}
+            className="hidden md:flex w-1 flex-shrink-0 cursor-col-resize bg-gray-200 hover:bg-violet-400 active:bg-violet-500 transition-colors"
+          />
+        )}
+
         {/* Chat panel */}
-        <div className={`hidden md:flex flex-col min-h-0 min-w-0 transition-all duration-300 ${showChat ? 'md:flex-[35] max-w-sm' : 'md:w-0 overflow-hidden'}`}>
+        <div
+          className={`hidden md:flex flex-col min-h-0 min-w-0 transition-all duration-300 ${showChat ? '' : 'w-0 overflow-hidden'}`}
+          style={showChat ? { width: sideWidth, flexShrink: 0 } : undefined}
+        >
           <ChatPanel
             messages={messages}
             isGenerating={isGenerating}
@@ -452,14 +487,14 @@ function EditorPage() {
 
         {/* Shop panel */}
         {showShop && site.type === 'bakery' && (
-          <div className="hidden md:flex flex-col min-h-0 min-w-0 md:flex-[35] max-w-sm border-l border-gray-200 bg-white">
-            <ShopPanel siteId={siteId} />
+          <div className="hidden md:flex flex-col min-h-0 min-w-0 bg-white" style={{ width: sideWidth, flexShrink: 0 }}>
+            <ShopPanel siteId={siteId} hideOrders />
           </div>
         )}
 
         {/* Asset library panel */}
         {showAssets && site.type === 'bakery' && (
-          <div className="hidden md:flex flex-col min-h-0 min-w-0 md:flex-[35] max-w-sm border-l border-gray-200 bg-white">
+          <div className="hidden md:flex flex-col min-h-0 min-w-0 bg-white" style={{ width: sideWidth, flexShrink: 0 }}>
             <AssetLibraryPanel />
           </div>
         )}

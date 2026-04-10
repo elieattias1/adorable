@@ -69,7 +69,16 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
 
   // Apply preprocessors server-side then JSON-stringify — avoids any escaping
   // conflicts when embedding JS inside the TypeScript template literal below.
-  const processedCode = fixApostrophes(site.html)
+  // Also patch any stale siteId UUIDs in API fetch calls (e.g. templates copied
+  // before siteId substitution was fixed in the editor).
+  function patchSiteId(code: string, siteId: string): string {
+    return code
+      .replace(/([?&]siteId=['"]?)([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/g,
+        (_, prefix) => `${prefix}${siteId}`)
+      .replace(/(site_id\s*[=:]\s*['"])([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(['"])/g,
+        (_, pre, _id, post) => `${pre}${siteId}${post}`)
+  }
+  const processedCode = patchSiteId(fixApostrophes(site.html), id)
   const codeJson = JSON.stringify(processedCode)
   const cdnJson  = {
     react:      JSON.stringify(CDN.react),

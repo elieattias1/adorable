@@ -298,16 +298,17 @@ export default function DashboardPage() {
   const switchPlan = async (plan: 'free' | 'starter' | 'pro') => {
     setSwitchingPlan(true)
     try {
-      const res = await fetch('/api/admin/plan', {
+      const res  = await fetch('/api/admin/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       })
-      if (!res.ok) throw new Error('Failed')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
       setToast({ msg: `Plan changé → ${plan}`, type: 'success' })
       setTimeout(() => window.location.reload(), 1000)
-    } catch {
-      setToast({ msg: 'Erreur changement de plan', type: 'error' })
+    } catch (e: any) {
+      setToast({ msg: `Erreur: ${e.message}`, type: 'error' })
     } finally {
       setSwitchingPlan(false)
     }

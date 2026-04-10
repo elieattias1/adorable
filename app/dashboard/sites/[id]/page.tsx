@@ -1011,9 +1011,10 @@ export default function SiteDashboardPage() {
 
           <ThemeToggle />
 
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-[11px] font-bold select-none">
+          <a href="/dashboard" title="Mon profil"
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-[11px] font-bold text-white hover:ring-2 hover:ring-violet-500/60 transition-all">
             {initials}
-          </div>
+          </a>
 
           <button
             onClick={handleLogout}
@@ -1045,7 +1046,7 @@ export default function SiteDashboardPage() {
                 <s.icon className="w-4 h-4 flex-shrink-0" />
                 <span className="flex-1">{s.label}</span>
                 {s.id === 'forms' && unreadCount > 0 && (
-                  <span className="min-w-[18px] h-[18px] flex items-center justify-center bg-violet-500 text-white text-[10px] font-bold px-1 rounded-full shadow-sm shadow-violet-500/50">{unreadCount}</span>
+                  <span className="min-w-[16px] h-[16px] flex items-center justify-center bg-violet-600 text-white text-[10px] font-bold rounded-full">{unreadCount}</span>
                 )}
               </button>
             ))}
