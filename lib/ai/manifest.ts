@@ -99,6 +99,13 @@ export function buildSectionPrompt(
   const urls = manifest.unsplashUrls ?? []
   const photosLine = urls.length > 0 ? `Photos Unsplash : ${urls.join(' | ')}` : ''
 
+  // Extract top-level variable names already declared in previous sections
+  const declaredNames: string[] = []
+  if (previousCode) {
+    const m = previousCode.matchAll(/^(?:const|let|var)\s+(\w+)\s*=/gm)
+    for (const match of m) declaredNames.push(match[1])
+  }
+
   return `Tu es un expert React/Tailwind. Tu écris UNE SEULE section : ${section.component}.
 
 ━━ DESIGN SYSTEM (ne jamais dévier de ces valeurs) ━━
@@ -164,6 +171,7 @@ Affichage :
 8. Sections spacieuses : py-20 minimum
 9. Responsive : 1 colonne mobile, 2-3 colonnes desktop
 10. GUILLEMETS : utilise TOUJOURS des guillemets doubles "..." ou des backticks \`...\` pour toutes les chaînes JS — JAMAIS des guillemets simples — les textes français contiennent des apostrophes (L'Artisan, d'accord…) qui cassent les strings single-quoted
+${declaredNames.length > 0 ? `11. VARIABLES INTERDITES — déjà déclarées dans les sections précédentes, NE PAS re-déclarer avec const/let/var : ${declaredNames.join(', ')}` : ''}
 
 ${syntaxError ? `━━ ERREUR DE SYNTAXE À CORRIGER (tentative précédente rejetée) ━━
 ${syntaxError}
