@@ -51,8 +51,10 @@ export async function GET(
     )
   }
 
-  // Increment view count (fire-and-forget)
-  supabaseAdmin.rpc('increment_view_count', { site_id: id }).then(() => {})
+  // Increment view count — skip dashboard/editor preview requests
+  if (!isPreview) {
+    supabaseAdmin.rpc('increment_view_count', { site_id: id }).then(() => {})
+  }
 
   if (!isReactCode(site.html)) {
     const name = site.name.replace(/</g, '&lt;')
