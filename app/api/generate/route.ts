@@ -454,12 +454,15 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // ── Sanitize before save and client response ──────────────────────
+        if (finalCode) finalCode = sanitizeCode(finalCode)
+
         // ── Save site code first (most critical) ─────────────────────────
         let versionLimitHit = false
         if (finalCode) {
           const { error: siteErr, data: savedSite } = await supabaseAdmin
             .from('sites')
-            .update({ html: sanitizeCode(finalCode), updated_at: new Date().toISOString() })
+            .update({ html: finalCode, updated_at: new Date().toISOString() })
             .eq('id', siteId)
             .select('id')
             .single()
@@ -550,6 +553,7 @@ export async function PUT(req: NextRequest) {
     await Promise.all([
       supabaseAdmin.from('versions').insert({ site_id: siteId, user_id: user.id, html: siteCode, note: 'Version initiale' }),
       supabaseAdmin.from('sites').update({ html: sanitizeCode(siteCode) }).eq('id', siteId),
+      // note: siteCode itself is not mutated here — versions insert uses the same value
     ])
 
     return NextResponse.json({ code: siteCode, success: true })
