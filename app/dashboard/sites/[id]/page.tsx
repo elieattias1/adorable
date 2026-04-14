@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Search, Mail, BarChart2, Settings, ArrowLeft,
   Globe, Globe2, PenLine, ExternalLink, Copy, Trash2, CheckCircle2,
   Circle, RefreshCw, Eye, MessageSquare, Clock, TrendingUp, Shield,
-  AlertTriangle, Loader2, Check, X, Puzzle, ChevronDown, ChevronUp, Zap, Rocket, History, LogOut, ShoppingBag,
+  AlertTriangle, Loader2, Check, X, Puzzle, ChevronDown, ChevronUp, Zap, Rocket, History, LogOut, ShoppingBag, CreditCard,
   Users, Phone,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -1024,6 +1024,80 @@ function ProduitsSection({ siteId }: { siteId: string }) {
   )
 }
 
+// ─── Stripe Connect card ──────────────────────────────────────────────────────
+
+function StripeConnectCard() {
+  const [status,    setStatus]    = useState<'loading' | 'disconnected' | 'pending' | 'connected'>('loading')
+  const [linking,   setLinking]   = useState(false)
+
+  useEffect(() => {
+    fetch('/api/stripe/connect')
+      .then(r => r.json())
+      .then(d => {
+        if (d.onboarded)  setStatus('connected')
+        else if (d.connected) setStatus('pending')
+        else setStatus('disconnected')
+      })
+      .catch(() => setStatus('disconnected'))
+  }, [])
+
+  const connect = async () => {
+    setLinking(true)
+    const res  = await fetch('/api/stripe/connect', { method: 'POST' })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+    else if (data.alreadyOnboarded) setStatus('connected')
+    setLinking(false)
+  }
+
+  if (status === 'loading') return null
+
+  if (status === 'connected') {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 mb-6">
+        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">Paiements en ligne activés</p>
+          <p className="text-xs text-gray-500 mt-0.5">Les commandes sont directement créditées sur votre compte Stripe.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'pending') {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 mb-6">
+        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">Configuration incomplète</p>
+          <p className="text-xs text-gray-500 mt-0.5">Finalisez votre inscription Stripe pour accepter les paiements.</p>
+        </div>
+        <button onClick={connect} disabled={linking}
+          className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold disabled:opacity-50">
+          {linking ? '…' : 'Continuer'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3 mb-6">
+      <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+        <CreditCard className="w-4 h-4 text-violet-600" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-gray-900">Connectez votre compte Stripe</p>
+        <p className="text-xs text-gray-500 mt-0.5">Recevez les paiements directement sur votre compte bancaire.</p>
+      </div>
+      <button onClick={connect} disabled={linking}
+        className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5">
+        {linking ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+        {linking ? '…' : 'Connecter Stripe'}
+      </button>
+    </div>
+  )
+}
+
 // ─── Commandes section ────────────────────────────────────────────────────────
 
 function CommandesSection({ siteId }: { siteId: string }) {
@@ -1031,6 +1105,7 @@ function CommandesSection({ siteId }: { siteId: string }) {
     <div>
       <h2 className="text-lg font-black mb-1">Commandes</h2>
       <p className="text-sm text-gray-500 mb-6">Suivez et gérez les commandes de vos clients.</p>
+      <StripeConnectCard />
       <NotificationEmailCard />
       <OrdersPanel siteId={siteId} />
     </div>

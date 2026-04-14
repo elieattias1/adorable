@@ -1,15 +1,18 @@
 /**
  * POST /api/shop/checkout
- * Creates an order + Stripe Checkout Session for pay-online flow.
- *   1. Validate items against DB
- *   2. Create order with status 'pending_payment'
- *   3. Create Stripe Checkout Session → return { checkoutUrl }
- *   4. On payment: webhook marks order 'pending' and notifies owner
+ * Creates an order + Stripe Checkout Session routed to the bakery owner's
+ * Stripe Connect account (money goes to the owner, not the platform).
+ *   1. Validate items
+ *   2. Check owner has completed Stripe Connect onboarding
+ *   3. Create order with status 'pending_payment'
+ *   4. Create Stripe Checkout Session with destination charge → owner gets paid
+ *   5. Return { checkoutUrl } — customer is redirected to Stripe
+ *   6. On payment: webhook marks order 'pending' and notifies owner
  */
-import { NextRequest, NextResponse } from 'next/server'
-import { z }                         from 'zod'
-import { supabaseAdmin }             from '@/lib/supabase'
-import { stripe }                    from '@/lib/stripe'
+import { NextRequest, NextResponse }     from 'next/server'
+import { z }                             from 'zod'
+import { supabaseAdmin }                 from '@/lib/supabase'
+import { createShopCheckoutSession }     from '@/lib/stripe'
 
 const ItemSchema = z.object({
   product_id: z.string().uuid(),
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const { site_id, customer_name, customer_email, customer_phone, items, note, pickup_at } = parsed.data
 
-    // ── Fetch site ─────────────────────────────────────────────────────────
+    // ── Fetch site + owner profile ─────────────────────────────────────────
     const { data: site } = await supabaseAdmin
       .from('sites')
       .select('id, user_id, name')
@@ -46,6 +49,19 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!site) return NextResponse.json({ error: 'Site introuvable' }, { status: 404 })
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('email, notification_email, notification_phone, stripe_connect_id, stripe_connect_onboarded')
+      .eq('id', site.user_id)
+      .single()
+
+    if (!profile?.stripe_connect_id || !profile.stripe_connect_onboarded) {
+      return NextResponse.json(
+        { error: 'La boutique n\'accepte pas encore les paiements en ligne. Contactez le propriétaire.' },
+        { status: 400 }
+      )
+    }
 
     // ── Validate products ──────────────────────────────────────────────────
     const productIds = items.map(i => i.product_id)
@@ -64,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `"${inactiveProduct.name}" n'est plus disponible` }, { status: 400 })
     }
 
-    // ── Compute total ──────────────────────────────────────────────────────
+    // ── Compute line items ─────────────────────────────────────────────────
     const lineItems = items.map(item => {
       const product = products.find(p => p.id === item.product_id)!
       return {
@@ -104,39 +120,21 @@ export async function POST(req: NextRequest) {
       lineItems.map(i => ({ ...i, order_id: order.id }))
     )
 
-    // ── Create Stripe Checkout Session ─────────────────────────────────────
-    const pickupLabel = pickup_at
-      ? new Date(pickup_at).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-      : 'dès que possible'
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      customer_email,
-      line_items: lineItems.map(item => ({
-        price_data: {
-          currency:     'eur',
-          product_data: {
-            name: item.name,
-            ...(item.photo_url ? { images: [item.photo_url] } : {}),
-          },
-          unit_amount: item.price_cents,
-        },
-        quantity: item.quantity,
+    // ── Create Stripe Checkout Session → money goes to owner ───────────────
+    // Platform takes 2% fee (adjustable). Owner receives 98% directly.
+    const session = await createShopCheckoutSession({
+      connectedAccountId: profile.stripe_connect_id,
+      lineItems: lineItems.map(i => ({
+        name:     i.name,
+        amount:   i.price_cents,
+        quantity: i.quantity,
+        ...(i.photo_url ? { images: [i.photo_url] } : {}),
       })),
-      mode: 'payment',
-      metadata: {
-        orderId:       order.id,
-        siteId:        site_id,
-        customerPhone: customer_phone ?? '',
-        note:          note ?? '',
-        pickupAt:      pickup_at ?? '',
-        pickupLabel,
-      },
-      success_url: `${APP_URL}/order/success?orderId=${order.id}&siteId=${site_id}`,
-      cancel_url:  `${APP_URL}/s/${site_id}`,
-      payment_intent_data: {
-        metadata: { orderId: order.id, siteId: site_id },
-      },
+      orderId:     order.id,
+      siteId:      site_id,
+      successUrl:  `${APP_URL}/order/success?orderId=${order.id}&siteId=${site_id}`,
+      cancelUrl:   `${APP_URL}/s/${site_id}`,
+      platformFeePercent: 2,
     })
 
     return NextResponse.json({ checkoutUrl: session.url, orderId: order.id }, { status: 201 })
