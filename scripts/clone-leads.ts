@@ -214,8 +214,16 @@ function applySubstitutions(
 ): string {
   let result = code
 
-  // Swap siteId — plain string replace, no regex
-  result = result.split(TEMPLATE_SITE_ID).join(newSiteId)
+  // Swap siteId — only in API/JS contexts, NOT inside Supabase storage URLs
+  // (storage URLs contain the template siteId in the path and point to real uploaded files)
+  result = result
+    .split(`siteId=${TEMPLATE_SITE_ID}`).join(`siteId=${newSiteId}`)
+    .split(`siteId='${TEMPLATE_SITE_ID}'`).join(`siteId='${newSiteId}'`)
+    .split(`siteId="${TEMPLATE_SITE_ID}"`).join(`siteId="${newSiteId}"`)
+    .split(`SHOP_SITE = '${TEMPLATE_SITE_ID}'`).join(`SHOP_SITE = '${newSiteId}'`)
+    .split(`SHOP_SITE = "${TEMPLATE_SITE_ID}"`).join(`SHOP_SITE = "${newSiteId}"`)
+    .split(`site_id: '${TEMPLATE_SITE_ID}'`).join(`site_id: '${newSiteId}'`)
+    .split(`site_id: "${TEMPLATE_SITE_ID}"`).join(`site_id: "${newSiteId}"`)
 
   // Swap business info — only replace where the template value is known
   if (templateStrings.name) {
