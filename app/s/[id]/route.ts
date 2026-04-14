@@ -51,8 +51,10 @@ export async function GET(
     )
   }
 
-  // Increment view count — skip dashboard/editor preview requests
-  if (!isPreview) {
+  // Only count real browser visits (Sec-Fetch-Dest: document).
+  // Iframes (dashboard/editor preview) send Sec-Fetch-Dest: iframe — skip those.
+  const fetchDest = req.headers.get('Sec-Fetch-Dest')
+  if (fetchDest === 'document' || fetchDest === null) {
     supabaseAdmin.rpc('increment_view_count', { site_id: id }).then(() => {})
   }
 

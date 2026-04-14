@@ -208,7 +208,7 @@ function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promi
 
 // ─── Section: Forms ────────────────────────────────────────────────────────────
 
-function FormsSection({ siteId }: { siteId: string }) {
+function FormsSection({ siteId, onMarkRead }: { siteId: string; onMarkRead?: (id: string, read: boolean) => void }) {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -226,6 +226,7 @@ function FormsSection({ siteId }: { siteId: string }) {
   const markRead = async (id: string, read: boolean) => {
     const read_at = read ? new Date().toISOString() : null
     setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read_at } : s))
+    onMarkRead?.(id, read)
     await fetch(`/api/site/${siteId}/submissions`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submissionId: id, read }) })
   }
 
@@ -1323,7 +1324,12 @@ export default function SiteDashboardPage() {
 
           <section id="forms">
             <h2 className="text-lg font-black mb-6">Formulaires</h2>
-            <FormsSection siteId={siteId} />
+            <FormsSection
+              siteId={siteId}
+              onMarkRead={(id, read) =>
+                setSubmissions(prev => prev.map(s => s.id === id ? { ...s, read_at: read ? new Date().toISOString() : null } : s))
+              }
+            />
           </section>
 
           <div className="border-t border-gray-200" />

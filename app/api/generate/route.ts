@@ -76,6 +76,9 @@ const GenerateSchema = z.object({
 // Phase 2: one section at a time, each gets previous sections as context
 // Streams section_start / code_stream / section_done events to client
 
+const SONNET = 'claude-sonnet-4-6'
+const HAIKU  = 'claude-haiku-4-5-20251001'
+
 async function runSequentialGeneration(opts: {
   siteId:      string
   siteName:    string
@@ -85,6 +88,9 @@ async function runSequentialGeneration(opts: {
   tag:         string
 }): Promise<string | null> {
   const { siteId, siteName, siteType, message, safeSend, tag } = opts
+  // Haiku for section writing: fast, cheap, good enough for structured React output.
+  // Sonnet is kept for the manifest (design reasoning) and edit agent loop.
+  const sectionModel = HAIKU
   const appUrl        = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
   const formEndpoint  = `${appUrl}/api/forms/${siteId}`
   const shopEndpoint  = siteType === 'bakery' ? `${appUrl}/api` : null
@@ -156,7 +162,7 @@ async function runSequentialGeneration(opts: {
         const sectionPrompt = buildSectionPrompt(manifest, section, previousCode, formEndpoint, syntaxError, shopEndpoint, shopSiteId)
 
         const sectionStream = anthropic.messages.stream({
-          model:       'claude-sonnet-4-6',
+          model:       sectionModel,
           max_tokens:  5000,
           system:      sectionPrompt,
           tools:       [SECTION_TOOL],
