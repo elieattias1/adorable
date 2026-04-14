@@ -144,6 +144,7 @@ interface TemplateStrings {
   phone:     string | null
   email:     string | null
   instagram: string | null
+  metro:     string | null   // metro/transport reference (removed in clones)
 }
 
 let cachedTemplateStrings: TemplateStrings | null = null
@@ -161,8 +162,9 @@ Find the EXACT string literals that appear in the JSX/JS for:
 - the phone number
 - the contact email
 - the Instagram handle or URL
+- any metro/transport reference (e.g. "— Métro Bastille", "Métro Nation", etc.)
 
-Return ONLY a JSON object: { "name": "...", "address": "...", "street": "...", "city": "...", "postcode": "...", "phone": "...", "email": "...", "instagram": "..." }
+Return ONLY a JSON object: { "name": "...", "address": "...", "street": "...", "city": "...", "postcode": "...", "phone": "...", "email": "...", "instagram": "...", "metro": "..." }
 Use null for anything not present. Copy the strings character-for-character as they appear in the code.`
 
   const res = await anthropic.messages.create({
@@ -263,6 +265,11 @@ function applySubstitutions(
   if (templateStrings.instagram) {
     const replacement = lead.instagram ?? ''
     result = result.split(templateStrings.instagram).join(replacement)
+  }
+
+  // Metro/transport reference: always remove (template-specific, no lead equivalent)
+  if (templateStrings.metro) {
+    result = result.split(templateStrings.metro).join('')
   }
 
   // OSM map: replace the hardcoded OSM URL in the template with lead-specific coordinates
