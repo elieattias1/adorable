@@ -797,6 +797,26 @@ function NotificationEmailCard() {
 // ─── Upgrade gate ─────────────────────────────────────────────────────────────
 
 function UpgradeGate({ title, plan, description }: { title: string; plan: string; description: string }) {
+  const [loading, setLoading] = useState(false)
+
+  const handleUpgrade = async () => {
+    setLoading(true)
+    try {
+      const res  = await fetch('/api/stripe/checkout', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ plan: plan.toLowerCase() }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else window.location.href = '/dashboard'
+    } catch {
+      window.location.href = '/dashboard'
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div>
       <h2 className="text-lg font-black mb-1">{title}</h2>
@@ -809,12 +829,13 @@ function UpgradeGate({ title, plan, description }: { title: string; plan: string
           <p className="font-semibold text-gray-900 mb-1">Plan {plan} requis</p>
           <p className="text-sm text-gray-500 max-w-xs">{description}</p>
         </div>
-        <a
-          href="/dashboard"
-          className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-colors"
+        <button
+          onClick={handleUpgrade}
+          disabled={loading}
+          className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors"
         >
-          Passer à {plan}
-        </a>
+          {loading ? '…' : `Passer à ${plan}`}
+        </button>
       </div>
     </div>
   )
