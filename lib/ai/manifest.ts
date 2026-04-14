@@ -179,7 +179,7 @@ Affichage :
 7. Avatars témoignages : https://i.pravatar.cc/80?img=[1-70]
 8. Sections spacieuses : py-20 minimum
 9. Responsive : 1 colonne mobile, 2-3 colonnes desktop
-10. GUILLEMETS : utilise TOUJOURS des guillemets doubles "..." ou des backticks \`...\` pour toutes les chaînes JS — JAMAIS des guillemets simples — les textes français contiennent des apostrophes (L'Artisan, d'accord…) qui cassent les strings single-quoted
+10. APOSTROPHES : dans le texte JSX, écris les apostrophes directement (L'Artisan, d'accord) — JAMAIS \\' — dans les strings JS utilise des backticks \`L'Artisan\` ou des guillemets doubles "d'accord" — JAMAIS de guillemets simples autour d'un texte avec apostrophe
 11. JAVASCRIPT PUR — PAS de TypeScript : pas d'annotations de type (param: string), pas d'interfaces, pas de génériques (useState<T>), pas de "as Type", pas de "?: " — le compilateur est Babel React-only, le TypeScript fait planter la compilation
 ${declaredNames.length > 0 ? `12. VARIABLES INTERDITES — déjà déclarées dans les sections précédentes, NE PAS re-déclarer avec const/let/var : ${declaredNames.join(', ')}` : ''}
 
@@ -187,7 +187,7 @@ ${syntaxError ? `━━ ERREUR DE SYNTAXE À CORRIGER (tentative précédente re
 ${syntaxError}
 
 ⚠️  Le code ci-dessus a été REJETÉ par le parser. Réécris ${section.component} en corrigeant cette erreur.
-Causes fréquentes : apostrophes dans des strings single-quotées (utilise des backticks \`...\` ou échappe avec \\'), virgules manquantes, JSX mal fermé.
+Causes fréquentes : apostrophes dans des strings single-quotées (utilise des backticks \`...\` ou guillemets doubles — JAMAIS \\'), virgules manquantes, JSX mal fermé.
 ` : ''}Appelle write_section avec le code complet de ${section.component}.`
 }
 

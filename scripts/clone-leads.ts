@@ -88,6 +88,8 @@ interface DbLead {
   notes:         string | null
   site_id:       string | null
   status:        string
+  latitude:      number | null
+  longitude:     number | null
 }
 
 // ── Fetch leads from DB ────────────────────────────────────────────────────────
@@ -95,7 +97,7 @@ interface DbLead {
 async function fetchLeads(): Promise<DbLead[]> {
   let query = supabase
     .from('leads')
-    .select('id, business_name, address, phone, email, city, postcode, departement, instagram, notes, site_id, status')
+    .select('id, business_name, address, phone, email, city, postcode, departement, instagram, notes, site_id, status, latitude, longitude')
     .eq('user_id', ADMIN_USER_ID!)
     .neq('status', 'closed')
 
@@ -153,13 +155,14 @@ Find the EXACT string literals that appear in the JSX/JS for:
 - the phone number
 - the contact email
 - the Instagram handle or URL
+- the full <img .../> or <img ...> JSX tag of the decorative photo in the "nous rendre visite" / visit us / contact section (the photo of the baker/bakery, not a product image). Copy it character-for-character including all attributes and the closing slash.
 
-Return ONLY a JSON object: { "name": "...", "address": "...", "phone": "...", "email": "...", "instagram": "..." }
+Return ONLY a JSON object: { "name": "...", "address": "...", "phone": "...", "email": "...", "instagram": "...", "contact_photo": "..." }
 Use null for anything not present. Copy the strings character-for-character as they appear in the code.`
 
   const res = await anthropic.messages.create({
     model:      'claude-haiku-4-5-20251001',
-    max_tokens: 400,
+    max_tokens: 600,
     messages:   [{ role: 'user', content: `${prompt}\n\nCODE:\n${templateCode}` }],
   })
 
@@ -175,6 +178,33 @@ Use null for anything not present. Copy the strings character-for-character as t
 }
 
 // ── Step 2: plain replaceAll substitution ─────────────────────────────────────
+
+function replaceOsmUrl(code: string, lat: number, lon: number): string {
+  const marker = 'openstreetmap.org/export/embed.html'
+  const idx = code.indexOf(marker)
+  if (idx === -1) return code
+
+  // Walk back to find the start of the URL (opening quote)
+  let urlStart = idx
+  while (urlStart > 0 && code[urlStart] !== '"' && code[urlStart] !== "'" && code[urlStart] !== '`') {
+    urlStart--
+  }
+  urlStart++ // skip the opening quote
+
+  // Walk forward to find the end of the URL (closing quote)
+  const quote = code[urlStart - 1]
+  let urlEnd = urlStart
+  while (urlEnd < code.length && code[urlEnd] !== quote) {
+    urlEnd++
+  }
+
+  const oldUrl = code.slice(urlStart, urlEnd)
+  const delta  = 0.003
+  const bbox   = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`
+  const newUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`
+
+  return code.split(oldUrl).join(newUrl)
+}
 
 function applySubstitutions(
   code:            string,
@@ -205,9 +235,19 @@ function applySubstitutions(
     result = result.split(templateStrings.email).join(lead.email)
   }
 
-  if (templateStrings.instagram && lead.instagram) {
-    result = result.split(templateStrings.instagram).join(lead.instagram)
+  // Instagram: replace with lead value if present, otherwise remove template value entirely
+  if (templateStrings.instagram) {
+    const replacement = lead.instagram ?? ''
+    result = result.split(templateStrings.instagram).join(replacement)
   }
+
+  // OSM map: replace the hardcoded OSM URL in the template with lead-specific coordinates
+  if (lead.latitude != null && lead.longitude != null) {
+    result = replaceOsmUrl(result, lead.latitude, lead.longitude)
+  }
+
+  // Sanitize any escaped apostrophes — \' is invalid in JSX text content
+  result = result.split("\\'").join("'")
 
   return result
 }

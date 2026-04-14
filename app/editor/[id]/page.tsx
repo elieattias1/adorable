@@ -468,8 +468,10 @@ function EditorPage() {
         {(showChat || (showShop && site.type === 'bakery') || (showAssets && site.type === 'bakery')) && (
           <div
             onMouseDown={handleDragStart}
-            className="hidden md:flex w-1 flex-shrink-0 cursor-col-resize bg-gray-200 hover:bg-violet-400 active:bg-violet-500 transition-colors"
-          />
+            className="hidden md:flex items-center justify-center w-3 flex-shrink-0 cursor-col-resize group bg-transparent hover:bg-violet-50 active:bg-violet-100 transition-colors"
+          >
+            <div className="w-0.5 h-8 rounded-full bg-gray-300 group-hover:bg-violet-400 group-active:bg-violet-500 transition-colors" />
+          </div>
         )}
 
         {/* Chat panel */}

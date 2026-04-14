@@ -99,6 +99,7 @@ CONTRAINTE DE CODE :
 - Pas de répétition JSX : map() sur les tableaux
 - Un seul fichier App.tsx
 - Tailwind uniquement (classes arbitraires autorisées)
+- APOSTROPHES : dans le texte JSX écris ' directement (L'Artisan, d'accord) — JAMAIS \' — dans les strings JS utilise des backticks ou guillemets doubles — JAMAIS de guillemets simples autour d'un texte avec apostrophe
 
 IMAGES :
 - Utilise UNIQUEMENT les URLs Unsplash validées listées dans le design system ci-dessus

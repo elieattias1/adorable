@@ -76,8 +76,8 @@ const GenerateSchema = z.object({
 // Phase 2: one section at a time, each gets previous sections as context
 // Streams section_start / code_stream / section_done events to client
 
-const SONNET = 'claude-sonnet-4-6'
-const HAIKU  = 'claude-haiku-4-5-20251001'
+const HAIKU = 'claude-haiku-4-5-20251001'
+
 
 async function runSequentialGeneration(opts: {
   siteId:      string
@@ -117,8 +117,8 @@ async function runSequentialGeneration(opts: {
   const userContent = `Business : ${siteName}\nType : ${siteType}\nDemande : ${message}`
 
   const manifestRes = await anthropic.messages.create({
-    model:       'claude-sonnet-4-6',
-    max_tokens:  1500,
+    model:       HAIKU,
+    max_tokens:  10000,
     system:      buildManifestPrompt(designPreset, templateCtx),
     tools:       [MANIFEST_TOOL],
     tool_choice: { type: 'tool', name: 'create_manifest' },
@@ -163,7 +163,7 @@ async function runSequentialGeneration(opts: {
 
         const sectionStream = anthropic.messages.stream({
           model:       sectionModel,
-          max_tokens:  5000,
+          max_tokens:  10000,
           system:      sectionPrompt,
           tools:       [SECTION_TOOL],
           tool_choice: { type: 'tool', name: 'write_section' },
@@ -349,8 +349,8 @@ export async function POST(req: NextRequest) {
             console.log(`${tag} ── iteration ${iteration + 1}/${MAX_ITERATIONS}`)
 
             const claudeStream = anthropic.messages.stream({
-              model:       'claude-sonnet-4-6',
-              max_tokens:  16000,
+              model:       HAIKU,
+              max_tokens:  10000,
               system:      buildAgentSystemPrompt(currentCode, site.type, site.id, message),
               tools:       AGENT_TOOLS,
               tool_choice: { type: 'auto' },
