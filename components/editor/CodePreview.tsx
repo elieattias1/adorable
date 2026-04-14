@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v21_'
+const LS_PREFIX  = 'sb_prev_v22_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -257,20 +257,39 @@ try {
   window._re('Render', err.message || String(err));
 }
 `
-  // Inject a fetch proxy so relative /api/ calls work from the sandboxed iframe
-  // (sandbox has no allow-same-origin so relative URLs would resolve to null://).
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  // postMessage fetch bridge — lets the sandboxed iframe (null origin, no cookies)
+  // make API calls by asking the parent to fetch on its behalf (parent has auth cookies).
+  // iframe sends {type:'fetch-request', id, url, method, headers, body}
+  // parent replies {type:'fetch-response', id, status, body}
   const fetchProxy = `<script>
 (function(){
-  var _origin = ${JSON.stringify(origin)};
-  var _realFetch = window.fetch.bind(window);
+  var _pending = {};
+  window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (!d || d.type !== 'fetch-response' || !_pending[d.id]) return;
+    var resolve = _pending[d.id];
+    delete _pending[d.id];
+    resolve(new Response(JSON.stringify(d.body), {
+      status: d.status || 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+  });
   window.fetch = function(input, init) {
-    if (typeof input === 'string' && input.charAt(0) === '/') {
-      input = _origin + input;
-    } else if (input instanceof Request && input.url.charAt(0) === '/') {
-      input = new Request(_origin + input.url, input);
-    }
-    return _realFetch(input, init);
+    var url = typeof input === 'string' ? input : input.url;
+    // Only bridge /api/ calls — let CDN/font/etc calls go through normally
+    if (url.charAt(0) !== '/') return fetch.apply(window, [input, init]);
+    return new Promise(function(resolve) {
+      var id = Math.random().toString(36).slice(2);
+      _pending[id] = resolve;
+      window.parent.postMessage({
+        type:    'fetch-request',
+        id:      id,
+        url:     url,
+        method:  (init && init.method) || 'GET',
+        headers: (init && init.headers) || {},
+        body:    (init && init.body)    || null,
+      }, '*');
+    });
   };
 })();
 </script>`
@@ -365,12 +384,26 @@ export default function CodePreview({ code, isGenerating, isWaitingForGeneration
     if (iframeRef.current) iframeRef.current.srcdoc = doc
   }, [])
 
-  // Listen for errors relayed from inside the sandboxed iframe
+  // Listen for messages from the sandboxed iframe
   useEffect(() => {
-    const handler = (e: MessageEvent) => {
+    const handler = async (e: MessageEvent) => {
       if (e.data?.type === 'preview-error') {
         const label = e.data.kind ? `[${e.data.kind}] ` : ''
         onErrorRef.current?.(`Preview: ${label}${e.data.detail}`)
+        return
+      }
+
+      // Fetch bridge: iframe can't make authenticated API calls (null origin),
+      // so it asks the parent to fetch on its behalf
+      if (e.data?.type === 'fetch-request' && e.source === iframeRef.current?.contentWindow) {
+        const { id, url, method, headers, body } = e.data
+        try {
+          const res  = await fetch(url, { method, headers, body: body || undefined, credentials: 'include' })
+          const data = await res.json().catch(() => null)
+          ;(e.source as Window).postMessage({ type: 'fetch-response', id, status: res.status, body: data }, '*')
+        } catch {
+          ;(e.source as Window).postMessage({ type: 'fetch-response', id, status: 500, body: null }, '*')
+        }
       }
     }
     window.addEventListener('message', handler)
