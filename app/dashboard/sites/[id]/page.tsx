@@ -7,6 +7,7 @@ import {
   Globe, Globe2, PenLine, ExternalLink, Copy, Trash2, CheckCircle2,
   Circle, RefreshCw, Eye, MessageSquare, Clock, TrendingUp, Shield,
   AlertTriangle, Loader2, Check, X, Puzzle, ChevronDown, ChevronUp, Zap, Rocket, History, LogOut, ShoppingBag,
+  Users, Phone,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { createClient } from '@/lib/supabase-browser'
@@ -53,6 +54,7 @@ const SECTIONS = [
   { id: 'horaires',      label: 'Horaires',        icon: Clock },
   { id: 'produits',      label: 'Produits',        icon: ShoppingBag },
   { id: 'commandes',     label: 'Commandes',       icon: ShoppingBag },
+  { id: 'crm',           label: 'Clients',         icon: Users },
   { id: 'history',       label: 'Historique',      icon: History },
   { id: 'analytics',     label: 'Analytiques',     icon: BarChart2 },
   { id: 'integrations',  label: 'Intégrations',    icon: Puzzle },
@@ -734,11 +736,12 @@ function SettingsSection({ site, onSave, onDelete, onUnpublish, plan }: { site: 
   )
 }
 
-// ─── Notification email card ──────────────────────────────────────────────────
+// ─── Notification settings card ──────────────────────────────────────────────
 
 function NotificationEmailCard() {
   const supabase = createClient()
   const [email,   setEmail]   = useState('')
+  const [phone,   setPhone]   = useState('')
   const [saved,   setSaved]   = useState(false)
   const [saving,  setSaving]  = useState(false)
   const [loaded,  setLoaded]  = useState(false)
@@ -748,10 +751,11 @@ function NotificationEmailCard() {
       if (!user) return
       const { data } = await supabase
         .from('profiles')
-        .select('notification_email, email')
+        .select('notification_email, notification_phone, email')
         .eq('id', user.id)
         .single()
       setEmail(data?.notification_email ?? data?.email ?? '')
+      setPhone(data?.notification_phone ?? '')
       setLoaded(true)
     })
   }, [])
@@ -760,7 +764,10 @@ function NotificationEmailCard() {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from('profiles').update({ notification_email: email }).eq('id', user.id)
+    await supabase.from('profiles').update({
+      notification_email: email || null,
+      notification_phone: phone || null,
+    }).eq('id', user.id)
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -769,26 +776,41 @@ function NotificationEmailCard() {
   if (!loaded) return null
 
   return (
-    <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-center gap-4 mb-6">
-      <div className="text-2xl">📬</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 mb-1">Email de notification des commandes</p>
-        <div className="flex gap-2">
+    <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="text-xl">📬</div>
+        <p className="text-sm font-semibold text-gray-900">Notifications de commandes</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-lg px-3 py-1.5">
+          <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="votre@email.com"
-            className="flex-1 text-sm border border-orange-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-400 bg-white"
+            placeholder="Email de notification"
+            className="flex-1 text-sm focus:outline-none bg-transparent"
           />
-          <button
-            onClick={save}
-            disabled={saving || !email.trim()}
-            className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5 transition-colors"
-          >
-            {saved ? <Check className="w-3.5 h-3.5" /> : saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Enregistrer'}
-          </button>
         </div>
+        <div className="flex items-center gap-2 bg-white border border-orange-200 rounded-lg px-3 py-1.5">
+          <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          <input
+            type="tel"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="SMS / WhatsApp (+33…)"
+            className="flex-1 text-sm focus:outline-none bg-transparent"
+          />
+        </div>
+      </div>
+      <div className="flex justify-end mt-2">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+        >
+          {saved ? <><Check className="w-3.5 h-3.5" /> Enregistré</> : saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Enregistrer'}
+        </button>
       </div>
     </div>
   )
@@ -837,6 +859,153 @@ function UpgradeGate({ title, plan, description }: { title: string; plan: string
           {loading ? '…' : `Passer à ${plan}`}
         </button>
       </div>
+    </div>
+  )
+}
+
+// ─── CRM section ─────────────────────────────────────────────────────────────
+
+interface Customer {
+  name:        string
+  email:       string
+  phone:       string | null
+  orderCount:  number
+  totalCents:  number
+  lastOrderAt: string
+}
+
+function CRMSection({ siteId }: { siteId: string }) {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading,   setLoading]   = useState(true)
+  const [search,    setSearch]    = useState('')
+
+  useEffect(() => {
+    fetch(`/api/orders?siteId=${siteId}`)
+      .then(r => r.json())
+      .then(({ orders }) => {
+        if (!orders) return
+        const map = new Map<string, Customer>()
+        for (const o of orders) {
+          const key = o.customer_email?.toLowerCase() ?? o.customer_name
+          if (!key) continue
+          const existing = map.get(key)
+          if (existing) {
+            existing.orderCount  += 1
+            existing.totalCents  += o.total_cents ?? 0
+            if (o.created_at > existing.lastOrderAt) existing.lastOrderAt = o.created_at
+          } else {
+            map.set(key, {
+              name:        o.customer_name,
+              email:       o.customer_email,
+              phone:       o.customer_phone ?? null,
+              orderCount:  1,
+              totalCents:  o.total_cents ?? 0,
+              lastOrderAt: o.created_at,
+            })
+          }
+        }
+        setCustomers([...map.values()].sort((a, b) => b.lastOrderAt.localeCompare(a.lastOrderAt)))
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [siteId])
+
+  const filtered = customers.filter(c =>
+    !search.trim() ||
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase()) ||
+    (c.phone ?? '').includes(search)
+  )
+
+  const totalRevenue = customers.reduce((s, c) => s + c.totalCents, 0)
+
+  return (
+    <div>
+      <h2 className="text-lg font-black mb-1">Clients</h2>
+      <p className="text-sm text-gray-500 mb-6">Vos clients issus des commandes.</p>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="text-2xl font-black text-violet-600">{customers.length}</div>
+          <div className="text-xs text-gray-500 mt-0.5">Clients uniques</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="text-2xl font-black text-green-600">{(totalRevenue / 100).toFixed(2).replace('.', ',')} €</div>
+          <div className="text-xs text-gray-500 mt-0.5">Revenu total</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <div className="text-2xl font-black text-orange-600">
+            {customers.length > 0 ? ((totalRevenue / customers.length) / 100).toFixed(2).replace('.', ',') : '0,00'} €
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">Panier moyen</div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher un client…"
+          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-violet-400 bg-white"
+        />
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12 text-gray-400 text-sm">Chargement…</div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400">
+          <Users className="w-8 h-8" />
+          <p className="text-sm">Aucun client</p>
+        </div>
+      ) : (
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Client</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Contact</th>
+                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Commandes</th>
+                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Dernière commande</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filtered.map(c => (
+                <tr key={c.email} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
+                        {c.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <span className="font-medium text-gray-900 truncate">{c.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    <div className="text-xs text-gray-500 space-y-0.5">
+                      <div className="flex items-center gap-1"><Mail className="w-3 h-3" /><span>{c.email}</span></div>
+                      {c.phone && <div className="flex items-center gap-1"><Phone className="w-3 h-3" /><span>{c.phone}</span></div>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-bold">{c.orderCount}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                    {(c.totalCents / 100).toFixed(2).replace('.', ',')} €
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs text-gray-400 hidden md:table-cell">
+                    {new Date(c.lastOrderAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -1118,6 +1287,15 @@ export default function SiteDashboardPage() {
               <CommandesSection siteId={siteId} />
             ) : (
               <UpgradeGate title="Commandes" plan="Starter" description="Recevez et gérez les commandes de vos clients directement depuis le dashboard." />
+            )}
+          </section>
+
+          <div className="border-t border-gray-200" />
+          <section id="crm">
+            {plan !== 'free' ? (
+              <CRMSection siteId={siteId} />
+            ) : (
+              <UpgradeGate title="Clients" plan="Starter" description="Visualisez la liste de vos clients et leur historique de commandes." />
             )}
           </section>
 
