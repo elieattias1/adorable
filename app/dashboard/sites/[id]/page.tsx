@@ -917,30 +917,15 @@ function CRMSection({ siteId }: { siteId: string }) {
     (c.phone ?? '').includes(search)
   )
 
-  const totalRevenue = customers.reduce((s, c) => s + c.totalCents, 0)
-
   return (
     <div>
       <h2 className="text-lg font-black mb-1">Clients</h2>
       <p className="text-sm text-gray-500 mb-6">Vos clients issus des commandes.</p>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-          <div className="text-2xl font-black text-violet-600">{customers.length}</div>
-          <div className="text-xs text-gray-500 mt-0.5">Clients uniques</div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-          <div className="text-2xl font-black text-green-600">{(totalRevenue / 100).toFixed(2).replace('.', ',')} €</div>
-          <div className="text-xs text-gray-500 mt-0.5">Revenu total</div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
-          <div className="text-2xl font-black text-orange-600">
-            {customers.length > 0 ? ((totalRevenue / customers.length) / 100).toFixed(2).replace('.', ',') : '0,00'} €
-          </div>
-          <div className="text-xs text-gray-500 mt-0.5">Panier moyen</div>
-        </div>
-      </div>
+      {/* Client count */}
+      <p className="text-sm text-gray-500 mb-4">
+        <span className="font-semibold text-gray-900">{customers.length}</span> client{customers.length !== 1 ? 's' : ''} unique{customers.length !== 1 ? 's' : ''}
+      </p>
 
       {/* Search */}
       <div className="relative mb-4">
