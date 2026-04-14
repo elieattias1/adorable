@@ -287,15 +287,17 @@ function EditorPage() {
 
       // ── After stream: sync state from DB ────────────────────────────────
       if (generationDone) {
-        // Reload versions list
-        const { data: newVersions } = await supabase
-          .from('versions').select('id, note, created_at')
-          .eq('site_id', siteId).order('created_at', { ascending: false }).limit(50)
+        // Reload versions + site html + messages from DB as source of truth
+        const [{ data: newVersions }, { data: freshSite }, { data: freshMsgs }] = await Promise.all([
+          supabase.from('versions').select('id, note, created_at')
+            .eq('site_id', siteId).order('created_at', { ascending: false }).limit(50),
+          supabase.from('sites').select('html').eq('id', siteId).single(),
+          supabase.from('messages').select('*')
+            .eq('site_id', siteId).order('created_at', { ascending: true }).limit(100),
+        ])
         if (newVersions) setVersions(newVersions as Version[])
-
-        // Reload site html from DB as source of truth (catches any sync issues)
-        const { data: freshSite } = await supabase.from('sites').select('html').eq('id', siteId).single()
         if (freshSite?.html) setSiteCode(freshSite.html)
+        if (freshMsgs) setMessages(freshMsgs as ChatMessage[])
       }
 
       if (generationError) {

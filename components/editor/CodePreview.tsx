@@ -31,7 +31,7 @@ const CDN = {
 // 1. Module-level Map: instant within-session (survives remounts, cleared on reload)
 // 2. localStorage: survives page reload (keyed by djb2 hash of the source code)
 const _memCache = new Map<string, string>()
-const LS_PREFIX  = 'sb_prev_v20_'
+const LS_PREFIX  = 'sb_prev_v21_'
 
 function djb2(s: string): string {
   let h = 5381
@@ -257,11 +257,30 @@ try {
   window._re('Render', err.message || String(err));
 }
 `
+  // Inject a fetch proxy so relative /api/ calls work from the sandboxed iframe
+  // (sandbox has no allow-same-origin so relative URLs would resolve to null://).
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const fetchProxy = `<script>
+(function(){
+  var _origin = ${JSON.stringify(origin)};
+  var _realFetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    if (typeof input === 'string' && input.charAt(0) === '/') {
+      input = _origin + input;
+    } else if (input instanceof Request && input.url.charAt(0) === '/') {
+      input = new Request(_origin + input.url, input);
+    }
+    return _realFetch(input, init);
+  };
+})();
+</script>`
+
   const srcdoc = `<!DOCTYPE html>
 <html lang="fr">
 <head>${NAV_LOCK}${BASE_HEAD}</head>
 <body>
 <div id="root"></div>
+${fetchProxy}
 <script>${errorScript}</script>
 <script type="module">${moduleScript}</script>
 </body>
