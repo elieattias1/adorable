@@ -40,6 +40,7 @@ const APP_URL   = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
 
 const ADMIN_USER_ID = process.env.ADMIN_USER_ID
 const DRY_RUN       = process.argv.includes('--dry-run')
+const REBUILD       = process.argv.includes('--rebuild')  // re-process already-built leads
 
 // CLI flags
 const argDept     = process.argv.find(a => a.startsWith('--dept='))?.split('=')[1]
@@ -96,8 +97,15 @@ async function fetchLeads(): Promise<DbLead[]> {
     .from('leads')
     .select('id, business_name, address, phone, email, city, postcode, departement, instagram, notes, site_id, status')
     .eq('user_id', ADMIN_USER_ID!)
-    .is('site_id', null)
     .neq('status', 'closed')
+
+  if (REBUILD) {
+    // Target leads that already have a site (for rebuilding)
+    query = query.not('site_id', 'is', null)
+  } else {
+    // Normal run: only unbuilt leads
+    query = query.is('site_id', null)
+  }
 
   if (POSTCODE_PREFIX) {
     query = query.like('postcode', `${POSTCODE_PREFIX}%`)
@@ -228,6 +236,33 @@ async function seedProducts(siteId: string) {
 async function createSiteForLead(lead: DbLead, html: string, siteId: string): Promise<void> {
   if (DRY_RUN) return
 
+  if (REBUILD && lead.site_id) {
+    // Save current HTML as a version before overwriting
+    const { data: current } = await supabase.from('sites').select('html').eq('id', lead.site_id).single()
+    if (current?.html) {
+      await supabase.from('versions').insert({
+        site_id: lead.site_id,
+        user_id: ADMIN_USER_ID,
+        html:    current.html,
+        note:    'Sauvegarde avant refonte automatique',
+      })
+    }
+
+    // Update existing site with fresh HTML
+    const { error: updateErr } = await supabase.from('sites')
+      .update({ html, updated_at: new Date().toISOString() })
+      .eq('id', lead.site_id)
+    if (updateErr) throw new Error(`Site update failed: ${updateErr.message}`)
+
+    // Mark lead as en cours (building)
+    await supabase.from('leads')
+      .update({ status: 'building', updated_at: new Date().toISOString() })
+      .eq('id', lead.id)
+
+    return
+  }
+
+  // Normal create path
   const { error: siteErr } = await supabase.from('sites').insert({
     id:           siteId,
     user_id:      ADMIN_USER_ID,
@@ -245,7 +280,6 @@ async function createSiteForLead(lead: DbLead, html: string, siteId: string): Pr
     .from('leads')
     .update({ site_id: siteId, status: 'built', updated_at: new Date().toISOString() })
     .eq('id', lead.id)
-
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
@@ -253,14 +287,15 @@ async function createSiteForLead(lead: DbLead, html: string, siteId: string): Pr
 async function main() {
   const filterDesc = POSTCODE_PREFIX ? `postcode ${POSTCODE_PREFIX}*` : DEPT_FILTER
 
-  console.log(`\n🍞  Clone Leads — ${filterDesc}${DRY_RUN ? '  [DRY-RUN]' : ''}`)
+  const modeLabel = REBUILD ? '  [REBUILD]' : ''
+  console.log(`\n🍞  Clone Leads — ${filterDesc}${modeLabel}${DRY_RUN ? '  [DRY-RUN]' : ''}`)
   console.log(`   Template  : ${APP_URL}/s/${TEMPLATE_SITE_ID}`)
   console.log()
 
   const [leads, template] = await Promise.all([fetchLeads(), fetchTemplateCode()])
 
   if (leads.length === 0) {
-    console.log(`ℹ️  No unbuilt leads found for ${filterDesc}.`)
+    console.log(`ℹ️  No ${REBUILD ? 'built' : 'unbuilt'} leads found for ${filterDesc}.`)
     return
   }
 
@@ -276,7 +311,7 @@ async function main() {
   for (const lead of leads) {
     process.stdout.write(`🔄  ${lead.business_name.padEnd(38)} `)
     try {
-      const siteId  = randomUUID()
+      const siteId  = REBUILD && lead.site_id ? lead.site_id : randomUUID()
       const html    = applySubstitutions(template.html, templateStrings, lead, siteId)
       await createSiteForLead(lead, html, siteId)
       const url     = `${APP_URL}/s/${siteId}`
