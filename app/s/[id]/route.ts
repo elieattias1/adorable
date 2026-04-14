@@ -16,17 +16,16 @@ function isReactCode(content: string): boolean {
 
 // ── Server-side preprocessors (applied before JSON.stringify so no escaping hell) ──
 
+// fav.farm converts emoji to PNG favicons — simple, no encoding issues
 const SITE_TYPE_FAVICON: Record<string, string> = {
-  bakery:     '🥐',
-  restaurant: '🍽️',
-  cafe:       '☕',
-  default:    '⚡',
+  bakery:     'https://fav.farm/%F0%9F%A5%90',  // 🥐
+  restaurant: 'https://fav.farm/%F0%9F%8D%BD',  // 🍽️
+  cafe:       'https://fav.farm/%E2%98%95',      // ☕
+  default:    'https://fav.farm/%E2%9A%A1',      // ⚡
 }
 
 function getFavicon(type?: string | null): string {
-  const emoji = SITE_TYPE_FAVICON[type ?? ''] ?? SITE_TYPE_FAVICON.default
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${emoji}</text></svg>`
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+  return SITE_TYPE_FAVICON[type ?? ''] ?? SITE_TYPE_FAVICON.default
 }
 
 
