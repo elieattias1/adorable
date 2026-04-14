@@ -38,7 +38,7 @@ export async function GET(
 
   const { data: site } = await supabaseAdmin
     .from('sites')
-    .select('id, name, html, type, is_published')
+    .select('id, name, html, type, is_published, favicon_url')
     .eq('id', id)
     .single()
 
@@ -104,7 +104,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${siteName}</title>
-  <link rel="icon" href="${getFavicon(site.type)}" />
+  <link rel="icon" href="${(site as any).favicon_url || getFavicon(site.type)}" />
   <script id="babel-script" src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />

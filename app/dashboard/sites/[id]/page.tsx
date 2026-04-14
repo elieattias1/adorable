@@ -136,12 +136,11 @@ function OverviewSection({ data, submissions }: { data: DashData; submissions: S
 // ─── Section: SEO ──────────────────────────────────────────────────────────────
 
 function SEOSection({ site, onSave }: { site: Site; onSave: (p: object) => Promise<void> }) {
-  const schema = site.html ? (() => { try { return JSON.parse(site.html) } catch { return null } })() : null
-  const [title,   setTitle]   = useState<string>(schema?.meta?.seoTitle || schema?.meta?.title || site.name)
-  const [desc,    setDesc]    = useState<string>(schema?.meta?.seoDesc  || '')
-  const [favicon, setFavicon] = useState<string>(schema?.meta?.favicon  || '')
+  const [title,   setTitle]   = useState<string>(site.name)
+  const [desc,    setDesc]    = useState<string>('')
+  const [favicon, setFavicon] = useState<string>((site as any).favicon_url || '')
   const [saving,  setSaving]  = useState(false)
-  const save = async () => { setSaving(true); await onSave({ seoTitle: title, seoDesc: desc, favicon }); setSaving(false) }
+  const save = async () => { setSaving(true); await onSave({ favicon }); setSaving(false) }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

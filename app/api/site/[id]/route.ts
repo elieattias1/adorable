@@ -75,20 +75,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (patch.is_published !== undefined) updates.is_published = patch.is_published
   if (patch.deployed_url !== undefined) updates.deployed_url = patch.deployed_url
   if (patch.site_config  !== undefined) updates.site_config  = patch.site_config
-
-  // Merge changes into the JSON schema meta
-  const schemaFields = ['seoTitle', 'seoDesc', 'favicon', 'integrations'] as const
-  const hasSchemaChange = schemaFields.some(f => patch[f] !== undefined)
-  if (hasSchemaChange && site.html) {
-    try {
-      const schema = JSON.parse(site.html)
-      if (patch.seoTitle     !== undefined) schema.meta.seoTitle     = patch.seoTitle
-      if (patch.seoDesc      !== undefined) schema.meta.seoDesc      = patch.seoDesc
-      if (patch.favicon      !== undefined) schema.meta.favicon      = patch.favicon
-      if (patch.integrations !== undefined) schema.meta.integrations = patch.integrations
-      updates.html = JSON.stringify(schema)
-    } catch {}
-  }
+  if (patch.favicon      !== undefined) updates.favicon_url  = patch.favicon
 
   const { data, error } = await supabaseAdmin
     .from('sites').update(updates).eq('id', id).select().single()
