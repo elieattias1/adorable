@@ -145,13 +145,17 @@ Charge les produits depuis la DB au montage :
 
 Panier : const [cart, setCart] = useState({})  // { [productId]: quantity }
 
-Checkout (PAS de Stripe, PAS de redirection) :
+Checkout (paiement en ligne via Stripe) :
   const res = await fetch('${shopEndpoint}/shop/checkout', {
     method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ site_id:'${shopSiteId}', customer_name, customer_email, customer_phone, note, pickup_at, items })
   })
   const data = await res.json()
-  if (data.orderId) setStatus('success')  // ← afficher confirmation, jamais window.location
+  if (data.checkoutUrl) {
+    window.location.href = data.checkoutUrl  // ← redirection vers Stripe Checkout
+  } else if (data.error) {
+    setError(data.error)
+  }
 
 Affichage :
 - Grille produits : photo, nom, prix, bouton "+"
@@ -161,7 +165,8 @@ Affichage :
 - Badge panier flottant (total + bouton "Commander")
 - Modal commande : Nom*, Email*, Téléphone (optionnel), Note (optionnel), Date & heure de retrait* (OBLIGATOIRE — input type="datetime-local", min = maintenant)
 - Validation : bloquer l'envoi si pickup_at est vide — afficher "Veuillez choisir une date de retrait"
-- Succès : "✅ Commande confirmée ! Retrait prévu le [date formatée]."
+- Bouton "Payer" : affiche un spinner pendant la requête (setLoading(true) / setLoading(false) en cas d'erreur)
+- Succès (si checkoutUrl absent) : "✅ Commande enregistrée ! Retrait prévu le [date formatée]."
 - Si produits vides : "Catalogue bientôt disponible"` : ''}
 
 ━━ RÈGLES ABSOLUES ━━

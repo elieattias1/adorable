@@ -1,15 +1,15 @@
 /**
  * POST /api/shop/checkout
- * Pay-at-pickup order flow:
+ * Creates an order + Stripe Checkout Session for pay-online flow.
  *   1. Validate items against DB
- *   2. Create order + order_items records
- *   3. Notify bakery owner by email (Resend) AND SMS (Twilio) — best-effort
- *   4. Return { orderId } — no redirect, customer pays in-store at pickup
+ *   2. Create order with status 'pending_payment'
+ *   3. Create Stripe Checkout Session → return { checkoutUrl }
+ *   4. On payment: webhook marks order 'pending' and notifies owner
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { z }                         from 'zod'
 import { supabaseAdmin }             from '@/lib/supabase'
-import { sendOrderNotification }     from '@/lib/notifications'
+import { stripe }                    from '@/lib/stripe'
 
 const ItemSchema = z.object({
   product_id: z.string().uuid(),
@@ -25,6 +25,8 @@ const CheckoutSchema = z.object({
   note:           z.string().max(500).optional(),
   pickup_at:      z.string().optional(),
 })
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,13 +46,6 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!site) return NextResponse.json({ error: 'Site introuvable' }, { status: 404 })
-
-    // ── Fetch owner notification contacts ─────────────────────────────────
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('email, notification_email, notification_phone')
-      .eq('id', site.user_id)
-      .single()
 
     // ── Validate products ──────────────────────────────────────────────────
     const productIds = items.map(i => i.product_id)
@@ -91,7 +86,7 @@ export async function POST(req: NextRequest) {
         customer_name,
         customer_email,
         customer_phone: customer_phone ?? null,
-        status:         'pending',
+        status:         'pending_payment',
         total_cents:    totalCents,
         note:           note ?? null,
         pickup_at:      pickup_at ?? null,
@@ -109,25 +104,42 @@ export async function POST(req: NextRequest) {
       lineItems.map(i => ({ ...i, order_id: order.id }))
     )
 
-    // ── Notify owner (best-effort — does not fail the order) ───────────────
-    const ownerEmail = profile?.notification_email ?? profile?.email
-    const ownerPhone = profile?.notification_phone ?? null
+    // ── Create Stripe Checkout Session ─────────────────────────────────────
+    const pickupLabel = pickup_at
+      ? new Date(pickup_at).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : 'dès que possible'
 
-    sendOrderNotification({
-      orderId:       order.id,
-      siteName:      site.name,
-      customerName:  customer_name,
-      customerEmail: customer_email,
-      customerPhone: customer_phone,
-      items:         lineItems,
-      totalCents,
-      note,
-      pickupAt:      pickup_at,
-      ownerEmail,
-      ownerPhone,
-    }).catch(err => console.error('[checkout] notification error:', err))
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      customer_email,
+      line_items: lineItems.map(item => ({
+        price_data: {
+          currency:     'eur',
+          product_data: {
+            name: item.name,
+            ...(item.photo_url ? { images: [item.photo_url] } : {}),
+          },
+          unit_amount: item.price_cents,
+        },
+        quantity: item.quantity,
+      })),
+      mode: 'payment',
+      metadata: {
+        orderId:       order.id,
+        siteId:        site_id,
+        customerPhone: customer_phone ?? '',
+        note:          note ?? '',
+        pickupAt:      pickup_at ?? '',
+        pickupLabel,
+      },
+      success_url: `${APP_URL}/order/success?orderId=${order.id}&siteId=${site_id}`,
+      cancel_url:  `${APP_URL}/s/${site_id}`,
+      payment_intent_data: {
+        metadata: { orderId: order.id, siteId: site_id },
+      },
+    })
 
-    return NextResponse.json({ orderId: order.id, success: true }, { status: 201 })
+    return NextResponse.json({ checkoutUrl: session.url, orderId: order.id }, { status: 201 })
 
   } catch (err: any) {
     console.error('[shop/checkout]', err)

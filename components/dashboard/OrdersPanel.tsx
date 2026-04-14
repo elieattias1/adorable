@@ -31,7 +31,9 @@ type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+  pending_payment: { label: 'Paiement en cours', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-200', icon: Clock },
   pending:   { label: 'En attente',   color: 'text-amber-700',  bg: 'bg-amber-50 border-amber-200',   icon: Clock },
+  paid:      { label: 'Payé',         color: 'text-amber-700',  bg: 'bg-amber-50 border-amber-200',   icon: Clock },
   preparing: { label: 'En prépa',     color: 'text-blue-700',   bg: 'bg-blue-50 border-blue-200',     icon: ChefHat },
   ready:     { label: 'Prêt',         color: 'text-green-700',  bg: 'bg-green-50 border-green-200',   icon: CheckCircle },
   delivered: { label: 'Récupéré',     color: 'text-gray-500',   bg: 'bg-gray-50 border-gray-200',     icon: Bike },
@@ -75,7 +77,7 @@ function OrderCard({ order, onStatusChange }: { order: Order; onStatusChange: (i
   const handleAdvance = async () => {
     if (!nextStep) return
     setUpdating(true)
-    await onStatusChange(order.id, nextStep)
+    onStatusChange(order.id, nextStep)
     setUpdating(false)
   }
 

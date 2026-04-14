@@ -274,10 +274,11 @@ try {
       headers: { 'Content-Type': 'application/json' }
     }));
   });
+  var _origFetch = window.fetch.bind(window);
   window.fetch = function(input, init) {
     var url = typeof input === 'string' ? input : input.url;
     // Only bridge /api/ calls — let CDN/font/etc calls go through normally
-    if (url.charAt(0) !== '/') return fetch.apply(window, [input, init]);
+    if (url.charAt(0) !== '/') return _origFetch(input, init);
     return new Promise(function(resolve) {
       var id = Math.random().toString(36).slice(2);
       _pending[id] = resolve;

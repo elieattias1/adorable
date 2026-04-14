@@ -14,7 +14,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { isAdminUserClient } from '@/lib/admin'
 import { Toast, type ToastState } from '@/components/ui/Toast'
 
-function UpgradeChecker({ onUpgraded }: { onUpgraded: () => void }) {
+function UpgradeChecker({ onUpgraded, onOpenProfile }: { onUpgraded: () => void; onOpenProfile: () => void }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   useEffect(() => {
@@ -22,7 +22,11 @@ function UpgradeChecker({ onUpgraded }: { onUpgraded: () => void }) {
       onUpgraded()
       router.replace('/dashboard')
     }
-  }, [searchParams, router, onUpgraded])
+    if (searchParams.get('profile') === '1') {
+      onOpenProfile()
+      router.replace('/dashboard')
+    }
+  }, [searchParams, router, onUpgraded, onOpenProfile])
   return null
 }
 
@@ -326,7 +330,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#fafaf9] text-gray-900 flex flex-col">
       <Suspense fallback={null}>
-        <UpgradeChecker onUpgraded={() => setToast({ msg: 'Bienvenue sur Pro ! 🎉 Ton abonnement est actif.', type: 'success' })} />
+        <UpgradeChecker
+          onUpgraded={() => setToast({ msg: 'Bienvenue sur Pro ! 🎉 Ton abonnement est actif.', type: 'success' })}
+          onOpenProfile={() => setShowProfile(true)}
+        />
       </Suspense>
 
       {/* Nav */}

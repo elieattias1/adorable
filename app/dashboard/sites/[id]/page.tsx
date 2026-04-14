@@ -1201,7 +1201,7 @@ export default function SiteDashboardPage() {
 
           <ThemeToggle />
 
-          <a href="/dashboard" title="Mon profil"
+          <a href="/dashboard?profile=1" title="Mon profil"
             className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-[11px] font-bold text-white hover:ring-2 hover:ring-violet-500/60 transition-all">
             {initials}
           </a>
