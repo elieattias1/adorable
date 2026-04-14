@@ -78,6 +78,10 @@ const GenerateSchema = z.object({
 
 const HAIKU = 'claude-haiku-4-5-20251001'
 
+/** Strip escaped apostrophes the model occasionally emits — \' is invalid in JSX text */
+function sanitizeCode(code: string): string {
+  return code.split("\\'").join("'")
+}
 
 async function runSequentialGeneration(opts: {
   siteId:      string
@@ -455,7 +459,7 @@ export async function POST(req: NextRequest) {
         if (finalCode) {
           const { error: siteErr, data: savedSite } = await supabaseAdmin
             .from('sites')
-            .update({ html: finalCode, updated_at: new Date().toISOString() })
+            .update({ html: sanitizeCode(finalCode), updated_at: new Date().toISOString() })
             .eq('id', siteId)
             .select('id')
             .single()
@@ -545,7 +549,7 @@ export async function PUT(req: NextRequest) {
 
     await Promise.all([
       supabaseAdmin.from('versions').insert({ site_id: siteId, user_id: user.id, html: siteCode, note: 'Version initiale' }),
-      supabaseAdmin.from('sites').update({ html: siteCode }).eq('id', siteId),
+      supabaseAdmin.from('sites').update({ html: sanitizeCode(siteCode) }).eq('id', siteId),
     ])
 
     return NextResponse.json({ code: siteCode, success: true })
