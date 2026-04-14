@@ -14,22 +14,15 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = targetUserId ?? user.id
-  const { data, error, count } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('profiles')
     .update({ plan, updated_at: new Date().toISOString() })
     .eq('id', userId)
     .select('id, plan')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data || data.length === 0) return NextResponse.json({ error: `No profile found for user ${userId}` }, { status: 404 })
 
-  // If 0 rows updated the profile row may not exist yet — upsert it
-  if (!data || data.length === 0) {
-    const { error: upsertErr } = await supabaseAdmin
-      .from('profiles')
-      .upsert({ id: userId, plan, updated_at: new Date().toISOString() })
-    if (upsertErr) return NextResponse.json({ error: upsertErr.message }, { status: 500 })
-  }
-
-  console.log(`[admin/plan] updated user ${userId} → ${plan} (rows: ${data?.length ?? 0})`)
+  console.log(`[admin/plan] updated user ${userId} → ${plan}`)
   return NextResponse.json({ success: true, plan })
 }
