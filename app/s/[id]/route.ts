@@ -16,9 +16,16 @@ function isReactCode(content: string): boolean {
 
 // ── Server-side preprocessors (applied before JSON.stringify so no escaping hell) ──
 
-// Escape French apostrophes in single-quoted strings: L'Artisan → L\'Artisan
-function fixApostrophes(code: string): string {
-  return code.replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\\'$2")
+const SITE_TYPE_FAVICON: Record<string, string> = {
+  bakery:     '🥐',
+  restaurant: '🍽️',
+  cafe:       '☕',
+  default:    '⚡',
+}
+
+function getFavicon(type?: string | null): string {
+  const emoji = SITE_TYPE_FAVICON[type ?? ''] ?? SITE_TYPE_FAVICON.default
+  return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${emoji}</text></svg>`
 }
 
 
@@ -31,7 +38,7 @@ export async function GET(
 
   const { data: site } = await supabaseAdmin
     .from('sites')
-    .select('id, name, html, is_published')
+    .select('id, name, html, type, is_published')
     .eq('id', id)
     .single()
 
@@ -82,7 +89,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
       .replace(/(site_id\s*[=:]\s*['"])([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(['"])/g,
         (_, pre, _id, post) => `${pre}${siteId}${post}`)
   }
-  const processedCode = patchSiteId(fixApostrophes(site.html), id)
+  const processedCode = patchSiteId(site.html, id)
   const codeJson = JSON.stringify(processedCode)
   const cdnJson  = {
     react:      JSON.stringify(CDN.react),
@@ -97,6 +104,7 @@ Site en cours de migration — ouvre l'éditeur pour régénérer.
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${siteName}</title>
+  <link rel="icon" href="${getFavicon(site.type)}" />
   <script id="babel-script" src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
