@@ -16,16 +16,9 @@ function isReactCode(content: string): boolean {
 
 // ── Server-side preprocessors (applied before JSON.stringify so no escaping hell) ──
 
-// fav.farm converts emoji to PNG favicons — simple, no encoding issues
-const SITE_TYPE_FAVICON: Record<string, string> = {
-  bakery:     'https://fav.farm/%F0%9F%A5%90',  // 🥐
-  restaurant: 'https://fav.farm/%F0%9F%8D%BD',  // 🍽️
-  cafe:       'https://fav.farm/%E2%98%95',      // ☕
-  default:    'https://fav.farm/%E2%9A%A1',      // ⚡
-}
-
 function getFavicon(type?: string | null): string {
-  return SITE_TYPE_FAVICON[type ?? ''] ?? SITE_TYPE_FAVICON.default
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://adorable.click'
+  return `${appUrl}/api/favicon?type=${type ?? 'default'}`
 }
 
 
