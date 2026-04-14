@@ -459,7 +459,9 @@ function EditorPage() {
       {/* Split layout */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative">
         {/* Preview */}
-        <div className="flex-1 flex flex-col min-h-0 min-w-0">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0 relative">
+          {/* Drag shield — blocks iframe from swallowing mouse events during resize */}
+          {resizing && <div className="absolute inset-0 z-10 cursor-col-resize" />}
           <CodePreview
             code={siteCode}
             isGenerating={isGenerating}
