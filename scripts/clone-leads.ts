@@ -4,21 +4,20 @@
  * Clones a "master template" bakery site for every lead in the `leads` table
  * that matches the target region (val d'oise by default) and hasn't been built yet.
  *
- * For each lead Claude (Haiku) substitutes only:
- *   - bakery name
- *   - address
- *   - phone / contact info
- *   - siteId in API fetch calls (via regex)
- * The design, layout, images, and products are left unchanged.
+ * Substitution strategy — two steps, no regex:
+ *   1. Haiku reads the template code and returns the EXACT strings used for
+ *      name / address / phone / email (tiny JSON response, no truncation risk).
+ *   2. We do plain replaceAll() with the new bakery's values.
+ *   The siteId is also swapped with a plain replaceAll().
  *
  * After creation the lead's `site_id` and `status` are updated to 'built'.
  *
  * Usage:
  *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts
  *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --dry-run
- *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --dept=95          # filter by departement
- *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --postcode=95260   # filter by postcode prefix
- *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --limit=5          # max N leads
+ *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --dept=95
+ *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --postcode=95100
+ *   ADMIN_USER_ID=<uuid> npx tsx scripts/clone-leads.ts --limit=5
  *
  * Prerequisites:
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY in .env.local
@@ -96,8 +95,8 @@ async function fetchLeads(): Promise<DbLead[]> {
     .from('leads')
     .select('id, business_name, address, phone, email, city, postcode, departement, notes, site_id, status')
     .eq('user_id', ADMIN_USER_ID!)
-    .is('site_id', null)          // not yet built
-    .neq('status', 'closed')      // exclude closed leads
+    .is('site_id', null)
+    .neq('status', 'closed')
 
   if (POSTCODE_PREFIX) {
     query = query.like('postcode', `${POSTCODE_PREFIX}%`)
@@ -122,72 +121,94 @@ async function fetchTemplateCode(): Promise<{ html: string; name: string }> {
   return data as { html: string; name: string }
 }
 
-// ── Claude Haiku substitution ──────────────────────────────────────────────────
-// Swaps only the business-specific text — name, address, phone, email.
-// Everything else (design, images, layout, API calls) is preserved verbatim.
+// ── Step 1: extract exact strings used in the template ────────────────────────
+// Haiku returns a tiny JSON — no risk of truncation, no regex needed.
 
-async function substituteBusinessInfo(
-  templateCode: string,
-  templateName: string,
-  lead:         DbLead,
-): Promise<string> {
-  const lines = [
-    `- Nom : "${lead.business_name}"`,
-    lead.address ? `- Adresse : "${lead.address}${lead.city ? ', ' + lead.city : ''}"` : '',
-    lead.phone   ? `- Téléphone : "${lead.phone}"`   : '',
-    lead.email   ? `- Email : "${lead.email}"`        : '',
-    lead.notes   ? `- Note : ${lead.notes}`           : '',
-  ].filter(Boolean).join('\n')
+interface TemplateStrings {
+  name:    string
+  address: string | null
+  phone:   string | null
+  email:   string | null
+}
 
-  const prompt = `Tu es un développeur React. Voici le code source d'un site de boulangerie nommée "${templateName}".
-Ton seul travail : remplacer le nom, l'adresse, le téléphone et l'email de la boulangerie par les nouvelles valeurs ci-dessous.
+let cachedTemplateStrings: TemplateStrings | null = null
 
-NOUVELLE BOULANGERIE :
-${lines}
+async function extractTemplateStrings(templateCode: string, templateName: string): Promise<TemplateStrings> {
+  if (cachedTemplateStrings) return cachedTemplateStrings
 
-RÈGLES ABSOLUES :
-1. Remplace uniquement les chaînes de texte qui correspondent au nom, à l'adresse, au téléphone ou à l'email de la boulangerie actuelle.
-2. Ne modifie JAMAIS : les couleurs, la mise en page, les images Unsplash, les URLs d'API, les classes Tailwind, la logique JavaScript, les imports, les hooks React.
-3. Si une information n'est pas fournie, garde le texte original de la boulangerie template.
-4. Retourne UNIQUEMENT le code React modifié. Aucune explication, aucun backtick, aucune balise.
+  const prompt = `This is the source code of a bakery website named "${templateName}".
+Find the exact string literals used in the JSX for:
+- the bakery's display name
+- the full address
+- the phone number
+- the contact email (if any)
 
-CODE SOURCE :
-${templateCode}`
+Return ONLY a JSON object with these keys: name, address, phone, email.
+Use null for anything not found. No explanation, no markdown.`
 
   const res = await anthropic.messages.create({
     model:      'claude-haiku-4-5-20251001',
-    max_tokens: 16000,
-    messages:   [{ role: 'user', content: prompt }],
+    max_tokens: 300,
+    messages:   [{ role: 'user', content: `${prompt}\n\nCODE:\n${templateCode.slice(0, 6000)}` }],
   })
 
   const text = res.content.find(b => b.type === 'text')?.text ?? ''
-  if (!text || text.length < 200) throw new Error('Claude returned empty or truncated response')
-  return text.trim()
+  const json = text.match(/\{[\s\S]*\}/)?.[0]
+  if (!json) throw new Error(`Could not extract template strings from: ${text}`)
+
+  cachedTemplateStrings = JSON.parse(json) as TemplateStrings
+  console.log(`   Template strings: ${JSON.stringify(cachedTemplateStrings)}`)
+  return cachedTemplateStrings
 }
 
-// ── Patch siteId in API fetch calls ───────────────────────────────────────────
+// ── Step 2: plain replaceAll substitution ─────────────────────────────────────
 
-function patchSiteId(code: string, newSiteId: string): string {
-  return code
-    .replace(/([?&]siteId=['"]?)([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/g,
-      (_, prefix) => `${prefix}${newSiteId}`)
-    .replace(/(site_id\s*[=:]\s*['"])([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(['"])/g,
-      (_, pre, _id, post) => `${pre}${newSiteId}${post}`)
+function applySubstitutions(
+  code:            string,
+  templateStrings: TemplateStrings,
+  lead:            DbLead,
+  newSiteId:       string,
+): string {
+  let result = code
+
+  // Swap siteId — plain string replace, no regex
+  result = result.split(TEMPLATE_SITE_ID).join(newSiteId)
+
+  // Swap business info — only replace where the template value is known
+  if (templateStrings.name) {
+    result = result.split(templateStrings.name).join(lead.business_name)
+  }
+
+  const fullAddress = [lead.address, lead.city].filter(Boolean).join(', ')
+  if (templateStrings.address && fullAddress) {
+    result = result.split(templateStrings.address).join(fullAddress)
+  }
+
+  if (templateStrings.phone && lead.phone) {
+    result = result.split(templateStrings.phone).join(lead.phone)
+  }
+
+  if (templateStrings.email && lead.email) {
+    result = result.split(templateStrings.email).join(lead.email)
+  }
+
+  return result
 }
 
 // ── Seed products ──────────────────────────────────────────────────────────────
 
 async function seedProducts(siteId: string) {
   const rows = DEFAULT_BAKERY_PRODUCTS.map((p, i) => ({
-    id:          randomUUID(),
-    site_id:     siteId,
-    name:        p.name,
-    category:    p.category,
-    price_cents: p.price_cents,
-    emoji:       p.emoji,
-    photo_url:   p.photo_url,
-    sort_order:  p.sort_order ?? i,
-    is_visible:  true,
+    id:         randomUUID(),
+    site_id:    siteId,
+    user_id:    ADMIN_USER_ID,
+    name:       p.name,
+    category:   p.category,
+    price:      p.price_cents,   // column is `price`, stores cents
+    emoji:      p.emoji,
+    photo_url:  p.photo_url,
+    sort_order: p.sort_order ?? i,
+    active:     true,
   }))
   const { error } = await supabase.from('products').insert(rows)
   if (error) console.warn(`  ⚠  products seed error: ${error.message}`)
@@ -195,59 +216,50 @@ async function seedProducts(siteId: string) {
 
 // ── Create site + update lead ──────────────────────────────────────────────────
 
-async function createSiteForLead(lead: DbLead, html: string): Promise<string> {
-  const siteId  = randomUUID()
-  const patched = patchSiteId(html, siteId)
+async function createSiteForLead(lead: DbLead, html: string, siteId: string): Promise<void> {
+  if (DRY_RUN) return
 
-  if (DRY_RUN) {
-    console.log(`  [DRY-RUN] site id would be ${siteId}`)
-    return siteId
-  }
-
-  // 1. Insert site
   const { error: siteErr } = await supabase.from('sites').insert({
     id:           siteId,
     user_id:      ADMIN_USER_ID,
     name:         lead.business_name,
-    type:         'boulangerie',
-    html:         patched,
+    type:         'bakery',
+    html,
     is_published: false,
     view_count:   0,
   })
   if (siteErr) throw new Error(`Site insert failed: ${siteErr.message}`)
 
-  // 2. Seed products
   await seedProducts(siteId)
 
-  // 3. Update lead → mark built
   await supabase
     .from('leads')
     .update({ site_id: siteId, status: 'built', updated_at: new Date().toISOString() })
     .eq('id', lead.id)
 
-  return siteId
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 async function main() {
-  const filterDesc = POSTCODE_PREFIX
-    ? `postcode ${POSTCODE_PREFIX}*`
-    : `${DEPT_FILTER}`
+  const filterDesc = POSTCODE_PREFIX ? `postcode ${POSTCODE_PREFIX}*` : DEPT_FILTER
 
   console.log(`\n🍞  Clone Leads — ${filterDesc}${DRY_RUN ? '  [DRY-RUN]' : ''}`)
   console.log(`   Template  : ${APP_URL}/s/${TEMPLATE_SITE_ID}`)
   console.log()
 
-  // Fetch leads + template in parallel
   const [leads, template] = await Promise.all([fetchLeads(), fetchTemplateCode()])
 
   if (leads.length === 0) {
-    console.log(`ℹ️  No unbuilt leads found for ${filterDesc}. Nothing to do.`)
+    console.log(`ℹ️  No unbuilt leads found for ${filterDesc}.`)
     return
   }
 
-  console.log(`📋  ${leads.length} lead(s) to process (template: "${template.name}")\n`)
+  console.log(`📋  ${leads.length} lead(s) to process (template: "${template.name}")`)
+
+  // Extract template strings once, reuse for all leads
+  const templateStrings = await extractTemplateStrings(template.html, template.name)
+  console.log()
 
   const ok:   Array<{ name: string; url: string }> = []
   const fail: Array<{ name: string; error: string }> = []
@@ -255,9 +267,10 @@ async function main() {
   for (const lead of leads) {
     process.stdout.write(`🔄  ${lead.business_name.padEnd(38)} `)
     try {
-      const substituted = await substituteBusinessInfo(template.html, template.name, lead)
-      const siteId      = await createSiteForLead(lead, substituted)
-      const url         = `${APP_URL}/s/${siteId}`
+      const siteId  = randomUUID()
+      const html    = applySubstitutions(template.html, templateStrings, lead, siteId)
+      await createSiteForLead(lead, html, siteId)
+      const url     = `${APP_URL}/s/${siteId}`
       ok.push({ name: lead.business_name, url })
       console.log(`✅  ${url}`)
     } catch (err) {
