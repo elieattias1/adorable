@@ -26,7 +26,7 @@ const SITE_TYPE_FAVICON: Record<string, string> = {
 function getFavicon(type?: string | null): string {
   const emoji = SITE_TYPE_FAVICON[type ?? ''] ?? SITE_TYPE_FAVICON.default
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${emoji}</text></svg>`
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
 }
 
 
