@@ -48,6 +48,7 @@ function EditorPage() {
   const [showAssets,    setShowAssets]    = useState(false)
   const [previewMode,   setPreviewMode]   = useState<'desktop' | 'mobile'>('desktop')
   const [sideWidth,     setSideWidth]     = useState(380)
+  const [resizing,      setResizing]      = useState(false)
   const isDragging      = useRef(false)
   const dragStartX      = useRef(0)
   const dragStartWidth  = useRef(380)
@@ -56,6 +57,7 @@ function EditorPage() {
     isDragging.current     = true
     dragStartX.current     = e.clientX
     dragStartWidth.current = sideWidth
+    setResizing(true)
     e.preventDefault()
   }
 
@@ -63,10 +65,14 @@ function EditorPage() {
     const onMove = (e: MouseEvent) => {
       if (!isDragging.current) return
       const delta    = dragStartX.current - e.clientX
-      const newWidth = Math.max(260, Math.min(640, dragStartWidth.current + delta))
+      const newWidth = Math.max(260, Math.min(700, dragStartWidth.current + delta))
       setSideWidth(newWidth)
     }
-    const onUp = () => { isDragging.current = false }
+    const onUp = () => {
+      if (!isDragging.current) return
+      isDragging.current = false
+      setResizing(false)
+    }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup',   onUp)
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
@@ -476,7 +482,7 @@ function EditorPage() {
 
         {/* Chat panel */}
         <div
-          className={`hidden md:flex flex-col min-h-0 min-w-0 transition-all duration-300 ${showChat ? '' : 'w-0 overflow-hidden'}`}
+          className={`hidden md:flex flex-col min-h-0 min-w-0 ${resizing ? '' : 'transition-all duration-300'} ${showChat ? '' : 'w-0 overflow-hidden'}`}
           style={showChat ? { width: sideWidth, flexShrink: 0 } : undefined}
         >
           <ChatPanel
