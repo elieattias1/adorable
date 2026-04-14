@@ -23,7 +23,7 @@ interface Order {
   note:           string | null
   pickup_at:      string | null
   created_at:     string
-  items?:         OrderItem[]
+  order_items?:   OrderItem[]
 }
 
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
@@ -110,27 +110,37 @@ function OrderCard({ order, onStatusChange }: { order: Order; onStatusChange: (i
       {/* Expanded details */}
       {expanded && (
         <div className="border-t border-current/10 bg-white px-4 py-3 space-y-3">
-          {/* Contact */}
+          {/* Contact + pickup */}
           <div className="text-xs text-gray-500 space-y-0.5">
             <p>{order.customer_email}</p>
-            {order.customer_phone && <p>{order.customer_phone}</p>}
+            {order.customer_phone && <p>📞 {order.customer_phone}</p>}
+            {order.pickup_at && (
+              <p className="text-violet-700 font-semibold mt-1">
+                🕐 Retrait : {new Date(order.pickup_at).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
             {order.note && (
               <p className="text-amber-700 font-medium mt-1">💬 {order.note}</p>
             )}
           </div>
 
-          {/* Items */}
-          {order.items && order.items.length > 0 && (
-            <div className="space-y-1">
-              {order.items.map(item => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-gray-700">{item.quantity}× {item.name}</span>
-                  <span className="text-gray-500">{formatPrice(item.price_cents * item.quantity)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between text-sm font-bold pt-1 border-t border-gray-100">
-                <span>Total</span>
-                <span>{formatPrice(order.total_cents)}</span>
+          {/* Items + total */}
+          {order.order_items && order.order_items.length > 0 && (
+            <div className="rounded-lg border border-gray-100 overflow-hidden">
+              <div className="divide-y divide-gray-50">
+                {order.order_items.map(item => (
+                  <div key={item.id} className="flex justify-between items-center px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">{item.quantity}</span>
+                      <span className="text-gray-800">{item.name}</span>
+                    </div>
+                    <span className="text-gray-500 text-xs">{formatPrice(item.price_cents * item.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between items-center px-3 py-2 bg-gray-50 border-t border-gray-100">
+                <span className="text-sm font-bold text-gray-900">Total</span>
+                <span className="text-sm font-bold text-gray-900">{formatPrice(order.total_cents)}</span>
               </div>
             </div>
           )}
