@@ -148,7 +148,7 @@ Panier : const [cart, setCart] = useState({})  // { [productId]: quantity }
 Checkout (PAS de Stripe, PAS de redirection) :
   const res = await fetch('${shopEndpoint}/shop/checkout', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ site_id:'${shopSiteId}', customer_name, customer_email, customer_phone, note, items })
+    body: JSON.stringify({ site_id:'${shopSiteId}', customer_name, customer_email, customer_phone, note, pickup_at, items })
   })
   const data = await res.json()
   if (data.orderId) setStatus('success')  // ← afficher confirmation, jamais window.location
@@ -159,8 +159,9 @@ Affichage :
 - ⚠️ PHOTOS DYNAMIQUES : utilise TOUJOURS product.photo_url pour l'image — NE JAMAIS hardcoder des URLs d'images, NE JAMAIS inventer des produits en dur dans le code. Les produits viennent UNIQUEMENT du fetch. Si product.photo_url est null, affiche product.emoji ?? "🛍" dans un div coloré à la place
 - ⚠️ PAS de tableau de produits hardcodé dans le code — le state products[] est alimenté UNIQUEMENT par le fetch API
 - Badge panier flottant (total + bouton "Commander")
-- Modal commande : Nom*, Email*, Téléphone (optionnel), Note (optionnel)
-- Succès : "✅ Commande confirmée ! Nous vous contacterons pour l'heure de retrait."
+- Modal commande : Nom*, Email*, Téléphone (optionnel), Note (optionnel), Date & heure de retrait* (OBLIGATOIRE — input type="datetime-local", min = maintenant)
+- Validation : bloquer l'envoi si pickup_at est vide — afficher "Veuillez choisir une date de retrait"
+- Succès : "✅ Commande confirmée ! Retrait prévu le [date formatée]."
 - Si produits vides : "Catalogue bientôt disponible"` : ''}
 
 ━━ RÈGLES ABSOLUES ━━
