@@ -137,7 +137,10 @@ async function fetchTemplateCode(): Promise<{ html: string; name: string }> {
 
 interface TemplateStrings {
   name:      string
-  address:   string | null
+  address:   string | null   // full address as one string
+  street:    string | null   // street only (may appear separately)
+  city:      string | null   // city only
+  postcode:  string | null   // postcode only
   phone:     string | null
   email:     string | null
   instagram: string | null
@@ -151,18 +154,20 @@ async function extractTemplateStrings(templateCode: string, templateName: string
   const prompt = `This is the React source code of a bakery website named "${templateName}".
 Find the EXACT string literals that appear in the JSX/JS for:
 - the bakery display name (as shown to visitors)
-- the full street address
+- the full street address as one string (e.g. "12 rue de la Roquette, 75011 Paris")
+- the street/number part only if it appears separately (e.g. "12 rue de la Roquette")
+- the city only if it appears separately (e.g. "Paris")
+- the postcode only if it appears separately (e.g. "75011")
 - the phone number
 - the contact email
 - the Instagram handle or URL
-- the full <img .../> or <img ...> JSX tag of the decorative photo in the "nous rendre visite" / visit us / contact section (the photo of the baker/bakery, not a product image). Copy it character-for-character including all attributes and the closing slash.
 
-Return ONLY a JSON object: { "name": "...", "address": "...", "phone": "...", "email": "...", "instagram": "...", "contact_photo": "..." }
+Return ONLY a JSON object: { "name": "...", "address": "...", "street": "...", "city": "...", "postcode": "...", "phone": "...", "email": "...", "instagram": "..." }
 Use null for anything not present. Copy the strings character-for-character as they appear in the code.`
 
   const res = await anthropic.messages.create({
     model:      'claude-haiku-4-5-20251001',
-    max_tokens: 600,
+    max_tokens: 800,
     messages:   [{ role: 'user', content: `${prompt}\n\nCODE:\n${templateCode}` }],
   })
 
@@ -233,6 +238,17 @@ function applySubstitutions(
   const fullAddress = [lead.address, lead.city].filter(Boolean).join(', ')
   if (templateStrings.address && fullAddress) {
     result = result.split(templateStrings.address).join(fullAddress)
+  }
+
+  // Replace address components that may appear separately in the template
+  if (templateStrings.street && lead.address) {
+    result = result.split(templateStrings.street).join(lead.address)
+  }
+  if (templateStrings.city && lead.city) {
+    result = result.split(templateStrings.city).join(lead.city)
+  }
+  if (templateStrings.postcode && lead.postcode) {
+    result = result.split(templateStrings.postcode).join(lead.postcode)
   }
 
   if (templateStrings.phone && lead.phone) {
