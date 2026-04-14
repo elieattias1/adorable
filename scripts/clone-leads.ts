@@ -83,6 +83,7 @@ interface DbLead {
   city:          string | null
   postcode:      string | null
   departement:   string | null
+  instagram:     string | null
   notes:         string | null
   site_id:       string | null
   status:        string
@@ -93,7 +94,7 @@ interface DbLead {
 async function fetchLeads(): Promise<DbLead[]> {
   let query = supabase
     .from('leads')
-    .select('id, business_name, address, phone, email, city, postcode, departement, notes, site_id, status')
+    .select('id, business_name, address, phone, email, city, postcode, departement, instagram, notes, site_id, status')
     .eq('user_id', ADMIN_USER_ID!)
     .is('site_id', null)
     .neq('status', 'closed')
@@ -125,10 +126,11 @@ async function fetchTemplateCode(): Promise<{ html: string; name: string }> {
 // Haiku returns a tiny JSON — no risk of truncation, no regex needed.
 
 interface TemplateStrings {
-  name:    string
-  address: string | null
-  phone:   string | null
-  email:   string | null
+  name:      string
+  address:   string | null
+  phone:     string | null
+  email:     string | null
+  instagram: string | null
 }
 
 let cachedTemplateStrings: TemplateStrings | null = null
@@ -136,27 +138,30 @@ let cachedTemplateStrings: TemplateStrings | null = null
 async function extractTemplateStrings(templateCode: string, templateName: string): Promise<TemplateStrings> {
   if (cachedTemplateStrings) return cachedTemplateStrings
 
-  const prompt = `This is the source code of a bakery website named "${templateName}".
-Find the exact string literals used in the JSX for:
-- the bakery's display name
-- the full address
+  const prompt = `This is the React source code of a bakery website named "${templateName}".
+Find the EXACT string literals that appear in the JSX/JS for:
+- the bakery display name (as shown to visitors)
+- the full street address
 - the phone number
-- the contact email (if any)
+- the contact email
+- the Instagram handle or URL
 
-Return ONLY a JSON object with these keys: name, address, phone, email.
-Use null for anything not found. No explanation, no markdown.`
+Return ONLY a JSON object: { "name": "...", "address": "...", "phone": "...", "email": "...", "instagram": "..." }
+Use null for anything not present. Copy the strings character-for-character as they appear in the code.`
 
   const res = await anthropic.messages.create({
     model:      'claude-haiku-4-5-20251001',
-    max_tokens: 300,
-    messages:   [{ role: 'user', content: `${prompt}\n\nCODE:\n${templateCode.slice(0, 6000)}` }],
+    max_tokens: 400,
+    messages:   [{ role: 'user', content: `${prompt}\n\nCODE:\n${templateCode}` }],
   })
 
   const text = res.content.find(b => b.type === 'text')?.text ?? ''
-  const json = text.match(/\{[\s\S]*\}/)?.[0]
-  if (!json) throw new Error(`Could not extract template strings from: ${text}`)
+  // Extract the JSON object from the response
+  const start = text.indexOf('{')
+  const end   = text.lastIndexOf('}')
+  if (start === -1 || end === -1) throw new Error(`Could not extract template strings. Response: ${text}`)
 
-  cachedTemplateStrings = JSON.parse(json) as TemplateStrings
+  cachedTemplateStrings = JSON.parse(text.slice(start, end + 1)) as TemplateStrings
   console.log(`   Template strings: ${JSON.stringify(cachedTemplateStrings)}`)
   return cachedTemplateStrings
 }
@@ -190,6 +195,10 @@ function applySubstitutions(
 
   if (templateStrings.email && lead.email) {
     result = result.split(templateStrings.email).join(lead.email)
+  }
+
+  if (templateStrings.instagram && lead.instagram) {
+    result = result.split(templateStrings.instagram).join(lead.instagram)
   }
 
   return result
