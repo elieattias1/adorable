@@ -25,7 +25,7 @@ interface Site {
   site_config: Record<string, unknown> | null
 }
 interface Submission { id: string; form_name: string; data: Record<string, string> | null; name: string | null; email: string | null; message: string | null; read: boolean | null; read_at: string | null; created_at: string }
-interface DashData { site: Site; versionCount: number; submissionCount: number }
+interface DashData { site: Site; versionCount: number; submissionCount: number; orderCount: number; customerCount: number; ordersTotalCents: number }
 
 const fmt     = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 const fmtTime = (d: string) => new Date(d).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -65,8 +65,9 @@ const SECTIONS = [
 // ─── Section: Overview ─────────────────────────────────────────────────────────
 
 function OverviewSection({ data, submissions }: { data: DashData; submissions: Submission[] }) {
-  const { site, versionCount, submissionCount } = data
+  const { site, versionCount, submissionCount, orderCount, customerCount, ordersTotalCents } = data
   const unread = submissions.filter(s => !s.read_at).length
+  const fmtEur = (cents: number) => (cents / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
   return (
     <div className="space-y-6">
@@ -105,8 +106,8 @@ function OverviewSection({ data, submissions }: { data: DashData; submissions: S
           <div className="grid grid-cols-2 gap-3">
             <StatCard icon={Eye}           label="Visites"   value={site.view_count}   sub="Total cumulé"                              color="violet" />
             <StatCard icon={MessageSquare} label="Contacts"  value={submissionCount}   sub={`${unread} non lu${unread !== 1 ? 's' : ''}`} color="blue" />
-            <StatCard icon={Clock}         label="Versions"  value={versionCount}      sub="Historique"                                color="green" />
-            <StatCard icon={TrendingUp}    label="Modifié"   value={fmt(site.updated_at)} sub={`Créé ${fmt(site.created_at)}`}          color="pink" />
+            <StatCard icon={Users}         label="Clients"   value={customerCount}     sub={`${orderCount} commande${orderCount !== 1 ? 's' : ''}`} color="green" />
+            <StatCard icon={ShoppingBag}   label="CA total"  value={fmtEur(ordersTotalCents)} sub="Commandes confirmées"              color="pink" />
           </div>
           {/* Recent messages */}
           {submissions.length > 0 && (

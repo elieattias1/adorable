@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   const { id } = await params
 
-  const [siteRes, versionsRes, submissionsRes] = await Promise.all([
+  const [siteRes, versionsRes, submissionsRes, ordersRes] = await Promise.all([
     supabaseAdmin.from('sites')
       .select('*')
       .eq('id', id).eq('user_id', user.id).single(),
@@ -22,14 +22,24 @@ export async function GET(_req: NextRequest, { params }: Params) {
     supabaseAdmin.from('contact_submissions')
       .select('id', { count: 'exact', head: true })
       .eq('site_id', id),
+    supabaseAdmin.from('orders')
+      .select('total_cents, customer_email, status')
+      .eq('site_id', id)
+      .not('status', 'in', '(cancelled,pending_payment)'),
   ])
 
   if (!siteRes.data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const orders = ordersRes.data ?? []
+  const uniqueEmails = new Set(orders.map((o: any) => o.customer_email?.toLowerCase()).filter(Boolean))
 
   return NextResponse.json({
     site:             siteRes.data,
     versionCount:     versionsRes.count ?? 0,
     submissionCount:  submissionsRes.count ?? 0,
+    orderCount:       orders.length,
+    customerCount:    uniqueEmails.size,
+    ordersTotalCents: orders.reduce((s: number, o: any) => s + (o.total_cents ?? 0), 0),
   })
 }
 
